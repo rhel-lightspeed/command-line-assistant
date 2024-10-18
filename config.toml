@@ -1,0 +1,16 @@
+[output]
+# otherwise recording via script session will be enforced
+enforce_script = false
+# file with output(s) of regular commands (e.g. ls, echo, etc.)
+file = "/tmp/shellai_output.txt"
+# Keep non-empty if your file contains only output of commands (not prompt itself)
+prompt_separator = "$"
+
+[history]
+enabled = true
+file = "~/.local/share/shellai/shellai_history.json"
+# max number of queries in history (including responses)
+max_size = 100
+
+[backend]
+endpoint = "http://0.0.0.0:8080/v1/query/"

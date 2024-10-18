@@ -13,7 +13,6 @@ dependencies = [
     # tomli is only required below 3.11 as it is native after that version.
     'tomli; python_version<"3.11"',
     "requests",
-    "pyyaml",
 ]
 requires-python = ">=3.9" # RHEL 9 and 10
 readme = "README.md"
