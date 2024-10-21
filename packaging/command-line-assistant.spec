@@ -17,7 +17,13 @@ BuildRequires:  python3-tomli
 %endif
 
 Requires:       python3-requests
-Requires:       python3-pyyaml
+# Not need after RHEL 10 as it is native in Python 3.11+
+%if 0%{?rhel} && 0%{?rhel} < 10
+Requires:  python3-tomli
+%endif
+
+%global python_package_src command_line_assistant
+%global binary_name c
 
 %description
 A simple wrapper to interact with RAG
@@ -29,15 +35,14 @@ A simple wrapper to interact with RAG
 %py3_build
 
 %install
-# TODO(r0x0d): Create config file
 %py3_install
 
 %files
 %doc README.md
 %license LICENSE
-%{python3_sitelib}/%{name}/
-%{python3_sitelib}/%{name}-*.egg-info/
+%{python3_sitelib}/%{python_package_src}/
+%{python3_sitelib}/%{python_package_src}-*.egg-info/
 # Our binary is just called "c"
-%{_bindir}/c
+%{_bindir}/%{binary_name}
 
 %changelog

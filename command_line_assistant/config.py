@@ -1,18 +1,21 @@
 import json
 import logging
-import os
 from collections import namedtuple
+from pathlib import Path
 
+# tomllib is available in the stdlib after Python3.11. Before that, we import
+# from tomli.
 try:
     import tomllib
 except ImportError:
-    # Needed for versions below RHEL 10.
     import tomli as tomllib
 
-CONFIG_DEFAULT_PATH: str = "~/.config/shellai/config.toml"
+from command_line_assistant import utils
+
+CONFIG_DEFAULT_PATH: Path = Path("~/.config/shellai/config.toml")
 
 # tomllib does not support writting files, so we will create our own.
-CONFIG_TEMPLATE = """
+CONFIG_TEMPLATE = """\
 [output]
 # otherwise recording via script session will be enforced
 enforce_script = {enforce_script}
@@ -29,85 +32,111 @@ max_size = {max_size}
 
 [backend]
 endpoint = "{endpoint}"
-
 """
 
 
-class Output(namedtuple("Output", ["enforce_script", "file", "prompt_separator"])):
+class OutputSchema(
+    namedtuple("Output", ["enforce_script", "file", "prompt_separator"])
+):
+    """This class represents the [output] section of our config.toml file."""
+
+    # Locking down against extra fields at runtime
     __slots__ = ()
 
+    # We are overriding __new__ here because namedtuple only offers default values to fields from Python 3.7+
     def __new__(
         cls,
         enforce_script: bool = False,
         file: str = "/tmp/shellai_output.txt",
         prompt_separator: str = "$",
     ):
-        return super(Output, cls).__new__(cls, enforce_script, file, prompt_separator)
+        file = utils.expand_user_path(file)
+        return super(OutputSchema, cls).__new__(
+            cls, enforce_script, file, prompt_separator
+        )
 
 
-class History(namedtuple("History", ["enabled", "file", "max_size"])):
+class HistorySchema(namedtuple("History", ["enabled", "file", "max_size"])):
+    """This class represents the [history] section of our config.toml file."""
+
+    # Locking down against extra fields at runtime
     __slots__ = ()
 
+    # We are overriding __new__ here because namedtuple only offers default values to fields from Python 3.7+
     def __new__(
         cls,
         enabled: bool = True,
-        file: str = "/tmp/shellai_output.txt",
+        file: str = "~/.local/share/shellai/shellai_history.json",
         max_size: int = 100,
     ):
-        return super(History, cls).__new__(cls, enabled, file, max_size)
+        file = utils.expand_user_path(file)
+        return super(HistorySchema, cls).__new__(cls, enabled, file, max_size)
 
 
-class Backend(namedtuple("Backend", ["endpoint"])):
-    endpoint: str = "http://0.0.0.0:8080/v1/query/"
+class BackendSchema(namedtuple("Backend", ["endpoint"])):
+    """This class represents the [backend] section of our config.toml file."""
+
+    # Locking down against extra fields at runtime
     __slots__ = ()
 
+    # We are overriding __new__ here because namedtuple only offers default values to fields from Python 3.7+
     def __new__(
         cls,
         endpoint: str = "http://0.0.0.0:8080/v1/query/",
     ):
-        return super(Backend, cls).__new__(cls, endpoint)
+        return super(BackendSchema, cls).__new__(cls, endpoint)
 
 
 class Config:
+    """Class that holds our configuration file representation.
+
+    With this class, after being initialized, one can access their fields like:
+
+    >>> config = Config()
+    >>> config.output.enforce_script
+
+    The currently available top-level fields are:
+        * output = Match the `py:Output` class and their fields
+        * history = Match the `py:History` class and their fields
+        * backend = Match the `py:backend` class and their fields
+    """
+
     def __init__(self, output: dict, history: dict, backend: dict) -> None:
-        self.output: Output = Output(**output)
-        self.history: History = History(**history)
-        self.backend: Backend = Backend(**backend)
+        self.output: OutputSchema = OutputSchema(**output)
+        self.history: HistorySchema = HistorySchema(**history)
+        self.backend: BackendSchema = BackendSchema(**backend)
 
 
-def _create_config_file(config_path: str) -> None:
+def _create_config_file(config_file: Path) -> None:
     """Create a new configuration file with default values."""
-    config_dir = os.path.dirname(config_path)
-    logging.info(f"Creating new config file at {config_path}")
-    os.makedirs(config_dir, mode=0o755, exist_ok=True)
-    base_config = Config(Output()._asdict(), History()._asdict(), Backend()._asdict())
 
-    with open(config_path, mode="w") as handler:
-        mapping = {
-            "enforce_script": json.dumps(base_config.output.enforce_script),
-            "output_file": base_config.output.file,
-            "prompt_separator": base_config.output.prompt_separator,
-            "enabled": json.dumps(base_config.history.enabled),
-            "history_file": base_config.history.file,
-            "max_size": base_config.history.max_size,
-            "endpoint": base_config.backend.endpoint,
-        }
-        config_formatted = CONFIG_TEMPLATE.format_map(mapping)
-        handler.write(config_formatted)
+    logging.info(f"Creating new config file at {config_file.parent}")
+    config_file.parent.mkdir(mode=0o755)
+    base_config = Config(
+        OutputSchema()._asdict(), HistorySchema()._asdict(), BackendSchema()._asdict()
+    )
+
+    mapping = {
+        "enforce_script": json.dumps(base_config.output.enforce_script),
+        "output_file": base_config.output.file,
+        "prompt_separator": base_config.output.prompt_separator,
+        "enabled": json.dumps(base_config.history.enabled),
+        "history_file": base_config.history.file,
+        "max_size": base_config.history.max_size,
+        "endpoint": base_config.backend.endpoint,
+    }
+    config_formatted = CONFIG_TEMPLATE.format_map(mapping)
+    config_file.write_text(config_formatted)
 
 
-def _read_config_file(config_path: str) -> Config:
+def _read_config_file(config_file: Path) -> Config:
     """Read configuration file."""
     config_dict = {}
     try:
-        with open(config_path, mode="rb") as handler:
-            config_dict = tomllib.load(handler)
+        data = config_file.read_text()
+        config_dict = tomllib.loads(data)
     except FileNotFoundError as ex:
         logging.error(ex)
-
-    # Normalize filepaths
-    config_dict["history"]["file"] = os.path.expanduser(config_dict["history"]["file"])
-    config_dict["output"]["file"] = os.path.expanduser(config_dict["output"]["file"])
 
     return Config(
         output=config_dict["output"],
@@ -116,17 +145,12 @@ def _read_config_file(config_path: str) -> Config:
     )
 
 
-def load_config_file(config_path: str) -> Config:
+def load_config_file(config_file: Path) -> Config:
     """Load configuration file for shellai.
 
     If the user specifies a path where no config file is located, we will create one with default values.
     """
-    config_file = os.path.expanduser(config_path)
-    # Handle case where the user initiates a config file in current dir.
-    if not os.path.dirname(config_file):
-        config_file = os.path.join(os.path.curdir, config_file)
-
-    if not os.path.exists(config_file):
+    if not config_file.exists():
         _create_config_file(config_file)
 
     return _read_config_file(config_file)

@@ -28,7 +28,7 @@ setup(
     long_description=open(pyproject_settings["project"]["readme"]).read(),
     long_description_content_type="text/markdown",
     url=pyproject_settings["project"]["urls"]["Repository"],
-    packages=[pyproject_settings["project"]["name"]],
+    packages=pyproject_settings["tool"]["setuptools"]["packages"],
     install_requires=pyproject_settings["project"]["dependencies"],
     entry_points=entry_points,
     classifiers=pyproject_settings["project"]["classifiers"],
