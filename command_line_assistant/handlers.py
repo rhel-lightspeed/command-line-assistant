@@ -4,7 +4,7 @@ import os
 
 import requests
 
-from shellai.utils import get_payload
+from command_line_assistant.utils import get_payload
 
 
 def _handle_history_read(config: dict) -> dict:
@@ -14,7 +14,7 @@ def _handle_history_read(config: dict) -> dict:
     if not config.get("enabled", False):
         return []
 
-    filepath = config.get("filepath", "/tmp/shellai_history.json")
+    filepath = config.get("filepath", "/tmp/command-line-assistant_history.json")
     if not filepath or not os.path.exists(filepath):
         logging.warning(f"History file {filepath} does not exist.")
         logging.warning("File will be created with first response.")
@@ -39,7 +39,7 @@ def handle_history_write(config: dict, history: list, response: str) -> None:
     """
     if not config.get("enabled", False):
         return
-    filepath = config.get("filepath", "/tmp/shellai_history.json")
+    filepath = config.get("filepath", "/tmp/command-line-assistant_history.json")
     if response:
         history.append({"role": "assistant", "content": response})
     try:
@@ -49,20 +49,20 @@ def handle_history_write(config: dict, history: list, response: str) -> None:
         logging.error(f"Failed to write history file {filepath}: {e}")
 
 
-def handle_script_session(shellai_tmp_file) -> None:
+def handle_script_session(command_line_assistant_tmp_file) -> None:
     """
     Starts a 'script' session and writes the PID to a file, but leaves control of the terminal to the user.
     """
     # Prepare the script command
-    script_command = ["script", "-f", shellai_tmp_file]
+    script_command = ["script", "-f", command_line_assistant_tmp_file]
 
     # Start the script session and leave control to the terminal
     os.system(" ".join(script_command))
 
     # Remove the captured output after the script session ends
-    if os.path.exists(shellai_tmp_file):
-        logging.info(f"Removing {shellai_tmp_file}")
-        os.remove(shellai_tmp_file)
+    if os.path.exists(command_line_assistant_tmp_file):
+        logging.info(f"Removing {command_line_assistant_tmp_file}")
+        os.remove(command_line_assistant_tmp_file)
 
 
 def _handle_caret(query: str, config: dict) -> str:
@@ -74,7 +74,7 @@ def _handle_caret(query: str, config: dict) -> str:
 
     output_capture_settings = config.get("output_capture_settings", {})
     captured_output_file = output_capture_settings.get(
-        "captured_output_file", "/tmp/shellai_output.txt"
+        "captured_output_file", "/tmp/command-line-assistant_output.txt"
     )
 
     if not os.path.exists(captured_output_file):

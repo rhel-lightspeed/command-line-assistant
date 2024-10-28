@@ -8,13 +8,13 @@ install-tools: ## Install required utilities/tools
 	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip install pdm; }
 	pdm --version
 
-install: install-tools ## Sync all required dependencies for shellai to work
+install: install-tools ## Sync all required dependencies for Command Line Assistant to work
 	pdm sync
 
 install-dev: install-tools ## Sync all development dependencies
 	pdm sync --dev
 
-unit-test: install-dev ## Unit test shellai
+unit-test: install-dev ## Unit test Command Line Assistant
 	@echo "Running tests..."
 	@coverage run -m pytest tests
 	@coverage report

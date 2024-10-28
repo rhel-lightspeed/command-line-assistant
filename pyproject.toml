@@ -1,5 +1,5 @@
 [project]
-name = "shellai"
+name = "command-line-assistant"
 version = "0.1.0"
 description = "A simple wrapper to interact with RAG"
 authors = [
@@ -21,11 +21,11 @@ license = { file = "LICENSE" }
 classifiers = ["Programming Language :: Python :: 3"]
 
 [project.urls]
-Repository = "https://github.com/rhel-lightspeed/shellai.git"
-Issues = "https://github.com/rhel-lightspeed/shellai/issues"
+Repository = "https://github.com/rhel-lightspeed/command-line-assistant.git"
+Issues = "https://github.com/rhel-lightspeed/command-line-assistant/issues"
 
 [project.scripts]
-shellai = "shellai.__main__:main"
+c = "command_line_assistant.__main__:main"
 
 [build-system]
 # pdm build is not available in rhel baseos repositories
@@ -35,7 +35,7 @@ build-backend = "setuptools.build_meta"
 # ----- Tooling specifics
 
 [tool.setuptools]
-packages = ["shellai"]
+packages = ["command_line_assistant"]
 
 [tool.ruff]
 # Enable ruff rules to act like flake8

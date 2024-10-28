@@ -8,8 +8,8 @@ __pycache__/
 # ignore thirdy-party tool caches
 .ruff_cache
 
-# ignore shellai_history
-shellai_history.json
+# ignore command_line_assistant_history
+command_line_assistant_history.json
 
 # ignore venv
 [.]venv/

@@ -9,7 +9,7 @@ import yaml
 def read_yaml_config(config_file: str) -> dict:
     if not os.path.exists(config_file):
         print(
-            f"Config file {config_file} does not exist (use env 'SHELLAI_CONFIG' to change destination).",
+            f"Config file {config_file} does not exist (use env 'COMMAND_LINE_ASSISTANT_CONFIG' to change destination).",
             file=sys.stderr,
         )
         return {}

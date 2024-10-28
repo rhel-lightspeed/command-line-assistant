@@ -1,7 +1,7 @@
-specfile_path: packaging/shellai.spec
-upstream_package_name: shellai
-downstream_package_name: shellai
-upstream_project_url: https://github.com/rhel-lightspeed/shellai
+specfile_path: packaging/command-line-assistant.spec
+upstream_package_name: command-line-assistant
+downstream_package_name: command-line-assistant
+upstream_project_url: https://github.com/rhel-lightspeed/command-line-assistant
 
 srpm_build_deps: []
 
@@ -10,7 +10,7 @@ jobs:
   - job: copr_build
     trigger: pull_request
     owner: "@rhel-lightspeed"
-    project: shellai
+    project: command-line-assistant
     targets:
       - epel-8-x86_64
       - epel-9-x86_64
@@ -18,14 +18,14 @@ jobs:
     actions:
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
-        - grep -oP '^Version:\s+\K\S+' packaging/shellai.spec
+        - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec
 
   # Build RPMs for main branch
   - job: copr_build
     trigger: commit
     branch: main
     owner: "@rhel-lightspeed"
-    project: shellai
+    project: command-line-assistant
     targets:
       - epel-8-x86_64
       - epel-9-x86_64
@@ -34,7 +34,7 @@ jobs:
       # bump spec so we get release starting with 2 and hence all the default branch builds will
       # have higher NVR than all the PR builds
       post-upstream-clone:
-        - rpmdev-bumpspec --comment='latest upstream build' ./packaging/shellai.spec
+        - rpmdev-bumpspec --comment='latest upstream build' ./packaging/command-line-assistant.spec
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
-        - grep -oP '^Version:\s+\K\S+' packaging/shellai.spec
+        - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec

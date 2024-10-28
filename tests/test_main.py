@@ -1,4 +1,4 @@
-from shellai import __main__
+from command_line_assistant import __main__
 
 
 def test_get_args():
