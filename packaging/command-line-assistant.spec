@@ -11,13 +11,13 @@ BuildArch:      noarch
 
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
-# Not need after RHEL 10 as it is native in Python 3.11+
+# Not needed after RHEL 10 as it is native in Python 3.11+
 %if 0%{?rhel} && 0%{?rhel} < 10
 BuildRequires:  python3-tomli
 %endif
 
 Requires:       python3-requests
-# Not need after RHEL 10 as it is native in Python 3.11+
+# Not needed after RHEL 10 as it is native in Python 3.11+
 %if 0%{?rhel} && 0%{?rhel} < 10
 Requires:  python3-tomli
 %endif

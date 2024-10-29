@@ -66,7 +66,7 @@ def main():
     config = load_config_file(config_file)
 
     enforce_script_session = config.output.enforce_script
-    output_file = config.output.enforce_script
+    output_file = config.output.file
 
     if enforce_script_session and (not args.record or not os.path.exists(output_file)):
         parser.error(
