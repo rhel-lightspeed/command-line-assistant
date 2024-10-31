@@ -20,7 +20,7 @@ unit-test: ## Unit test Command Line Assistant
 	@echo "Tests completed."
 
 coverage: ## Generate coverage report from unit-tests
-	coverage xml
+	@coverage xml
 
 help: ## Show available make commands
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
@@ -37,3 +37,4 @@ clean: ## Clean project files
 	@find . -name '*.pyc' -exec rm -f {} +
 	@find . -name '*.pyo' -exec rm -f {} +
 	@rm -rf .pdm-build .ruff_cache .coverage .pdm-python dist
+	@coverage erase

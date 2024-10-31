@@ -56,14 +56,18 @@ distribution = true
 
 [tool.pdm.dev-dependencies]
 dev = [
-    "pytest>=8.3.3",
-    "tox>=4.23.2",
-    "pytest-cov>=6.0.0",
-    "pytest-randomly>=3.16.0",
-    "coverage>=7.6.4",
-    "pytest-sugar>=1.0.0",
-    "pytest-clarity>=1.0.1",
+    "pytest==8.3.3",
+    "pytest-cov==6.0.0",
+    "pytest-randomly==3.16.0",
+    "coverage==7.6.4",
+    "pytest-sugar==1.0.0",
+    "pytest-clarity==1.0.1",
 ]
+
+[tool.pdm.scripts]
+unit-test = "pdm run make unit-test"
+coverage = "pdm run make coverage"
+
 
 [tool.pytest.init_options]
 testpaths = ["tests"]
