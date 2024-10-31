@@ -14,11 +14,13 @@ install: install-tools ## Sync all required dependencies for Command Line Assist
 install-dev: install-tools ## Sync all development dependencies
 	pdm sync --dev
 
-unit-test: install-dev ## Unit test Command Line Assistant
+unit-test: ## Unit test Command Line Assistant
 	@echo "Running tests..."
-	@coverage run -m pytest tests
-	@coverage report
+	@pytest tests --cov
 	@echo "Tests completed."
+
+coverage: ## Generate coverage report from unit-tests
+	coverage xml
 
 help: ## Show available make commands
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'

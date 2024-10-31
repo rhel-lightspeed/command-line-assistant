@@ -2,6 +2,7 @@ import json
 import logging
 from collections import namedtuple
 from pathlib import Path
+from typing import Optional
 
 # tomllib is available in the stdlib after Python3.11. Before that, we import
 # from tomli.
@@ -100,10 +101,19 @@ class Config:
         * backend = Match the `py:backend` class and their fields
     """
 
-    def __init__(self, output: dict, history: dict, backend: dict) -> None:
-        self.output: OutputSchema = OutputSchema(**output)
-        self.history: HistorySchema = HistorySchema(**history)
-        self.backend: BackendSchema = BackendSchema(**backend)
+    def __init__(
+        self,
+        output: Optional[dict] = None,
+        history: Optional[dict] = None,
+        backend: Optional[dict] = None,
+    ) -> None:
+        self.output: OutputSchema = OutputSchema(**output) if output else OutputSchema()
+        self.history: HistorySchema = (
+            HistorySchema(**history) if history else HistorySchema()
+        )
+        self.backend: BackendSchema = (
+            BackendSchema(**backend) if backend else BackendSchema()
+        )
 
 
 def _create_config_file(config_file: Path) -> None:

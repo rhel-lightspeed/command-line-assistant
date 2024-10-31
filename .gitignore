@@ -21,3 +21,7 @@ htmlcov/
 
 # ignore builds
 .pdm-build
+
+# ignore tests specifics
+.tox
+coverage*

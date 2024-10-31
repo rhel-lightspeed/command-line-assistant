@@ -57,8 +57,21 @@ distribution = true
 [tool.pdm.dev-dependencies]
 dev = [
     "pytest>=8.3.3",
-    "coverage",
     "tox>=4.23.2",
     "pytest-cov>=6.0.0",
     "pytest-randomly>=3.16.0",
+    "coverage>=7.6.4",
+    "pytest-sugar>=1.0.0",
+    "pytest-clarity>=1.0.1",
 ]
+
+[tool.pytest.init_options]
+testpaths = ["tests"]
+addopts = ["--cov-report=term-missing", "--cov-report=html"]
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.coverage.run]
+branch = true
+source = ["command_line_assistant"]

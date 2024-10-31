@@ -42,8 +42,7 @@ def handle_history_write(config: Config, history: list, response: str) -> None:
     if not filepath.exists():
         filepath.parent.mkdir(mode=0o755)
 
-    if response:
-        history.append({"role": "assistant", "content": response})
+    history.append({"role": "assistant", "content": response})
 
     try:
         data = json.dumps(history)

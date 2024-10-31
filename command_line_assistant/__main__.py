@@ -1,11 +1,10 @@
-import argparse
 import logging
 import os
 import sys
 from pathlib import Path
 
+from command_line_assistant.cli import get_args
 from command_line_assistant.config import (
-    CONFIG_DEFAULT_PATH,
     load_config_file,
 )
 from command_line_assistant.handlers import (
@@ -13,50 +12,12 @@ from command_line_assistant.handlers import (
     handle_query,
     handle_script_session,
 )
-from command_line_assistant.utils import read_stdin
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler()],
 )
-
-
-def get_args():
-    parser = argparse.ArgumentParser(
-        description="A script with multiple optional arguments and a required positional argument if no optional arguments are provided."
-    )
-
-    parser.add_argument(
-        "--history-clear", action="store_true", help="Clear the history."
-    )
-    parser.add_argument(
-        "--record",
-        action="store_true",
-        help="Initialize a script session (all other arguments will be ignored).",
-    )
-    parser.add_argument(
-        "--config",
-        default=CONFIG_DEFAULT_PATH,
-        help="Path to the config file.",
-    )
-
-    # Positional argument, required only if no optional arguments are provided
-    parser.add_argument("query_string", nargs="?", help="Query string to be processed.")
-
-    args = parser.parse_args()
-    optional_args = [
-        args.history_clear,
-        args.record,
-    ]
-    input_data = read_stdin()
-    if not args.query_string and input_data:
-        logging.debug("stdin detected")
-        args.query_string = input_data.strip()
-
-    if not any(optional_args) and not args.query_string:
-        parser.error("Query string is required if no optional arguments are provided.")
-    return parser, args
 
 
 def main():
