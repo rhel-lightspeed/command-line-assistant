@@ -4,7 +4,7 @@ import logging
 from command_line_assistant.config import Config
 
 
-def handle_history_read(config: Config) -> dict:
+def handle_history_read(config: Config) -> list:
     """
     Reads the history from a file and returns it as a list of dictionaries.
     """

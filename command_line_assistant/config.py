@@ -1,14 +1,15 @@
 import json
 import logging
+import sys
 from collections import namedtuple
 from pathlib import Path
 from typing import Optional
 
 # tomllib is available in the stdlib after Python3.11. Before that, we import
 # from tomli.
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ImportError:
+else:
     import tomli as tomllib
 
 
@@ -51,9 +52,9 @@ class OutputSchema(
         file: str = "/tmp/command-line-assistant_output.txt",
         prompt_separator: str = "$",
     ):
-        file = Path(file).expanduser()
+        expanded_file = Path(file).expanduser()
         return super(OutputSchema, cls).__new__(
-            cls, enforce_script, file, prompt_separator
+            cls, enforce_script, expanded_file, prompt_separator
         )
 
 
@@ -70,8 +71,8 @@ class HistorySchema(namedtuple("History", ["enabled", "file", "max_size"])):
         file: str = "~/.local/share/command-line-assistant/command-line-assistant_history.json",
         max_size: int = 100,
     ):
-        file = Path(file).expanduser()
-        return super(HistorySchema, cls).__new__(cls, enabled, file, max_size)
+        expanded_file = Path(file).expanduser()
+        return super(HistorySchema, cls).__new__(cls, enabled, expanded_file, max_size)
 
 
 class BackendSchema(namedtuple("Backend", ["endpoint", "verify_ssl"])):
