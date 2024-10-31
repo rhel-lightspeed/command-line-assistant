@@ -5,7 +5,15 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
+<<<<<<< HEAD
 content_hash = "sha256:a45c66cfbf86f0eb3410f07bf675a51fdf3427c58e851a1cae6e827d6456ec31"
+=======
+<<<<<<< HEAD
+content_hash = "sha256:f5966a52f460682783dd535f53b290a305bb0c8260fd6ea49ef0bd8de4314f6a"
+=======
+content_hash = "sha256:a45c66cfbf86f0eb3410f07bf675a51fdf3427c58e851a1cae6e827d6456ec31"
+>>>>>>> 84c09de (Write basic unit tests to get the suite started)
+>>>>>>> fb5eec5 (Write basic unit tests to get the suite started)
 
 [[metadata.targets]]
 requires_python = ">=3.9"
@@ -417,6 +425,11 @@ files = [
 ]
 
 [[package]]
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> fb5eec5 (Write basic unit tests to get the suite started)
 name = "pprintpp"
 version = "0.4.0"
 summary = "A drop-in replacement for pprint that's actually pretty"
@@ -453,6 +466,10 @@ files = [
 ]
 
 [[package]]
+<<<<<<< HEAD
+=======
+>>>>>>> 84c09de (Write basic unit tests to get the suite started)
+>>>>>>> fb5eec5 (Write basic unit tests to get the suite started)
 name = "pytest"
 version = "8.3.3"
 requires_python = ">=3.8"
@@ -472,6 +489,16 @@ files = [
 ]
 
 [[package]]
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+name = "pyyaml"
+version = "6.0.2"
+requires_python = ">=3.8"
+summary = "YAML parser and emitter for Python"
+groups = ["default"]
+=======
+>>>>>>> fb5eec5 (Write basic unit tests to get the suite started)
 name = "pytest-clarity"
 version = "1.0.1"
 requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
@@ -482,6 +509,24 @@ dependencies = [
     "pytest>=3.5.0",
     "rich>=8.0.0",
 ]
+<<<<<<< HEAD
+=======
+files = [
+    {file = "pytest-clarity-1.0.1.tar.gz", hash = "sha256:505fe345fad4fe11c6a4187fe683f2c7c52c077caa1e135f3e483fe112db7772"},
+]
+
+[[package]]
+name = "pytest-cov"
+version = "6.0.0"
+requires_python = ">=3.9"
+summary = "Pytest plugin for measuring coverage."
+groups = ["dev"]
+dependencies = [
+    "coverage[toml]>=7.5",
+    "pytest>=4.6",
+]
+>>>>>>> 84c09de (Write basic unit tests to get the suite started)
+>>>>>>> fb5eec5 (Write basic unit tests to get the suite started)
 files = [
     {file = "pytest-clarity-1.0.1.tar.gz", hash = "sha256:505fe345fad4fe11c6a4187fe683f2c7c52c077caa1e135f3e483fe112db7772"},
 ]
@@ -514,6 +559,21 @@ dependencies = [
 files = [
     {file = "pytest_randomly-3.16.0-py3-none-any.whl", hash = "sha256:8633d332635a1a0983d3bba19342196807f6afb17c3eef78e02c2f85dade45d6"},
     {file = "pytest_randomly-3.16.0.tar.gz", hash = "sha256:11bf4d23a26484de7860d82f726c0629837cf4064b79157bd18ec9d41d7feb26"},
+]
+
+[[package]]
+name = "pytest-sugar"
+version = "1.0.0"
+summary = "pytest-sugar is a plugin for pytest that changes the default look and feel of pytest (e.g. progressbar, show tests that fail instantly)."
+groups = ["dev"]
+dependencies = [
+    "packaging>=21.3",
+    "pytest>=6.2.0",
+    "termcolor>=2.1.0",
+]
+files = [
+    {file = "pytest-sugar-1.0.0.tar.gz", hash = "sha256:6422e83258f5b0c04ce7c632176c7732cab5fdb909cb39cca5c9139f81276c0a"},
+    {file = "pytest_sugar-1.0.0-py3-none-any.whl", hash = "sha256:70ebcd8fc5795dc457ff8b69d266a4e2e8a74ae0c3edc749381c64b5246c8dfd"},
 ]
 
 [[package]]
