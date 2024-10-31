@@ -2,8 +2,8 @@ import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 
-from command_line_assistant import utils
 from command_line_assistant.config import (
     CONFIG_DEFAULT_PATH,
     load_config_file,
@@ -62,7 +62,7 @@ def get_args():
 def main():
     parser, args = get_args()
 
-    config_file = utils.expand_user_path(args.config)
+    config_file = Path(args.config).expanduser()
     config = load_config_file(config_file)
 
     enforce_script_session = config.output.enforce_script

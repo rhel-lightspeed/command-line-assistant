@@ -38,7 +38,9 @@ def handle_history_write(config: Config, history: list, response: str) -> None:
         return
 
     filepath = config.history.file
-    filepath.makedirs(mode=0o755)
+
+    if not filepath.exists():
+        filepath.parent.mkdir(mode=0o755)
 
     if response:
         history.append({"role": "assistant", "content": response})

@@ -10,9 +10,8 @@ try:
 except ImportError:
     import tomli as tomllib
 
-from command_line_assistant import utils
 
-CONFIG_DEFAULT_PATH: Path = Path("~/.config/shellai/config.toml")
+CONFIG_DEFAULT_PATH: Path = Path("~/.config/command-line-assistant/config.toml")
 
 # tomllib does not support writting files, so we will create our own.
 CONFIG_TEMPLATE = """\
@@ -47,10 +46,10 @@ class OutputSchema(
     def __new__(
         cls,
         enforce_script: bool = False,
-        file: str = "/tmp/shellai_output.txt",
+        file: str = "/tmp/command-line-assistant_output.txt",
         prompt_separator: str = "$",
     ):
-        file = utils.expand_user_path(file)
+        file = Path(file).expanduser()
         return super(OutputSchema, cls).__new__(
             cls, enforce_script, file, prompt_separator
         )
@@ -66,10 +65,10 @@ class HistorySchema(namedtuple("History", ["enabled", "file", "max_size"])):
     def __new__(
         cls,
         enabled: bool = True,
-        file: str = "~/.local/share/shellai/shellai_history.json",
+        file: str = "~/.local/share/command-line-assistant/command-line-assistant_history.json",
         max_size: int = 100,
     ):
-        file = utils.expand_user_path(file)
+        file = Path(file).expanduser()
         return super(HistorySchema, cls).__new__(cls, enabled, file, max_size)
 
 
@@ -146,7 +145,7 @@ def _read_config_file(config_file: Path) -> Config:
 
 
 def load_config_file(config_file: Path) -> Config:
-    """Load configuration file for shellai.
+    """Load configuration file for command-line-assistant.
 
     If the user specifies a path where no config file is located, we will create one with default values.
     """
