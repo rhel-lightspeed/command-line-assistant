@@ -15,7 +15,7 @@ with open("pyproject.toml", "rb") as f:
 
 # We might not have a lot of console scripts in pyproject, but let's compose it as a loop in case we add more in the
 # future.
-entry_points = {"console_scripts": []}
+entry_points: dict[str, list[str]] = {"console_scripts": []}
 for script_name, script_path in pyproject_settings["project"]["scripts"].items():
     entry_points["console_scripts"].append(f"{script_name} = {script_path}")
 

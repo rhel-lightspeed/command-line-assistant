@@ -1,22 +1,6 @@
-import logging
-import os
 import select
 import sys
 from pathlib import Path
-
-import yaml
-
-
-def read_yaml_config(config_file: str) -> dict:
-    if not os.path.exists(config_file):
-        print(
-            f"Config file {config_file} does not exist (use env 'COMMAND_LINE_ASSISTANT_CONFIG' to change destination).",
-            file=sys.stderr,
-        )
-        return {}
-    with open(config_file, "r") as f:
-        logging.info(f"Reading config file {config_file}")
-        return yaml.safe_load(f)
 
 
 def read_stdin():
