@@ -55,4 +55,10 @@ lint.ignore = [
 distribution = true
 
 [tool.pdm.dev-dependencies]
-dev = ["pytest", "coverage"]
+dev = [
+    "pytest>=8.3.3",
+    "coverage",
+    "tox>=4.23.2",
+    "pytest-cov>=6.0.0",
+    "pytest-randomly>=3.16.0",
+]
