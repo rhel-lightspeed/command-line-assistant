@@ -14,6 +14,8 @@ jobs:
     targets:
       - epel-9-x86_64
       - epel-10-x86_64
+      - epel-9-aarch64
+      - epel-10-aarch64
     actions:
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
@@ -28,6 +30,8 @@ jobs:
     targets:
       - epel-9-x86_64
       - epel-10-x86_64
+      - epel-9-aarch64
+      - epel-10-aarch64
     actions:
       # bump spec so we get release starting with 2 and hence all the default branch builds will
       # have higher NVR than all the PR builds
@@ -36,3 +40,71 @@ jobs:
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
         - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec
+
+  # Test jobs
+  - &default-tests-virtual-machine
+    job: tests
+    identifier: default-tests-virtual-machine
+    # Run tests on-demand
+    manual_trigger: true
+    trigger: pull_request
+    fmf_url: "https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/cla-tests"
+    fmf_ref: main
+    # TODO: Replace with tmt_plan: "plans/e2e" or similar
+    tmt_plan: "plans"
+    use_internal_tf: True
+    targets:
+      epel-9-x86_64:
+        distros: [RHEL-9-Nightly]
+      epel-10-x86_64:
+        distros: [RHEL-10-Nightly]
+      epel-9-aarch64:
+        distros: [RHEL-9-Nightly]
+      epel-10-aarch64:
+        distros: [RHEL-10-Nightly]
+    tf_extra_params:
+      environments:
+        - settings:
+            provisioning:
+              tags:
+                BusinessUnit: sst_rspeed_qe
+    labels:
+      - e2e
+      - vm
+      - default
+
+  - &sanity-tests-container
+    job: tests
+    <<: *default-tests-virtual-machine
+    identifier: sanity-tests-container
+    manual_trigger: false
+    # TODO: Replace with tmt_plan: "plans/sanity"
+    tmt_plan: "plans"
+    targets:
+      # There is currently only RHEL-9 container available at the moment
+      epel-9-x86_64:
+        distros: [RHEL-9-Nightly]
+    tf_extra_params:
+      environments:
+        - os: null
+          variables:
+            IMAGE: registry.access.redhat.com/ubi9:latest
+          settings:
+            provisioning:
+              tags:
+                BusinessUnit: sst_rspeed_qe
+    labels:
+      - sanity
+      - sanity-container
+      - container
+
+  - &sanity-tests-virtual-machine
+    job: tests
+    <<: *default-tests-virtual-machine
+    identifier: sanity-tests-virtual-machine
+    # TODO: Replace with tmt_plan: "plans/sanity"
+    tmt_plan: "plans"
+    labels:
+      - sanity
+      - sanity-vm
+      - vm
