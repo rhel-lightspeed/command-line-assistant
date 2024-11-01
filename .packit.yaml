@@ -38,3 +38,46 @@ jobs:
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
         - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec
+  - job: tests
+    trigger: pull_request
+    # TODO: change to cla-tests once it is made public. At the moment this repo is unreachable for packit
+    #fmf_url: "https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/cla-tests"
+    fmf_url: "https://github.com/danmyway/shellai-tests"
+    identifier: container
+    fmf_ref: main
+    use_internal_tf: True
+    tmt_plan: "plans"
+    targets:
+      epel-9-x86_64:
+        distros: [RHEL-9-Nightly]
+      epel-10-x86_64:
+        distros: [RHEL-10-Nightly]
+    tf_extra_params:
+      environments:
+        - os: null
+          variables:
+            IMAGE: registry.access.redhat.com/ubi9:latest
+          settings:
+            provisioning:
+              tags:
+                BusinessUnit: sst_rspeed_qe
+  - job: tests
+    trigger: pull_request
+    # TODO: change to cla-tests once it is made public. At the moment this repo is unreachable for packit
+    #fmf_url: "https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/cla-tests"
+    fmf_url: "https://github.com/danmyway/shellai-tests"
+    identifier: virtual-machine
+    fmf_ref: main
+    use_internal_tf: True
+    tmt_plan: "plans"
+    targets:
+      epel-9-x86_64:
+        distros: [RHEL-9-Nightly]
+      epel-10-x86_64:
+        distros: [RHEL-10-Nightly]
+    tf_extra_params:
+      environments:
+        - settings:
+            provisioning:
+              tags:
+                BusinessUnit: sst_rspeed_qe
