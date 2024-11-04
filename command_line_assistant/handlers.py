@@ -67,6 +67,7 @@ def handle_query(query: str, config: Config) -> None:
             headers={"Content-Type": "application/json"},
             data=json.dumps(payload),
             timeout=30,  # waiting for more than 30 seconds does not make sense
+            verify=config.backend.verify_ssl,
         )
         response.raise_for_status()
         completion = response.json()

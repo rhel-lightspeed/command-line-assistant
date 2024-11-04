@@ -32,6 +32,7 @@ max_size = {max_size}
 
 [backend]
 endpoint = "{endpoint}"
+verify_ssl = {verify_ssl}
 """
 
 
@@ -73,7 +74,7 @@ class HistorySchema(namedtuple("History", ["enabled", "file", "max_size"])):
         return super(HistorySchema, cls).__new__(cls, enabled, file, max_size)
 
 
-class BackendSchema(namedtuple("Backend", ["endpoint"])):
+class BackendSchema(namedtuple("Backend", ["endpoint", "verify_ssl"])):
     """This class represents the [backend] section of our config.toml file."""
 
     # Locking down against extra fields at runtime
@@ -81,10 +82,9 @@ class BackendSchema(namedtuple("Backend", ["endpoint"])):
 
     # We are overriding __new__ here because namedtuple only offers default values to fields from Python 3.7+
     def __new__(
-        cls,
-        endpoint: str = "http://0.0.0.0:8080/v1/query/",
+        cls, endpoint: str = "http://0.0.0.0:8080/v1/query/", verify_ssl: bool = True
     ):
-        return super(BackendSchema, cls).__new__(cls, endpoint)
+        return super(BackendSchema, cls).__new__(cls, endpoint, verify_ssl)
 
 
 class Config:
@@ -133,6 +133,7 @@ def _create_config_file(config_file: Path) -> None:
         "history_file": base_config.history.file,
         "max_size": base_config.history.max_size,
         "endpoint": base_config.backend.endpoint,
+        "verify_ssl": json.dumps(base_config.backend.verify_ssl),
     }
     config_formatted = CONFIG_TEMPLATE.format_map(mapping)
     config_file.write_text(config_formatted)

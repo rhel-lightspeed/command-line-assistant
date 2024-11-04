@@ -14,3 +14,4 @@ max_size = 100
 
 [backend]
 endpoint = "http://0.0.0.0:8080/v1/query/"
+verify_ssl = false
