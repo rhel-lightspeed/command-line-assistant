@@ -3,6 +3,7 @@ import logging
 import os
 
 import requests
+import urllib3
 
 from command_line_assistant.config import Config
 from command_line_assistant.history import handle_history_read, handle_history_write
@@ -62,6 +63,11 @@ def handle_query(query: str, config: Config) -> None:
         history = handle_history_read(config)
         payload = get_payload(query)
         logging.info("Waiting for response from AI...")
+
+        if not config.backend.verify_ssl:
+            logging.warning("Disabling SSL verification.")
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         response = requests.post(
             query_endpoint,
             headers={"Content-Type": "application/json"},

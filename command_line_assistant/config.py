@@ -35,6 +35,9 @@ max_size = {max_size}
 [backend]
 endpoint = "{endpoint}"
 verify_ssl = {verify_ssl}
+
+[logging]
+type = "{logging_type}"
 """
 
 
@@ -153,6 +156,7 @@ def _create_config_file(config_file: Path) -> None:
         "max_size": base_config.history.max_size,
         "endpoint": base_config.backend.endpoint,
         "verify_ssl": json.dumps(base_config.backend.verify_ssl),
+        "logging_type": base_config.logging.type,
     }
     config_formatted = CONFIG_TEMPLATE.format_map(mapping)
     config_file.write_text(config_formatted)

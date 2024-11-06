@@ -12,12 +12,7 @@ from command_line_assistant.handlers import (
     handle_query,
     handle_script_session,
 )
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler()],
-)
+from command_line_assistant.logging import setup_logging
 
 
 def main():
@@ -25,6 +20,8 @@ def main():
 
     config_file = Path(args.config).expanduser()
     config = load_config_file(config_file)
+
+    setup_logging(config, args.verbose)
 
     enforce_script_session = config.output.enforce_script
     output_file = config.output.file

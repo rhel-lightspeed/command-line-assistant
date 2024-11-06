@@ -13,7 +13,7 @@ def handle_history_read(config: Config) -> dict:
 
     filepath = config.history.file
     if not filepath or not filepath.exists():
-        logging.warning(f"History file {filepath} does not exist.")
+        logging.warning("History file %s does not exist.", filepath)
         logging.warning("File will be created with first response.")
         return []
 
@@ -23,10 +23,10 @@ def handle_history_read(config: Config) -> dict:
         data = filepath.read_text()
         history = json.loads(data)
     except json.JSONDecodeError as e:
-        logging.error(f"Failed to read history file {filepath}: {e}")
+        logging.error("Failed to read history file %s: %s", filepath, e)
         return []
 
-    logging.info(f"Taking maximum of {max_size} entries from history.")
+    logging.info("Taking maximum of %s entries from history.", max_size)
     return history[:max_size]
 
 
@@ -48,4 +48,4 @@ def handle_history_write(config: Config, history: list, response: str) -> None:
         data = json.dumps(history)
         filepath.write_text(data)
     except json.JSONDecodeError as e:
-        logging.error(f"Failed to write history file {filepath}: {e}")
+        logging.error("Failed to write history file %s: %s", filepath, e)
