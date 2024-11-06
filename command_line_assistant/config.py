@@ -1,8 +1,8 @@
+import dataclasses
 import json
 import logging
-from collections import namedtuple
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar, Optional
 
 # tomllib is available in the stdlib after Python3.11. Before that, we import
 # from tomli.
@@ -36,55 +36,59 @@ verify_ssl = {verify_ssl}
 """
 
 
-class OutputSchema(
-    namedtuple("Output", ["enforce_script", "file", "prompt_separator"])
-):
+@dataclasses.dataclass(slots=True)
+class LoggingSchema:
+    """This class represents the [logging] section of our config.toml file."""
+
+    _logging_types: ClassVar[tuple[str, str]] = (
+        "verbose",
+        "minimal",
+    )
+    type: str = "minimal"
+    file: str | Path = "~/.cache/command-line-assistant/command-line-assistant.log"
+
+    def _validate_logging_type(self, type: str):
+        if type not in self._logging_types:
+            raise TypeError(
+                f"Logging type {type} is not available. Please, choose from {(',').join(self._logging_types)}"
+            )
+
+    def __post_init__(self):
+        self.file = Path(self.file).expanduser()
+
+
+@dataclasses.dataclass(slots=True)
+class OutputSchema:
     """This class represents the [output] section of our config.toml file."""
 
-    # Locking down against extra fields at runtime
-    __slots__ = ()
+    enforce_script: bool = False
+    file: str | Path = "/tmp/command-line-assistant_output.txt"
+    prompt_separator: str = "$"
 
-    # We are overriding __new__ here because namedtuple only offers default values to fields from Python 3.7+
-    def __new__(
-        cls,
-        enforce_script: bool = False,
-        file: str = "/tmp/command-line-assistant_output.txt",
-        prompt_separator: str = "$",
-    ):
-        file = Path(file).expanduser()
-        return super(OutputSchema, cls).__new__(
-            cls, enforce_script, file, prompt_separator
-        )
+    def __post_init__(self):
+        self.file = Path(self.file).expanduser()
 
 
-class HistorySchema(namedtuple("History", ["enabled", "file", "max_size"])):
+@dataclasses.dataclass(slots=True)
+class HistorySchema:
     """This class represents the [history] section of our config.toml file."""
 
-    # Locking down against extra fields at runtime
-    __slots__ = ()
+    enabled: bool = True
+    file: str | Path = (
+        "~/.local/share/command-line-assistant/command-line-assistant_history.json"
+    )
+    max_size: int = 100
 
-    # We are overriding __new__ here because namedtuple only offers default values to fields from Python 3.7+
-    def __new__(
-        cls,
-        enabled: bool = True,
-        file: str = "~/.local/share/command-line-assistant/command-line-assistant_history.json",
-        max_size: int = 100,
-    ):
-        file = Path(file).expanduser()
-        return super(HistorySchema, cls).__new__(cls, enabled, file, max_size)
+    def __post_init__(self):
+        self.file = Path(self.file).expanduser()
 
 
-class BackendSchema(namedtuple("Backend", ["endpoint", "verify_ssl"])):
+@dataclasses.dataclass(slots=True)
+class BackendSchema:
     """This class represents the [backend] section of our config.toml file."""
 
-    # Locking down against extra fields at runtime
-    __slots__ = ()
-
-    # We are overriding __new__ here because namedtuple only offers default values to fields from Python 3.7+
-    def __new__(
-        cls, endpoint: str = "http://0.0.0.0:8080/v1/query/", verify_ssl: bool = True
-    ):
-        return super(BackendSchema, cls).__new__(cls, endpoint, verify_ssl)
+    endpoint: str = "http://0.0.0.0:8080/v1/query"
+    verify_ssl: bool = True
 
 
 class Config:
@@ -96,24 +100,22 @@ class Config:
     >>> config.output.enforce_script
 
     The currently available top-level fields are:
-        * output = Match the `py:Output` class and their fields
-        * history = Match the `py:History` class and their fields
-        * backend = Match the `py:backend` class and their fields
+        * output = Match the `py:OutputSchema` class and their fields
+        * history = Match the `py:HistorySchema` class and their fields
+        * backend = Match the `py:backendSchema` class and their fields
     """
 
     def __init__(
         self,
-        output: Optional[dict] = None,
-        history: Optional[dict] = None,
-        backend: Optional[dict] = None,
+        output: Optional[OutputSchema] = None,
+        history: Optional[HistorySchema] = None,
+        backend: Optional[BackendSchema] = None,
+        logging: Optional[LoggingSchema] = None,
     ) -> None:
-        self.output: OutputSchema = OutputSchema(**output) if output else OutputSchema()
-        self.history: HistorySchema = (
-            HistorySchema(**history) if history else HistorySchema()
-        )
-        self.backend: BackendSchema = (
-            BackendSchema(**backend) if backend else BackendSchema()
-        )
+        self.output: OutputSchema = output if output else OutputSchema()
+        self.history: HistorySchema = history if history else HistorySchema()
+        self.backend: BackendSchema = backend if backend else BackendSchema()
+        self.logging: LoggingSchema = logging if logging else LoggingSchema()
 
 
 def _create_config_file(config_file: Path) -> None:
@@ -121,9 +123,7 @@ def _create_config_file(config_file: Path) -> None:
 
     logging.info(f"Creating new config file at {config_file.parent}")
     config_file.parent.mkdir(mode=0o755)
-    base_config = Config(
-        OutputSchema()._asdict(), HistorySchema()._asdict(), BackendSchema()._asdict()
-    )
+    base_config = Config()
 
     mapping = {
         "enforce_script": json.dumps(base_config.output.enforce_script),
