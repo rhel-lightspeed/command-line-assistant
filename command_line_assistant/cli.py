@@ -24,6 +24,9 @@ def get_args():
         default=CONFIG_DEFAULT_PATH,
         help="Path to the config file.",
     )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Enable verbose logging in terminal."
+    )
 
     # Positional argument, required only if no optional arguments are provided
     parser.add_argument("query_string", nargs="?", help="Query string to be processed.")
