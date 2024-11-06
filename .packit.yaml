@@ -15,6 +15,8 @@ jobs:
       - epel-8-x86_64
       - epel-9-x86_64
       - epel-10-x86_64
+      - rhel-9-x86_64
+      - rhel-9-x86_64
     actions:
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
