@@ -12,7 +12,6 @@ jobs:
     owner: "@rhel-lightspeed"
     project: command-line-assistant
     targets:
-      - epel-8-x86_64
       - epel-9-x86_64
       - epel-10-x86_64
     actions:
@@ -27,7 +26,6 @@ jobs:
     owner: "@rhel-lightspeed"
     project: command-line-assistant
     targets:
-      - epel-8-x86_64
       - epel-9-x86_64
       - epel-10-x86_64
     actions:
