@@ -1,4 +1,5 @@
 #: Logging configuration
+import copy
 import logging.config
 
 from command_line_assistant.config import Config
@@ -37,7 +38,7 @@ def setup_logging(config: Config, verbose: bool = False):
     if not logging_file.parent.exists():
         logging_file.parent.mkdir(mode=0o755)
 
-    logging_configuration = LOGGING_CONFIG_DICTIONARY.copy()
+    logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
 
     logging_configuration["handlers"]["file"]["filename"] = logging_file
 
@@ -45,4 +46,4 @@ def setup_logging(config: Config, verbose: bool = False):
         logging_configuration["handlers"]["console"]["formatter"] = "verbose"
         logging_configuration["loggers"]["root"]["handlers"].append("console")
 
-    logging.config.dictConfig(LOGGING_CONFIG_DICTIONARY)
+    logging.config.dictConfig(logging_configuration)
