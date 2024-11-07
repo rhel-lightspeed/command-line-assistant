@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import json
 import logging
@@ -36,7 +38,24 @@ verify_ssl = {verify_ssl}
 """
 
 
-@dataclasses.dataclass(slots=True)
+def dataclass(cls, slots=True):
+    """Custom dataclass decorator to mimic the behavior of dataclass for Python 3.9"""
+    try:
+        return dataclasses.dataclass(cls, slots=slots)
+    except TypeError:
+
+        def wrap(cls):
+            # Create a new dict for our new class.
+            cls_dict = dict(cls.__dict__)
+            field_names = tuple(name for name in cls_dict.keys())
+            # The slots for our class
+            cls_dict["__slots__"] = field_names
+            return dataclasses.dataclass(cls)
+
+        return wrap(cls)
+
+
+@dataclass
 class LoggingSchema:
     """This class represents the [logging] section of our config.toml file."""
 
@@ -57,7 +76,7 @@ class LoggingSchema:
         self.file = Path(self.file).expanduser()
 
 
-@dataclasses.dataclass(slots=True)
+@dataclass
 class OutputSchema:
     """This class represents the [output] section of our config.toml file."""
 
@@ -69,7 +88,7 @@ class OutputSchema:
         self.file = Path(self.file).expanduser()
 
 
-@dataclasses.dataclass(slots=True)
+@dataclass
 class HistorySchema:
     """This class represents the [history] section of our config.toml file."""
 
@@ -83,7 +102,7 @@ class HistorySchema:
         self.file = Path(self.file).expanduser()
 
 
-@dataclasses.dataclass(slots=True)
+@dataclass
 class BackendSchema:
     """This class represents the [backend] section of our config.toml file."""
 
