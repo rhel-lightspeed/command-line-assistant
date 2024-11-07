@@ -172,9 +172,10 @@ def _read_config_file(config_file: Path) -> Config:
         logging.error(ex)
 
     return Config(
-        output=config_dict["output"],
-        history=config_dict["history"],
-        backend=config_dict["backend"],
+        output=OutputSchema(**config_dict["output"]),
+        history=HistorySchema(**config_dict["history"]),
+        backend=BackendSchema(**config_dict["backend"]),
+        logging=LoggingSchema(**config_dict["logging"]),
     )
 
 
