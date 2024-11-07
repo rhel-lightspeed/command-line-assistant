@@ -54,16 +54,6 @@ lint.ignore = [
 [tool.pdm]
 distribution = true
 
-[tool.pdm.dev-dependencies]
-dev = [
-    "pytest==8.3.3",
-    "pytest-cov==6.0.0",
-    "pytest-randomly==3.16.0",
-    "coverage==7.6.4",
-    "pytest-sugar==1.0.0",
-    "pytest-clarity==1.0.1",
-]
-
 [tool.pdm.scripts]
 unit-test = "pdm run make unit-test"
 coverage = "pdm run make coverage"
@@ -79,3 +69,6 @@ skip_empty = true
 [tool.coverage.run]
 branch = true
 source = ["command_line_assistant"]
+
+[dependency-groups]
+dev = ["pytest==8.3.3", "pytest-cov==6.0.0", "pytest-randomly==3.16.0", "coverage==7.6.4", "pytest-sugar==1.0.0", "pytest-clarity==1.0.1", "tox>=4.23.2", "tox-pdm>=0.7.2"]

@@ -5,10 +5,21 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:02a81a774fa78f23aa778237d3b3b3c9ace68940fb80630a584395f49e56fbd3"
+content_hash = "sha256:c3138b467e9c8e53a0fb8c782a65b8d1b48811a1bb366589a444d0274fa82572"
 
 [[metadata.targets]]
 requires_python = ">=3.9"
+
+[[package]]
+name = "cachetools"
+version = "5.5.0"
+requires_python = ">=3.7"
+summary = "Extensible memoizing collections and decorators"
+groups = ["dev"]
+files = [
+    {file = "cachetools-5.5.0-py3-none-any.whl", hash = "sha256:02134e8439cdc2ffb62023ce1debca2944c3f289d66bb17ead3ab3dede74b292"},
+    {file = "cachetools-5.5.0.tar.gz", hash = "sha256:2cc24fb4cbe39633fb7badd9db9ca6295d766d9c2995f245725a46715d050f2a"},
+]
 
 [[package]]
 name = "certifi"
@@ -19,6 +30,17 @@ groups = ["default"]
 files = [
     {file = "certifi-2024.8.30-py3-none-any.whl", hash = "sha256:922820b53db7a7257ffbda3f597266d435245903d80737e34f8a45ff3e3230d8"},
     {file = "certifi-2024.8.30.tar.gz", hash = "sha256:bec941d2aa8195e248a60b31ff9f0558284cf01a52591ceda73ea9afffd69fd9"},
+]
+
+[[package]]
+name = "chardet"
+version = "5.2.0"
+requires_python = ">=3.7"
+summary = "Universal encoding detector for Python 3"
+groups = ["dev"]
+files = [
+    {file = "chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970"},
+    {file = "chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7"},
 ]
 
 [[package]]
@@ -113,7 +135,6 @@ version = "0.4.6"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 summary = "Cross-platform colored terminal text."
 groups = ["dev"]
-marker = "sys_platform == \"win32\""
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
@@ -267,6 +288,16 @@ files = [
 ]
 
 [[package]]
+name = "distlib"
+version = "0.3.9"
+summary = "Distribution utilities"
+groups = ["dev"]
+files = [
+    {file = "distlib-0.3.9-py2.py3-none-any.whl", hash = "sha256:47f8c22fd27c27e25a65601af709b38e4f0a45ea4fc2e710f65755fa8caaaf87"},
+    {file = "distlib-0.3.9.tar.gz", hash = "sha256:a60f20dea646b8a33f3e7772f74dc0b2d0772d2837ee1342a00645c81edf9403"},
+]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.2.2"
 requires_python = ">=3.7"
@@ -276,6 +307,17 @@ marker = "python_version < \"3.11\""
 files = [
     {file = "exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b"},
     {file = "exceptiongroup-1.2.2.tar.gz", hash = "sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc"},
+]
+
+[[package]]
+name = "filelock"
+version = "3.16.1"
+requires_python = ">=3.8"
+summary = "A platform independent file lock."
+groups = ["dev"]
+files = [
+    {file = "filelock-3.16.1-py3-none-any.whl", hash = "sha256:2082e5703d51fbf98ea75855d9d5527e33d8ff23099bec374a134febee6946b0"},
+    {file = "filelock-3.16.1.tar.gz", hash = "sha256:c249fbfcd5db47e5e2d6d62198e565475ee65e4831e2561c8e313fa7eb961435"},
 ]
 
 [[package]]
@@ -353,6 +395,17 @@ files = [
 ]
 
 [[package]]
+name = "platformdirs"
+version = "4.3.6"
+requires_python = ">=3.8"
+summary = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
+groups = ["dev"]
+files = [
+    {file = "platformdirs-4.3.6-py3-none-any.whl", hash = "sha256:73e575e1408ab8103900836b97580d5307456908a03e92031bab39e4554cc3fb"},
+    {file = "platformdirs-4.3.6.tar.gz", hash = "sha256:357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907"},
+]
+
+[[package]]
 name = "pluggy"
 version = "1.5.0"
 requires_python = ">=3.8"
@@ -382,6 +435,21 @@ groups = ["dev"]
 files = [
     {file = "pygments-2.18.0-py3-none-any.whl", hash = "sha256:b8e6aca0523f3ab76fee51799c488e38782ac06eafcf95e7ba832985c8e7b13a"},
     {file = "pygments-2.18.0.tar.gz", hash = "sha256:786ff802f32e91311bff3889f6e9a86e81505fe99f2735bb6d60ae0c5004f199"},
+]
+
+[[package]]
+name = "pyproject-api"
+version = "1.8.0"
+requires_python = ">=3.8"
+summary = "API to interact with the python pyproject.toml based projects"
+groups = ["dev"]
+dependencies = [
+    "packaging>=24.1",
+    "tomli>=2.0.1; python_version < \"3.11\"",
+]
+files = [
+    {file = "pyproject_api-1.8.0-py3-none-any.whl", hash = "sha256:3d7d347a047afe796fd5d1885b1e391ba29be7169bd2f102fcd378f04273d228"},
+    {file = "pyproject_api-1.8.0.tar.gz", hash = "sha256:77b8049f2feb5d33eefcc21b57f1e279636277a8ac8ad6b5871037b243778496"},
 ]
 
 [[package]]
@@ -520,6 +588,45 @@ files = [
 ]
 
 [[package]]
+name = "tox"
+version = "4.23.2"
+requires_python = ">=3.8"
+summary = "tox is a generic virtualenv management and test command line tool"
+groups = ["dev"]
+dependencies = [
+    "cachetools>=5.5",
+    "chardet>=5.2",
+    "colorama>=0.4.6",
+    "filelock>=3.16.1",
+    "packaging>=24.1",
+    "platformdirs>=4.3.6",
+    "pluggy>=1.5",
+    "pyproject-api>=1.8",
+    "tomli>=2.0.1; python_version < \"3.11\"",
+    "typing-extensions>=4.12.2; python_version < \"3.11\"",
+    "virtualenv>=20.26.6",
+]
+files = [
+    {file = "tox-4.23.2-py3-none-any.whl", hash = "sha256:452bc32bb031f2282881a2118923176445bac783ab97c874b8770ab4c3b76c38"},
+    {file = "tox-4.23.2.tar.gz", hash = "sha256:86075e00e555df6e82e74cfc333917f91ecb47ffbc868dcafbd2672e332f4a2c"},
+]
+
+[[package]]
+name = "tox-pdm"
+version = "0.7.2"
+requires_python = ">=3.7"
+summary = "A plugin for tox that utilizes PDM as the package manager and installer"
+groups = ["dev"]
+dependencies = [
+    "tomli; python_version < \"3.11\"",
+    "tox>=4.0",
+]
+files = [
+    {file = "tox_pdm-0.7.2-py3-none-any.whl", hash = "sha256:12f6215416b7acd00a80a9e7128f3dc3e3c89308d60707f5d0a24abdf83ac104"},
+    {file = "tox_pdm-0.7.2.tar.gz", hash = "sha256:a841a7e1e942a71805624703b9a6d286663bd6af79bba6130ba756975c315308"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.12.2"
 requires_python = ">=3.8"
@@ -540,6 +647,23 @@ groups = ["default"]
 files = [
     {file = "urllib3-2.2.3-py3-none-any.whl", hash = "sha256:ca899ca043dcb1bafa3e262d73aa25c465bfb49e0bd9dd5d59f1d0acba2f8fac"},
     {file = "urllib3-2.2.3.tar.gz", hash = "sha256:e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"},
+]
+
+[[package]]
+name = "virtualenv"
+version = "20.27.1"
+requires_python = ">=3.8"
+summary = "Virtual Python Environment builder"
+groups = ["dev"]
+dependencies = [
+    "distlib<1,>=0.3.7",
+    "filelock<4,>=3.12.2",
+    "importlib-metadata>=6.6; python_version < \"3.8\"",
+    "platformdirs<5,>=3.9.1",
+]
+files = [
+    {file = "virtualenv-20.27.1-py3-none-any.whl", hash = "sha256:f11f1b8a29525562925f745563bfd48b189450f61fb34c4f9cc79dd5aa32a1f4"},
+    {file = "virtualenv-20.27.1.tar.gz", hash = "sha256:142c6be10212543b32c6c45d3d3893dff89112cc588b7d0879ae5a1ec03a47ba"},
 ]
 
 [[package]]
