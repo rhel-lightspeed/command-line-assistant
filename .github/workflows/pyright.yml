@@ -1,0 +1,14 @@
+name: Static typing - pyright
+
+on: [pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+            cache: 'pip'
+
+      - uses: jakebailey/pyright-action@v2
