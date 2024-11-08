@@ -4,7 +4,7 @@ import dataclasses
 import json
 import logging
 from pathlib import Path
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 # tomllib is available in the stdlib after Python3.11. Before that, we import
 # from tomli.
@@ -113,6 +113,7 @@ class BackendSchema:
     verify_ssl: bool = True
 
 
+@dataclass
 class Config:
     """Class that holds our configuration file representation.
 
@@ -124,26 +125,20 @@ class Config:
     The currently available top-level fields are:
         * output = Match the `py:OutputSchema` class and their fields
         * history = Match the `py:HistorySchema` class and their fields
-        * backend = Match the `py:backendSchema` class and their fields
+        * backend = Match the `py:BackendSchema` class and their fields
+        * logging = Match the `py:LoggingSchema` class and their fields
     """
 
-    def __init__(
-        self,
-        output: Optional[OutputSchema] = None,
-        history: Optional[HistorySchema] = None,
-        backend: Optional[BackendSchema] = None,
-        logging: Optional[LoggingSchema] = None,
-    ) -> None:
-        self.output: OutputSchema = output if output else OutputSchema()
-        self.history: HistorySchema = history if history else HistorySchema()
-        self.backend: BackendSchema = backend if backend else BackendSchema()
-        self.logging: LoggingSchema = logging if logging else LoggingSchema()
+    output: OutputSchema = dataclasses.field(default_factory=OutputSchema)
+    history: HistorySchema = dataclasses.field(default_factory=HistorySchema)
+    backend: BackendSchema = dataclasses.field(default_factory=BackendSchema)
+    logging: LoggingSchema = dataclasses.field(default_factory=LoggingSchema)
 
 
 def _create_config_file(config_file: Path) -> None:
     """Create a new configuration file with default values."""
 
-    logging.info(f"Creating new config file at {config_file.parent}")
+    logging.info("Creating new config file at %s", config_file.parent)
     config_file.parent.mkdir(mode=0o755)
     base_config = Config()
 
