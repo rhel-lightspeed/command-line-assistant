@@ -1,5 +1,4 @@
 import sys
-from unittest import mock
 
 import pytest
 
@@ -16,7 +15,7 @@ def mock_cli_arguments(args):
 
 def test_get_args(monkeypatch):
     monkeypatch.setattr(sys, "argv", mock_cli_arguments(["test"]))
-    monkeypatch.setattr(cli, "read_stdin", mock.Mock())
+    monkeypatch.setattr(cli, "read_stdin", lambda: None)
     parser, args = cli.get_args()
 
     assert parser

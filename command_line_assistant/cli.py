@@ -1,5 +1,4 @@
 import argparse
-import logging
 
 from command_line_assistant.config import CONFIG_DEFAULT_PATH
 from command_line_assistant.utils import read_stdin
@@ -37,9 +36,8 @@ def get_args():
         args.record,
     ]
     input_data = read_stdin()
-    if not args.query_string and input_data:
-        logging.debug("stdin detected")
-        args.query_string = input_data.strip()
+    if input_data and args.query_string:
+        args.query_string = f"{args.query_string} {input_data.strip()}"
 
     if not any(optional_args) and not args.query_string:
         parser.error("Query string is required if no optional arguments are provided.")
