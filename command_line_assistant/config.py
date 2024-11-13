@@ -61,7 +61,8 @@ class LoggingSchema:
             )
 
     def __post_init__(self):
-        self.file: Path = Path(self.file).expanduser()
+        self._validate_logging_type(self.type)
+        self.file = Path(self.file).expanduser()
 
 
 @dataclasses.dataclass
@@ -124,7 +125,9 @@ def _create_config_file(config_file: Path) -> None:
     """Create a new configuration file with default values."""
 
     logging.info("Creating new config file at %s", config_file.parent)
-    config_file.parent.mkdir(mode=0o755)
+    if not config_file.parent.exists():
+        config_file.parent.mkdir(mode=0o755)
+
     base_config = Config()
 
     mapping = {
@@ -148,8 +151,9 @@ def _read_config_file(config_file: Path) -> Config:
     try:
         data = config_file.read_text()
         config_dict = tomllib.loads(data)
-    except FileNotFoundError as ex:
-        logging.error(ex)
+    except (FileNotFoundError, tomllib.TOMLDecodeError) as ex:
+        logging.critical(ex)
+        raise
 
     return Config(
         output=OutputSchema(**config_dict["output"]),

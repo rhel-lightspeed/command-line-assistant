@@ -12,10 +12,10 @@ from command_line_assistant.handlers import (
     handle_query,
     handle_script_session,
 )
-from command_line_assistant.logging import setup_logging
+from command_line_assistant.logger import setup_logging
 
 
-def main():
+def main() -> int:
     parser, args = get_args()
 
     config_file = Path(args.config).expanduser()
@@ -34,13 +34,15 @@ def main():
     # NOTE: This needs more refinement, script session can't be combined with other arguments
     if args.record:
         handle_script_session(output_file)
-        exit(0)
+        return 0
     if args.history_clear:
         logging.info("Clearing history of conversation")
         handle_history_write(config, [], "")
     if args.query_string:
         handle_query(args.query_string, config)
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
