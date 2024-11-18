@@ -11,7 +11,7 @@ from typing import ClassVar
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib
+    import tomli as tomllib  # type: ignore
 
 
 CONFIG_DEFAULT_PATH: Path = Path("~/.config/command-line-assistant/config.toml")
