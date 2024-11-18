@@ -38,12 +38,14 @@ packages = ["command_line_assistant"]
 
 [tool.ruff]
 # Enable ruff rules to act like flake8
+#   https://docs.astral.sh/ruff/rules/#rules
 lint.select = [
     "E",   # pycodestyle (formerly part of flake8)
     "F",   # pyflakes (formerly part of flake8)
     "I",   # import order (like isort)
     "B",   # flake8-bugbear
     "C90", # flake8-comprehensions
+    "G",   # flak8-logging-format
 ]
 
 # Exclude specific rules if needed
