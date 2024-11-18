@@ -22,7 +22,7 @@ def handle_script_session(command_line_assistant_tmp_file) -> None:
 
     # Remove the captured output after the script session ends
     if os.path.exists(command_line_assistant_tmp_file):
-        logging.info(f"Removing {command_line_assistant_tmp_file}")
+        logging.info("Removing %s", command_line_assistant_tmp_file)
         os.remove(command_line_assistant_tmp_file)
 
 
@@ -37,7 +37,8 @@ def _handle_caret(query: str, config: Config) -> str:
 
     if not os.path.exists(captured_output_file):
         logging.error(
-            f"Output file {captured_output_file} does not exist, change location of file in config to use '^'."
+            "Output file %s does not exist, change location of file in config to use '^'.",
+            captured_output_file,
         )
         exit(1)
 
@@ -55,7 +56,7 @@ def handle_query(query: str, config: Config) -> None:
     query = _handle_caret(query, config)
     # NOTE: Add more query handling here
 
-    logging.info(f"Query: {query}")
+    logging.info("Query: %s", query)
 
     query_endpoint = config.backend.endpoint
 
@@ -95,5 +96,5 @@ def handle_query(query: str, config: Config) -> None:
         )
         print(response_data + references_str)
     except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to get response from AI: {e}")
+        logging.error("Failed to get response from AI: %s", e)
         exit(1)
