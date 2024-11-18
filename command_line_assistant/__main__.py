@@ -28,8 +28,7 @@ def main():
 
     if enforce_script_session and (not args.record or not os.path.exists(output_file)):
         parser.error(
-            f"Please call `{sys.argv[0]} --record` first to initialize script session or create the output file.",
-            file=sys.stderr,
+            f"Please call `{sys.argv[0]} --record` first to initialize script session or create the output file."
         )
 
     # NOTE: This needs more refinement, script session can't be combined with other arguments
