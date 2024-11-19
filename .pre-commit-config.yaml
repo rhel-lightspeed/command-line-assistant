@@ -36,6 +36,15 @@ repos:
           - https://github.com/rhel-lightspeed/command-line-assistant.git
         stages: [manual, pre-push]
 
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.389
+    hooks:
+    - id: pyright
+      additional_dependencies:
+        - pytest
+        - requests
+        - tomli; python_version<"3.11"
+
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.21.2
     hooks:
