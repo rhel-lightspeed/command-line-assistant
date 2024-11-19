@@ -13,6 +13,8 @@ dependencies = [
     # tomli is only required below 3.11 as it is native after that version.
     'tomli; python_version<"3.11"',
     "requests",
+    "dasbus==1.7",
+    "PyGObject==3.50.0",
 ]
 requires-python = ">=3.9" # RHEL 9 and 10
 readme = "README.md"
@@ -25,6 +27,7 @@ Issues = "https://github.com/rhel-lightspeed/command-line-assistant/issues"
 
 [project.scripts]
 c = "command_line_assistant.__main__:main"
+clad = "command_line_assistant.daemon.clad:daemonize"
 
 [build-system]
 # pdm build is not available in rhel baseos repositories
