@@ -1,7 +1,7 @@
 # Contributing to Command Line Assistant
 
 The following is a set of guidelines for contributing to Command Line Assistant codebase, which are hosted in the [RHEL Lightspeed
-Organization](https://github.com/rhell-lightspeed) on GitHub. These are mostly guidelines, not rules.
+Organization](https://github.com/rhel-lightspeed) on GitHub. These are mostly guidelines, not rules.
 
 * [Road Core Service](https://github.com/road-core/service)
 
@@ -10,7 +10,7 @@ Organization](https://github.com/rhell-lightspeed) on GitHub. These are mostly g
 Below are a list of things to keep in mind when developing and submitting
 contributions to this repository.
 
-1. All python code must be compatible with versions 3.6+.
+1. All Python code must be compatible with versions 3.9+.
 2. The code should follow linting from ruff.
 3. All commits should have passed the pre-commit checks.
 4. Don't change code that is not related to your issue/ticket, open a new issue/ticket if that's the case.
@@ -50,7 +50,7 @@ via [pdm](https://pdm-project.org/en/latest/). If you don't have `pdm` installed
 for you.
 
 Required packages:
-- python3.8 or greater
+- Python 3.9 or greater
 - pip
 
 ```sh
