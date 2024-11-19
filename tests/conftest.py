@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 
 import pytest
 
@@ -12,9 +11,9 @@ def setup_logger(request, tmp_path):
     if "noautofixtures" in request.keywords:
         return
 
-    tmp_log_file = Path(tmp_path / "conftest" / "cla.log")
+    tmp_log_file = tmp_path / "conftest" / "cla.log"
     logger.setup_logging(
-        config.Config(logging=config.LoggingSchema(file=tmp_log_file)), verbose=True
+        config.Config(logging=config.LoggingSchema(file=tmp_log_file, verbose=True))
     )
 
     # get root logger

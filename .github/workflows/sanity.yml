@@ -30,6 +30,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # TODO(r0x0d): Refactor this https://issues.redhat.com/browse/RSPEED-339
+          sudo apt update -y
+          sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
           pdm install -v
           pdm info
           echo "$(pdm venv --path in-project)/bin" >> $GITHUB_PATH
