@@ -61,7 +61,7 @@ class LoggingSchema:
             )
 
     def __post_init__(self):
-        self.file = Path(self.file).expanduser()
+        self.file: Path = Path(self.file).expanduser()
 
 
 @dataclasses.dataclass
@@ -73,7 +73,7 @@ class OutputSchema:
     prompt_separator: str = "$"
 
     def __post_init__(self):
-        self.file = Path(self.file).expanduser()
+        self.file: Path = Path(self.file).expanduser()
 
 
 @dataclasses.dataclass
@@ -87,7 +87,7 @@ class HistorySchema:
     max_size: int = 100
 
     def __post_init__(self):
-        self.file = Path(self.file).expanduser()
+        self.file: Path = Path(self.file).expanduser()
 
 
 @dataclasses.dataclass
