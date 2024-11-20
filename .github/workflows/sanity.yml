@@ -1,8 +1,10 @@
 name: Sanity
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   sanity:
@@ -19,9 +21,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          version: 2.20.1
+          python-version: ${{ matrix.python-version }}
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          pdm install -v
+          pdm info
+
       - name: Run pyright
         uses: jakebailey/pyright-action@v2
         with:
           version: 1.1.389
           python-version: ${{ matrix.python-version }}
-
