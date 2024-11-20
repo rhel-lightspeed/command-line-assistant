@@ -32,6 +32,7 @@ jobs:
         run: |
           pdm install -v
           pdm info
+          echo "$(pdm venv --path in-project)/bin" >> $GITHUB_PATH
 
       - name: Run pyright
         uses: jakebailey/pyright-action@v2
