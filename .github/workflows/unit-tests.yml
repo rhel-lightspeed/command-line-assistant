@@ -2,7 +2,7 @@ name: Unit tests
 
 on:
   push:
-    bracnhes:
+    branches:
       - main
   pull_request:
 
