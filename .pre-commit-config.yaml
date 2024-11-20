@@ -10,8 +10,15 @@ repos:
       # Run the linter.
       - id: ruff
         args: [ --fix ]
+
+      # Show the diff of what would change.
+      - id: ruff-format
+        name: ruff-format-diff
+        args: [--diff]
+
       # Run the formatter.
       - id: ruff-format
+
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
     rev: "v5.0.0"
     hooks:
@@ -20,6 +27,7 @@ repos:
       - id: "check-toml"
       - id: "check-yaml"
       - id: "check-merge-conflict"
+
   - repo: https://github.com/packit/pre-commit-hooks
     rev: v1.2.0
     hooks:
@@ -27,6 +35,7 @@ repos:
         args:
           - https://github.com/rhel-lightspeed/command-line-assistant.git
         stages: [manual, pre-push]
+
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.21.2
     hooks:
