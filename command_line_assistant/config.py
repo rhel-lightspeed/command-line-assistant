@@ -9,9 +9,9 @@ from typing import ClassVar
 # tomllib is available in the stdlib after Python3.11. Before that, we import
 # from tomli.
 try:
-    import tomllib
+    import tomllib  # pyright: ignore[reportMissingImports]
 except ImportError:
-    import tomli as tomllib  # type: ignore
+    import tomli as tomllib  # pyright: ignore[reportMissingImports]
 
 
 CONFIG_DEFAULT_PATH: Path = Path("~/.config/command-line-assistant/config.toml")
