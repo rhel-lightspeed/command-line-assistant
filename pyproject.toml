@@ -57,13 +57,11 @@ lint.ignore = [
 distribution = true
 
 [tool.pdm.scripts]
-unit-test = "pdm run make unit-test"
-coverage = "pdm run make coverage"
-
+unit-test = "make unit-test"
+unit-test-coverage = "make unit-test-coverage"
 
 [tool.pytest.init_options]
 testpaths = ["tests"]
-addopts = ["--cov-report=term-missing", "--cov-report=html"]
 
 [tool.coverage.report]
 skip_empty = true

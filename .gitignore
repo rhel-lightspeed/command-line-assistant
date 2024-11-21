@@ -25,3 +25,4 @@ htmlcov/
 # ignore tests specifics
 .tox
 coverage*
+junit.xml

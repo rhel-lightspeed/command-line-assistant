@@ -17,6 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -29,15 +30,21 @@ jobs:
           cache: true
 
       - name: Install dependencies
-        run: make install
+        run: |
+          make install
+          echo "$(pdm venv --path in-project)/bin" >> $GITHUB_PATH
 
       - name: Run unit tests
-        run: pdm run unit-test
-
-      - name: Generate coverage report
-        run: pdm run coverage
+        run: pdm run unit-test-coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      # https://docs.codecov.com/docs/test-analytics
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
