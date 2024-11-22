@@ -11,18 +11,15 @@ BuildArch:      noarch
 
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
+
+# Needed by python3-dasbus
+Requires:       python3-dasbus
+Requires:       python3-requests
+
 # Not needed after RHEL 10 as it is native in Python 3.11+
 %if 0%{?rhel} && 0%{?rhel} < 10
 BuildRequires:  python3-tomli
-%endif
-
-# Needed by python3-dasbus
-Requires:       python3-gobject
-Requires:       python3-dasbus
-Requires:       python3-requests
-# Not needed after RHEL 10 as it is native in Python 3.11+
-%if 0%{?rhel} && 0%{?rhel} < 10
-Requires:  python3-tomli
+Requires:       python3-tomli
 %endif
 
 %global python_package_src command_line_assistant
