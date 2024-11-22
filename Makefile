@@ -14,10 +14,16 @@ install: install-tools ## Sync all required dependencies for Command Line Assist
 install-dev: install-tools ## Sync all development dependencies
 	pdm sync --dev
 
-unit-test: ## Unit test Command Line Assistant
+unit-test: ## Unit test cla
 	@echo "Running tests..."
-	@pytest tests --cov
+	@pytest
 	@echo "Tests completed."
+
+unit-test-coverage: ## Unit test cla with coverage
+	@echo "Running tests..."
+	@pytest --cov --junitxml=junit.xml -o junit_family=legacy
+	@echo "Tests completed."
+
 
 coverage: ## Generate coverage report from unit-tests
 	@coverage xml
@@ -36,5 +42,5 @@ clean: ## Clean project files
 	@find . -name '__pycache__' -exec rm -fr {} +
 	@find . -name '*.pyc' -exec rm -f {} +
 	@find . -name '*.pyo' -exec rm -f {} +
-	@rm -rf .pdm-build .ruff_cache .coverage .pdm-python dist .tox
+	@rm -rf .pdm-build .ruff_cache .coverage .pdm-python dist .tox junit.xml coverage.xml
 	@coverage erase
