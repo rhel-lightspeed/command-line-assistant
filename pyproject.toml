@@ -71,4 +71,4 @@ branch = true
 source = ["command_line_assistant"]
 
 [dependency-groups]
-dev = ["pytest==8.3.3", "pytest-cov==6.0.0", "pytest-randomly==3.16.0", "coverage==7.6.7", "pytest-sugar==1.0.0", "pytest-clarity==1.0.1", "tox>=4.23.2", "tox-pdm>=0.7.2"]
+dev = ["pytest==8.3.3", "pytest-cov==6.0.0", "pytest-randomly==3.16.0", "coverage==7.6.8", "pytest-sugar==1.0.0", "pytest-clarity==1.0.1", "tox>=4.23.2", "tox-pdm>=0.7.2"]
