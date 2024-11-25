@@ -53,6 +53,8 @@ Required packages:
 - Python 3.9 or greater
 - pip
 
+Before installing the dependencies with `pdm`, make sure to follow the installation instructions from [PyGObject](https://pygobject.gnome.org/getting_started.html#fedora-logo-fedora). This is required for running `clad`, and installing the rest of the dependencies.
+
 ```sh
 make install
 ```
