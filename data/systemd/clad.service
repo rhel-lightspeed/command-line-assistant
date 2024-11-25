@@ -1,0 +1,18 @@
+[Unit]
+Description=Command Line Assistant Daemon Service
+Documentation=https://github.com/rhel-lightspeed/command-line-assistant
+
+[Service]
+Restart=always
+User=@user@
+ExecStart=@bindir@/clad
+StandardInput=socket
+PrivateTmp=true
+
+[Socket]
+ListenStream = 4444
+Accept = yes
+
+[Install]
+WantedBy=multi-user.target
+Alias=clad.service

@@ -31,6 +31,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt update -y
+          sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
           make install
           echo "$(pdm venv --path in-project)/bin" >> $GITHUB_PATH
 
