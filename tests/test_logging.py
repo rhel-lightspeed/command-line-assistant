@@ -1,11 +1,10 @@
 import logging
-from pathlib import Path
 
 from command_line_assistant import config, logger
 
 
-def test_write_to_logfile(tmpdir):
-    tmp_log_file = Path(tmpdir.join("cla").join("cla.log"))
+def test_write_to_logfile(tmp_path):
+    tmp_log_file = tmp_path / "cla" / "cla.log"
     logger.setup_logging(config.Config(logging=config.LoggingSchema(file=tmp_log_file)))
     log = logging.getLogger()
 

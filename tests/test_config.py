@@ -32,8 +32,8 @@ def test_invalid_logging_type():
         config.LoggingSchema(type="invalid")
 
 
-def test_create_config_file(tmpdir):
-    config_file = Path(tmpdir.join("test").join("config.toml"))
+def test_create_config_file(tmp_path):
+    config_file = Path(tmp_path / "test" / "config.toml")
 
     config._create_config_file(config_file)
 
@@ -57,12 +57,12 @@ def working_config_mapping():
     }
 
 
-def test_read_config_file(tmpdir, working_config_mapping):
+def test_read_config_file(tmp_path, working_config_mapping):
     config_file_template = config.CONFIG_TEMPLATE
 
     config_formatted = config_file_template.format_map(working_config_mapping)
 
-    config_file = Path(tmpdir.join("config.toml"))
+    config_file = tmp_path / "config.toml"
     config_file.write_text(config_formatted)
 
     _config = config._read_config_file(config_file)
@@ -73,7 +73,7 @@ def test_read_config_file(tmpdir, working_config_mapping):
     assert _config.logging
 
 
-def test_read_config_file_invalid_toml(tmpdir):
+def test_read_config_file_invalid_toml(tmp_path):
     config_file_template = config.CONFIG_TEMPLATE
 
     mapping = {
@@ -90,7 +90,7 @@ def test_read_config_file_invalid_toml(tmpdir):
 
     config_formatted = config_file_template.format_map(mapping)
 
-    config_file = Path(tmpdir.join("config.toml"))
+    config_file = tmp_path / "config.toml"
     config_file.write_text(config_formatted)
 
     with pytest.raises(tomllib.TOMLDecodeError, match="Invalid value"):
@@ -103,20 +103,20 @@ def test_read_config_file_not_found():
         config._read_config_file(config_file)
 
 
-def test_load_config_file(tmpdir):
+def test_load_config_file(tmp_path):
     """The config_file does not exist, so we create one through this workflow."""
-    config_file = Path(tmpdir.join("cla").join("config.toml"))
+    config_file = tmp_path / "cla" / "config.toml"
     new_config = config.load_config_file(config_file)
     assert new_config == config.Config()
 
 
-def test_load_existing_config_file(tmpdir, working_config_mapping):
+def test_load_existing_config_file(tmp_path, working_config_mapping):
     """The config_file exist, so we read the file instead of creating one."""
     config_file_template = config.CONFIG_TEMPLATE
 
     config_formatted = config_file_template.format_map(working_config_mapping)
 
-    config_file = Path(tmpdir.join("config.toml"))
+    config_file = tmp_path / "config.toml"
     config_file.write_text(config_formatted)
 
     existing_config = config.load_config_file(config_file)
