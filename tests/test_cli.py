@@ -13,13 +13,23 @@ def mock_cli_arguments(args):
     return sys.argv[0:1] + args
 
 
-def test_get_args(monkeypatch):
+@pytest.mark.parametrize(
+    ("stdin", "expected"),
+    (
+        (
+            None,
+            "test",
+        ),
+        ("test", "test test"),
+    ),
+)
+def test_get_args(monkeypatch, stdin, expected):
     monkeypatch.setattr(sys, "argv", mock_cli_arguments(["test"]))
-    monkeypatch.setattr(cli, "read_stdin", lambda: None)
+    monkeypatch.setattr(cli, "read_stdin", lambda: stdin)
     parser, args = cli.get_args()
 
     assert parser
-    assert args.query_string == "test"
+    assert args.query_string == expected
 
 
 def test_no_query_args(monkeypatch):

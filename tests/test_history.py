@@ -23,24 +23,24 @@ class TestHistoryRead:
         config = Config(history=HistorySchema(enabled=False))
         assert not history.handle_history_read(config)
 
-    def test_history_file_missing(self, tmpdir, caplog):
-        history_file = tmpdir.join("non-existing-file.json")
+    def test_history_file_missing(self, tmp_path, caplog):
+        history_file = tmp_path / "non-existing-file.json"
         config = Config(history=HistorySchema(file=history_file))
 
         assert not history.handle_history_read(config)
         assert "File will be created with first response." in caplog.records[-1].message
 
-    def test_history_failed_to_decode_json(self, tmpdir, caplog):
-        history_file = tmpdir.join("non-existing-file.json")
-        history_file.write("not a json")
+    def test_history_failed_to_decode_json(self, tmp_path, caplog):
+        history_file = tmp_path / "non-existing-file.json"
+        history_file.write_text("not a json")
         config = Config(history=HistorySchema(file=history_file))
 
         assert not history.handle_history_read(config)
         assert "Failed to read history file" in caplog.records[-1].message
 
-    def test_history_read(self, tmpdir):
-        history_file = tmpdir.join("history.json")
-        history_file.write(json.dumps(MOCK_HISTORY_CONVERSATION))
+    def test_history_read(self, tmp_path):
+        history_file = tmp_path / "history.json"
+        history_file.write_text(json.dumps(MOCK_HISTORY_CONVERSATION))
         config = Config(history=HistorySchema(file=history_file))
 
         assert history.handle_history_read(config) == MOCK_HISTORY_CONVERSATION
@@ -54,10 +54,10 @@ class TestHistoryRead:
             ),
         ),
     )
-    def test_history_over_max_size(self, tmpdir, multiply, max_size):
+    def test_history_over_max_size(self, tmp_path, multiply, max_size):
         total_mock_data = MOCK_HISTORY_CONVERSATION * multiply
-        history_file = tmpdir.join("history.json")
-        history_file.write(json.dumps(total_mock_data))
+        history_file = tmp_path / "history.json"
+        history_file.write_text(json.dumps(total_mock_data))
         config = Config(history=HistorySchema(file=history_file, max_size=max_size))
 
         history_result = history.handle_history_read(config)
@@ -72,16 +72,16 @@ class TestHistoryWrite:
         config = Config(history=HistorySchema(enabled=False))
         assert not history.handle_history_write(config, [], "")
 
-    def test_history_file_missing(self, tmpdir):
-        history_file = tmpdir.join("history").join("non-existing-file.json")
+    def test_history_file_missing(self, tmp_path):
+        history_file = tmp_path / "history" / "non-existing-file.json"
         config = Config(history=HistorySchema(file=history_file))
 
         history.handle_history_write(config, [], "test")
         assert Path(history_file).exists()
 
-    def test_history_write(self, tmpdir):
+    def test_history_write(self, tmp_path):
         expected = [{"role": "assistant", "content": "test"}]
-        history_file = tmpdir.join("history").join("non-existing-file.json")
+        history_file = tmp_path / "history" / "non-existing-file.json"
         config = Config(history=HistorySchema(file=history_file))
 
         history.handle_history_write(config, [], "test")
@@ -89,11 +89,11 @@ class TestHistoryWrite:
         raw_history = Path(history_file).read_text()
         assert json.loads(raw_history) == expected
 
-    def test_history_append(self, tmpdir):
+    def test_history_append(self, tmp_path):
         expected = MOCK_HISTORY_CONVERSATION.copy()
         expected.append({"role": "assistant", "content": "test"})
 
-        history_file = tmpdir.join("history").join("non-existing-file.json")
+        history_file = tmp_path / "history" / "non-existing-file.json"
         config = Config(history=HistorySchema(file=history_file))
 
         history.handle_history_write(config, MOCK_HISTORY_CONVERSATION, "test")

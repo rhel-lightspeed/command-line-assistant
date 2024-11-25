@@ -1,4 +1,3 @@
-#: Logging configuration
 import copy
 import logging.config
 
@@ -33,14 +32,14 @@ LOGGING_CONFIG_DICTIONARY = {
 
 def setup_logging(config: Config, verbose: bool = False):
     """Setup basic logging functionality"""
-    logging_file = config.logging.file
 
-    if not logging_file.parent.exists():
-        logging_file.parent.mkdir(mode=0o755)
+    # TODO(r0x0d): This will be removed as clad will manage the logs
+    if not config.logging.file.parent.exists():  # type: ignore
+        config.logging.file.parent.mkdir(mode=0o755)  # type: ignore
 
     logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
 
-    logging_configuration["handlers"]["file"]["filename"] = logging_file
+    logging_configuration["handlers"]["file"]["filename"] = config.logging.file
 
     if verbose:
         logging_configuration["handlers"]["console"]["formatter"] = "verbose"

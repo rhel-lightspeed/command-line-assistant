@@ -28,6 +28,9 @@ unit-test-coverage: ## Unit test cla with coverage
 coverage: ## Generate coverage report from unit-tests
 	@coverage xml
 
+coverage-html: ## Generate coverage report from unit-tests as html
+	@coverage html
+
 help: ## Show available make commands
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
 	@echo ''
