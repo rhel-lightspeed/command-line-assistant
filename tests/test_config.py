@@ -18,7 +18,6 @@ except ImportError:
         (config.LoggingSchema,),
         (config.OutputSchema,),
         (config.BackendSchema,),
-        (config.HistorySchema,),
     ),
 )
 def test_initialize_schemas(schema):
@@ -55,5 +54,4 @@ def test_load_existing_config_file(tmp_path, working_config_mapping, monkeypatch
     assert isinstance(existing_config, config.Config)
     assert existing_config.backend
     assert existing_config.output
-    assert existing_config.history
     assert existing_config.logging
