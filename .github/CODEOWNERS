@@ -16,7 +16,7 @@ command_line_assistant/   @rhel-lightspeed/developers
 data/                     @rhel-lightspeed/developers @rhel-lightspeed/quality-engineering
 
 # Integration tests
-.packit.yaml               @rhel-lightspeed/quality-engineering
+.packit.yaml              @rhel-lightspeed/quality-engineering
 
 # Packaging
 packaging/                @r0x0d
