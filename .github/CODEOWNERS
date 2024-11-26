@@ -1,0 +1,22 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# @global-owner1 and @global-owner2 will be requested for
+# review when someone opens a pull request.
+
+# If you would like to be the owner of something and you
+# are either a member or well-known contributor. Just
+# submit a PR to add yourself
+
+# CLA codebase itself
+command_line_assistant/   @rhel-lightspeed/developers
+.github/                  @rhel-lightspeed/developers
+data/                     @rhel-lightspeed/developers @rhel-lightspeed/quality-engineering
+
+# Integration tests
+.packit.yaml              @rhel-lightspeed/quality-engineering
+
+# Packaging
+packaging/                @r0x0d
