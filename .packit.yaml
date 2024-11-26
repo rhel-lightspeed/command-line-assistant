@@ -42,7 +42,7 @@ jobs:
         - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec
 
   # Test jobs
-  - &default-tests-virtual-machine
+  - &default-tests
     job: tests
     identifier: default-tests-virtual-machine
     # Run tests on-demand
@@ -50,7 +50,7 @@ jobs:
     trigger: pull_request
     fmf_url: "https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/cla-tests"
     fmf_ref: main
-    # TODO: Replace with tmt_plan: "plans/e2e" or similar
+    # TODO: Replace with tmt_plan: "plans/e2e" or similar once we have them ready
     tmt_plan: "plans"
     use_internal_tf: True
     targets:
@@ -67,41 +67,17 @@ jobs:
         - settings:
             provisioning:
               tags:
-                BusinessUnit: sst_rspeed_qe
+                BusinessUnit: rhel_sst_lightspeed@upstream
     labels:
       - e2e
       - vm
       - default
 
-  - &sanity-tests-container
-    job: tests
-    <<: *default-tests-virtual-machine
-    identifier: sanity-tests-container
-    manual_trigger: false
-    # TODO: Replace with tmt_plan: "plans/sanity"
-    tmt_plan: "plans"
-    targets:
-      # There is currently only RHEL-9 container available at the moment
-      epel-9-x86_64:
-        distros: [RHEL-9-Nightly]
-    tf_extra_params:
-      environments:
-        - os: null
-          variables:
-            IMAGE: registry.access.redhat.com/ubi9:latest
-          settings:
-            provisioning:
-              tags:
-                BusinessUnit: sst_rspeed_qe
-    labels:
-      - sanity
-      - sanity-container
-      - container
-
   - &sanity-tests-virtual-machine
     job: tests
-    <<: *default-tests-virtual-machine
+    <<: *default-tests
     identifier: sanity-tests-virtual-machine
+    manual_trigger: false
     # TODO: Replace with tmt_plan: "plans/sanity"
     tmt_plan: "plans"
     labels:
