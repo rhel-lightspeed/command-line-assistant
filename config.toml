@@ -6,12 +6,6 @@ file = "/tmp/command-line-assistant_output.txt"
 # Keep non-empty if your file contains only output of commands (not prompt itself)
 prompt_separator = "$"
 
-[history]
-enabled = true
-file = "~/.local/share/command-line-assistant/command-line-assistant_history.json"
-# max number of queries in history (including responses)
-max_size = 100
-
 [backend]
 endpoint = "http://0.0.0.0:8080/v1/query/"
 verify_ssl = false

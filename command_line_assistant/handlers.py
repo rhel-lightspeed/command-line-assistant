@@ -6,7 +6,6 @@ import requests
 import urllib3
 
 from command_line_assistant.config import Config
-from command_line_assistant.history import handle_history_read, handle_history_write
 from command_line_assistant.utils import get_payload
 
 
@@ -61,7 +60,6 @@ def handle_query(query: str, config: Config) -> None:
     query_endpoint = config.backend.endpoint
 
     try:
-        history = handle_history_read(config)
         payload = get_payload(query)
         logging.info("Waiting for response from AI...")
 
@@ -85,14 +83,6 @@ def handle_query(query: str, config: Config) -> None:
         ]
         references_str = (
             "\n\nReferences:\n" + "\n".join(references) if references else ""
-        )
-        handle_history_write(
-            config,
-            [
-                *history,
-                {"role": "user", "content": query},
-            ],
-            response_data,
         )
         print(response_data + references_str)
     except requests.exceptions.RequestException as e:
