@@ -1,30 +1,11 @@
 from argparse import Namespace
 
-from command_line_assistant.commands import BaseCLICommand, SubParsersAction
+from command_line_assistant.commands.utils import BaseCLICommand, SubParsersAction
 from command_line_assistant.dbus.constants import SERVICE_IDENTIFIER
 from command_line_assistant.dbus.definitions import MessageInput, MessageOutput
 
 
 class QueryCommand(BaseCLICommand):
-    @staticmethod
-    def register_subcommand(parser: SubParsersAction):
-        """
-        Register this command to argparse so it's available for the datasets-cli
-
-        Args:
-            parser: Root parser to register command-specific arguments
-        """
-        query_parser = parser.add_parser(
-            "query",
-            help="",
-        )
-        # Positional argument, required only if no optional arguments are provided
-        query_parser.add_argument(
-            "query_string", nargs="?", help="Query string to be processed."
-        )
-
-        query_parser.set_defaults(func=_command_factory)
-
     def __init__(self, query_string: str) -> None:
         self._query = query_string
         super().__init__()
@@ -42,6 +23,25 @@ class QueryCommand(BaseCLICommand):
 
         if output:
             print("\n", output)
+
+
+def register_subcommand(parser: SubParsersAction) -> None:
+    """
+    Register this command to argparse so it's available for the datasets-cli
+
+    Args:
+        parser: Root parser to register command-specific arguments
+    """
+    query_parser = parser.add_parser(
+        "query",
+        help="",
+    )
+    # Positional argument, required only if no optional arguments are provided
+    query_parser.add_argument(
+        "query_string", nargs="?", help="Query string to be processed."
+    )
+
+    query_parser.set_defaults(func=_command_factory)
 
 
 def _command_factory(args: Namespace) -> QueryCommand:
