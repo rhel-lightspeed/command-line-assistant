@@ -18,7 +18,6 @@ Requires:       python3-requests
 
 # Not needed after RHEL 10 as it is native in Python 3.11+
 %if 0%{?rhel} && 0%{?rhel} < 10
-BuildRequires:  python3-tomli
 Requires:       python3-tomli
 %endif
 
@@ -32,17 +31,20 @@ A simple wrapper to interact with RAG
 %prep
 %autosetup -n %{name}-%{version}
 
+%generate_buildrequires
+%pyproject_buildrequires -t
+
 %build
-%py3_build
+%pyproject_wheel
 
 %install
-%py3_install
+%pyproject_install
 
 %files
 %doc README.md
 %license LICENSE
 %{python3_sitelib}/%{python_package_src}/
-%{python3_sitelib}/%{python_package_src}-*.egg-info/
+%{python3_sitelib}/%{python_package_src}-*.dist-info/
 
 # Binaries
 %{_bindir}/%{binary_name}
