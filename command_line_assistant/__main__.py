@@ -1,5 +1,6 @@
+# TODO(r0x0d): Move this to initialize.py
+
 import sys
-from pathlib import Path
 
 from command_line_assistant.commands import history, query, record
 from command_line_assistant.config import (

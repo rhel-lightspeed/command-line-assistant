@@ -47,6 +47,9 @@ repos:
         - pyright[nodejs]
         - pytest
         - requests
+        - dasbus
+        - setuptools
+        - responses
         - tomli; python_version<"3.11"
         - setuptools
         - colorama

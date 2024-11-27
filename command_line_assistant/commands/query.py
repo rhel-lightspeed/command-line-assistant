@@ -1,21 +1,31 @@
 from argparse import Namespace
 
-from command_line_assistant.config import Config
-from command_line_assistant.handlers import handle_query
-from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
+from command_line_assistant.commands.utils import BaseCLICommand, SubParsersAction
+from command_line_assistant.dbus.constants import SERVICE_IDENTIFIER
+from command_line_assistant.dbus.definitions import MessageInput, MessageOutput
 
 
 class QueryCommand(BaseCLICommand):
-    def __init__(self, query_string: str, config: Config) -> None:
+    def __init__(self, query_string: str) -> None:
         self._query = query_string
-        self._config = config
         super().__init__()
 
     def run(self) -> None:
-        handle_query(self._query, self._config)
+        proxy = SERVICE_IDENTIFIER.get_proxy()
+
+        input_query = MessageInput()
+        input_query.message = self._query
+
+        print("Requesting knowledge from the AI :robot:")
+        proxy.ProcessQuery(MessageInput.to_structure(input_query))
+
+        output = MessageOutput.from_structure(proxy.RetrieveAnswer).message
+
+        if output:
+            print("\n", output)
 
 
-def register_subcommand(parser: SubParsersAction, config: Config) -> None:
+def register_subcommand(parser: SubParsersAction) -> None:
     """
     Register this command to argparse so it's available for the datasets-cli
 
@@ -31,9 +41,8 @@ def register_subcommand(parser: SubParsersAction, config: Config) -> None:
         "query_string", nargs="?", help="Query string to be processed."
     )
 
-    # TODO(r0x0d): This is temporary as it will get removed
-    query_parser.set_defaults(func=lambda args: _command_factory(args, config))
+    query_parser.set_defaults(func=_command_factory)
 
 
-def _command_factory(args: Namespace, config: Config) -> QueryCommand:
-    return QueryCommand(args.query_string, config)
+def _command_factory(args: Namespace) -> QueryCommand:
+    return QueryCommand(args.query_string)
