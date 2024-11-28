@@ -49,6 +49,10 @@ A simple wrapper to interact with RAG
 %{__install} -m 0755 %{buildroot}/%{_bindir}/%{daemon_binary_name} %{buildroot}/%{_sbindir}/%{daemon_binary_name}
 %{__rm} %{buildroot}/%{_bindir}/%{daemon_binary_name}
 
+# Ensure correct permissions for binaries
+install -D -m 0755 %{buildroot}/%{_bindir}/%{binary_name} %{buildroot}/%{_bindir}/%{binary_name}
+install -D -m 0755 %{buildroot}/%{_bindir}/%{daemon_binary_name} %{buildroot}/%{_bindir}/%{daemon_binary_name}
+
 # System units
 %{__install} -D -m 0644 data/systemd/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
 
@@ -62,7 +66,6 @@ A simple wrapper to interact with RAG
 %{_bindir}/%{binary_name}
 %{_sbindir}/%{daemon_binary_name}
 %{_unitdir}/%{daemon_binary_name}.service
-
 
 %post
 systemctl daemon-reload || :

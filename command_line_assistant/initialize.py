@@ -1,7 +1,7 @@
 import sys
 
 from command_line_assistant.commands import history, query
-from command_line_assistant.commands.utils import (
+from command_line_assistant.utils.cli import (
     add_default_command,
     create_argument_parser,
 )

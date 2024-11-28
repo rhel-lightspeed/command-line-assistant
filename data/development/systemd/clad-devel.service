@@ -4,11 +4,10 @@ Documentation=https://github.com/rhel-lightspeed/command-line-assistant
 After=network.service
 
 [Service]
-# https://systemd.io/CREDENTIALS/
-LoadCredential=certificate:{{ FAKE_DEVEL_CERTIFICATE }}
 PrivateTmp=yes
 RemainAfterExit=no
 ExecStart={{ EXEC_START }}
+Environment="XDG_CONFIG_DIRS={{ CONFIG_FILE_PATH }}"
 
 [Install]
 WantedBy=multi-user.target

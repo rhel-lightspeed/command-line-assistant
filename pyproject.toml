@@ -38,8 +38,7 @@ dev = [
     "pytest-clarity==1.0.1",
     "tox>=4.23.2",
     "tox-pdm>=0.7.2",
-    "pytest-recording>=0.13.2",
-    "responses>=0.25.3",
+    "responses>=0.25.3"
 ]
 
 # ----- Tooling specifics

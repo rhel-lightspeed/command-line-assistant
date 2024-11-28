@@ -1,20 +1,32 @@
-.PHONY: install-tools install install-dev unit-test help clean link-systemd-units unlink-systemd-units run-clad status-clad reload-clad
+.PHONY:
+	install-tools \
+	install \
+	install-dev \
+	unit-test \
+	help \
+	clean \
+	link-systemd-units \
+	unlink-systemd-units \
+	run-clad status-clad \
+	reload-clad \
 
 # Project directory path - /home/<user>/.../command-line-assistant
 PROJECT_DIR := $(shell pwd)
+DATA_DEVELOPMENT_PATH := $(PROJECT_DIR)/data/development
 
-# Systemd specifics
+## Systemd specifics
 # https://www.gnu.org/software/make/manual/html_node/Text-Functions.html#index-subst-1
 # Virtualenv bin path for clad
 CLAD_VENV_BIN := $(subst /,\/,$(PROJECT_DIR)/.venv/bin/clad)
-# The path to the fake certificate that systemd will load
-CLAD_FAKE_CERTIFICATE := $(subst /,\/,$(PROJECT_DIR)/data/certificate/fake-certificate.pem)
 # Systemd development unit
-CLAD_DEVEL_PATH := $(PROJECT_DIR)/data/systemd/clad-devel.service
+CLAD_SYSTEMD_DEVEL_PATH := $(DATA_DEVELOPMENT_PATH)/systemd/clad-devel.service
 # Systemd user unit, which is generated from devel unit
-CLAD_USER_PATH := $(PROJECT_DIR)/data/systemd/clad-user.service
+CLAD_SYSTEMD_USER_PATH := $(DATA_DEVELOPMENT_PATH)/systemd/clad-user.service
 # Systemd path on the system to place the user unit
-SYSTEMD_USER_UNITS := /etc/systemd/user
+SYSTEMD_USER_UNITS := ~/.config/systemd/user
+# SYSTEMD_USER_UNITS := /etc/systemd/user
+# Path to local XDG_CONFIG_DIRS to load config file
+XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
 
 default: help
 
@@ -37,7 +49,6 @@ unit-test-coverage: ## Unit test cla with coverage
 	@echo "Running tests..."
 	@pytest --cov --junitxml=junit.xml -o junit_family=legacy
 	@echo "Tests completed."
-
 
 coverage: ## Generate coverage report from unit-tests
 	@coverage xml
@@ -63,21 +74,22 @@ clean: ## Clean project files
 	@coverage erase
 
 link-systemd-units: ## Link the systemd units to /etc/systemd/user
-	@echo "Linking the systemd units from $(CLAD_DEVEL_PATH) to $(SYSTEMD_USER_UNITS)/clad.service"
+	@echo "Linking the systemd units from $(CLAD_SYSTEMD_DEVEL_PATH) to $(SYSTEMD_USER_UNITS)/clad.service"
 	@sed -e 's/{{ EXEC_START }}/$(CLAD_VENV_BIN)/'			   \
-	     -e 's/{{ FAKE_DEVEL_CERTIFICATE }}/$(CLAD_FAKE_CERTIFICATE)/' \
-	     $(CLAD_DEVEL_PATH) > $(CLAD_USER_PATH)
-	@sudo ln -s $(CLAD_USER_PATH) $(SYSTEMD_USER_UNITS)/clad.service
+		 -e 's/{{ CONFIG_FILE_PATH }}/$(XDG_CONFIG_DIRS)/' \
+	     $(CLAD_SYSTEMD_DEVEL_PATH) > $(CLAD_SYSTEMD_USER_PATH)
+	@ln -s $(CLAD_SYSTEMD_USER_PATH) $(SYSTEMD_USER_UNITS)/clad.service
 
 unlink-systemd-units: ## Unlink the systemd units from /etc/systemd/user
-	@echo "Unlinking the systemd units from $(SYSTEMD_USER_UNITS)/clad.service*"
-	@sudo unlink $(SYSTEMD_USER_UNITS)/clad.service
+	@echo "Unlinking the systemd units from $(SYSTEMD_USER_UNITS)/clad.service"
+	@unlink $(SYSTEMD_USER_UNITS)/clad.service
 
 run-clad: ## Run the clad under systemd
 	@systemctl start --user clad
 
 status-clad: ## Check the status for clad
-	@systemctl status --user clad
+	@systemctl status -f --user clad
 
 reload-clad: ## Reload clad systemd unit
 	@systemctl --user daemon-reload
+	@systemctl restart --user clad

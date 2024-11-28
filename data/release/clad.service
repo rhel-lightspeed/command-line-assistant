@@ -5,8 +5,6 @@ After=network.service
 
 [Service]
 BusName=redhat.rhel.lightspeed
-# https://systemd.io/CREDENTIALS/
-LoadCredential=certificate:/etc/pki/consumer/cert.pem
 PrivateTmp=yes
 RemainAfterExit=no
 ExecStart=$(exec_prefix}/sbin/clad

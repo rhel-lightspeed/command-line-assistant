@@ -1,6 +1,6 @@
 from argparse import Namespace
 
-from command_line_assistant.commands.utils import BaseCLICommand, SubParsersAction
+from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
 
 
 class HistoryCommand(BaseCLICommand):

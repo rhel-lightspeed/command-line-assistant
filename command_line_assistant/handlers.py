@@ -1,14 +1,10 @@
-import json
 import logging
 import os
 from pathlib import Path
 
-import requests
-import urllib3
-
 from command_line_assistant.config import Config
-from command_line_assistant.history import handle_history_read, handle_history_write
-from command_line_assistant.utils import get_payload
+
+logger = logging.getLogger(__name__)
 
 
 def handle_script_session(command_line_assistant_tmp_file: Path) -> None:
@@ -23,11 +19,11 @@ def handle_script_session(command_line_assistant_tmp_file: Path) -> None:
 
     # Remove the captured output after the script session ends
     if os.path.exists(command_line_assistant_tmp_file):
-        logging.info("Removing %s", command_line_assistant_tmp_file)
+        logger.info("Removing %s", command_line_assistant_tmp_file)
         os.remove(command_line_assistant_tmp_file)
 
 
-def _handle_caret(query: str, config: Config) -> str:
+def handle_caret(query: str, config: Config) -> str:
     """
     Replaces caret (^) with command output specified in config file.
     """
@@ -37,66 +33,17 @@ def _handle_caret(query: str, config: Config) -> str:
     captured_output_file = config.output.file
 
     if not os.path.exists(captured_output_file):
-        logging.error(
+        logger.error(
             "Output file %s does not exist, change location of file in config to use '^'.",
             captured_output_file,
         )
         raise ValueError(f"Output file {captured_output_file} does not exist.")
 
     prompt_separator = config.output.prompt_separator
-    with open(captured_output_file, "r") as f:
+    with open(captured_output_file, encoding="utf-8", mode="r") as f:
         # NOTE: takes only last command + output from file
         output = f.read().split(prompt_separator)[-1].strip()
 
     query = query.replace("^", "")
     query = f"Context data: {output}\nQuestion: " + query
     return query
-
-
-def handle_query(query: str, config: Config) -> str:
-    query = _handle_caret(query, config)
-    # NOTE: Add more query handling here
-
-    logging.info("Query: %s", query)
-
-    query_endpoint = config.backend.endpoint
-
-    try:
-        history = handle_history_read(config)
-        payload = get_payload(query)
-        logging.info("Waiting for response from AI...")
-
-        if not config.backend.verify_ssl:
-            logging.warning("Disabling SSL verification.")
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-        response = requests.post(
-            query_endpoint,
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(payload),
-            timeout=30,  # waiting for more than 30 seconds does not make sense
-            verify=config.backend.verify_ssl,
-        )
-        response.raise_for_status()
-        completion = response.json()
-        response_data = completion.get("response", {})
-        references = completion.get("referenced_documents", {})
-        references = [
-            f'{reference["title"]}: {reference["docs_url"]}' for reference in references
-        ]
-        # TODO(r0x0d): Move this to the client side
-        references_str = (
-            "\n\nReferences:\n" + "\n".join(references) if references else ""
-        )
-        handle_history_write(
-            config,
-            [
-                *history,
-                {"role": "user", "content": query},
-            ],
-            response_data,
-        )
-        return response_data + references_str
-    except requests.exceptions.RequestException as e:
-        logging.error("Failed to get response from AI: %s", e)
-        raise
