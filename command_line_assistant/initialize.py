@@ -7,7 +7,7 @@ from command_line_assistant.commands.utils import (
 )
 
 
-def main() -> int:
+def initialize() -> int:
     parser, commands_parser = create_argument_parser()
 
     # TODO: add autodetection of BaseCLICommand classes in the future so we can just drop
@@ -26,7 +26,3 @@ def main() -> int:
     service = args.func(args)
     service.run()
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
