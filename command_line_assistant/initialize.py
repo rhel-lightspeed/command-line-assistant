@@ -1,30 +1,18 @@
-# TODO(r0x0d): Move this to initialize.py
-
 import sys
 
 from command_line_assistant.commands import history, query, record
-from command_line_assistant.config import (
-    CONFIG_DEFAULT_PATH,
-    load_config_file,
-)
-from command_line_assistant.logger import setup_logging
 from command_line_assistant.utils.cli import add_default_command, create_argument_parser
 
 
-def main() -> int:
-    config_file = Path(CONFIG_DEFAULT_PATH)
-    config = load_config_file(config_file)
-
-    setup_logging(config, False)
-
+def initialize() -> int:
     parser, commands_parser = create_argument_parser()
 
     # TODO: add autodetection of BaseCLICommand classes in the future so we can just drop
     # new subcommand python modules into the directory and then loop and call `register_subcommand()`
     # on each one.
-    query.register_subcommand(commands_parser, config)  # type: ignore
-    history.register_subcommand(commands_parser, config)  # type: ignore
-    record.register_subcommand(commands_parser, config)  # type: ignore
+    query.register_subcommand(commands_parser)  # type: ignore
+    history.register_subcommand(commands_parser)  # type: ignore
+    record.register_subcommand(commands_parser)  # type: ignore
 
     args = add_default_command(sys.argv)
     args = parser.parse_args(args)
@@ -36,7 +24,3 @@ def main() -> int:
     service = args.func(args)
     service.run()
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

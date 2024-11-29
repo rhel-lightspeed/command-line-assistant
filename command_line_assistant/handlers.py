@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 
 import requests
 import urllib3
@@ -10,12 +11,12 @@ from command_line_assistant.history import handle_history_read, handle_history_w
 from command_line_assistant.utils import get_payload
 
 
-def handle_script_session(command_line_assistant_tmp_file) -> None:
+def handle_script_session(command_line_assistant_tmp_file: Path) -> None:
     """
     Starts a 'script' session and writes the PID to a file, but leaves control of the terminal to the user.
     """
     # Prepare the script command
-    script_command = ["script", "-f", command_line_assistant_tmp_file]
+    script_command = ["script", "-f", str(command_line_assistant_tmp_file)]
 
     # Start the script session and leave control to the terminal
     os.system(" ".join(script_command))
@@ -40,7 +41,7 @@ def _handle_caret(query: str, config: Config) -> str:
             "Output file %s does not exist, change location of file in config to use '^'.",
             captured_output_file,
         )
-        exit(1)
+        raise ValueError(f"Output file {captured_output_file} does not exist.")
 
     prompt_separator = config.output.prompt_separator
     with open(captured_output_file, "r") as f:
@@ -52,7 +53,7 @@ def _handle_caret(query: str, config: Config) -> str:
     return query
 
 
-def handle_query(query: str, config: Config) -> None:
+def handle_query(query: str, config: Config) -> str:
     query = _handle_caret(query, config)
     # NOTE: Add more query handling here
 
@@ -83,6 +84,7 @@ def handle_query(query: str, config: Config) -> None:
         references = [
             f'{reference["title"]}: {reference["docs_url"]}' for reference in references
         ]
+        # TODO(r0x0d): Move this to the client side
         references_str = (
             "\n\nReferences:\n" + "\n".join(references) if references else ""
         )
@@ -94,7 +96,7 @@ def handle_query(query: str, config: Config) -> None:
             ],
             response_data,
         )
-        print(response_data + references_str)
+        return response_data + references_str
     except requests.exceptions.RequestException as e:
         logging.error("Failed to get response from AI: %s", e)
-        exit(1)
+        raise

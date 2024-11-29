@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
+from command_line_assistant.commands import history
 from command_line_assistant.commands.history import (
     HistoryCommand,
     _command_factory,
@@ -49,12 +50,12 @@ class TestHistoryCommand:
         mock_history_write.assert_called_once_with(command._config, [], "")
 
 
-def test_register_subcommand(mock_config):
+def test_register_subcommand():
     """Test register_subcommand function"""
     parser = ArgumentParser()
     sub_parser = parser.add_subparsers()
 
-    register_subcommand(sub_parser, mock_config)
+    history.register_subcommand(sub_parser)
 
     parser.parse_args(["history", "--clear"])
 
