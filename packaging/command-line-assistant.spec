@@ -1,3 +1,7 @@
+%global python_package_src command_line_assistant
+%global binary_name c
+%global daemon_binary_name clad
+
 Name:           command-line-assistant
 Version:        0.1.0
 Release:        1%{?dist}
@@ -25,10 +29,6 @@ Requires:       systemd
 BuildRequires:  python3-tomli
 Requires:       python3-tomli
 %endif
-
-%global python_package_src command_line_assistant
-%global binary_name c
-%global daemon_binary_name clad
 
 %description
 A simple wrapper to interact with RAG
