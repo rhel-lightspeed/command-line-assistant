@@ -2,6 +2,7 @@ import sys
 
 
 def daemonize() -> int:
+    """Main routine for clad."""
     print("clad!")
     return 0
 

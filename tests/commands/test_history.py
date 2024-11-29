@@ -16,7 +16,7 @@ def test_register_command():
     parser = ArgumentParser()
     sub_parser = parser.add_subparsers()
 
-    history.HistoryCommand.register_subcommand(sub_parser)
+    history.register_subcommand(sub_parser)
 
     parser.parse_args(["history", "--clear"])
 
