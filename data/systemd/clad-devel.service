@@ -1,15 +1,14 @@
 [Unit]
-Description=Command Line Assistant Daemon Service
+Description=Command Line Assistant Daemon Development Service
 Documentation=https://github.com/rhel-lightspeed/command-line-assistant
 After=network.service
 
 [Service]
-BusName=redhat.rhel.lightspeed
 # https://systemd.io/CREDENTIALS/
-LoadCredential=certificate:/etc/pki/consumer/cert.pem
+LoadCredential=certificate:{{ FAKE_DEVEL_CERTIFICATE }}
 PrivateTmp=yes
 RemainAfterExit=no
-ExecStart=$(exec_prefix}/sbin/clad
+ExecStart={{ EXEC_START }}
 
 [Install]
 WantedBy=multi-user.target

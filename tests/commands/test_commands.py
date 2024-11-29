@@ -8,13 +8,13 @@ from command_line_assistant.commands import utils
 @pytest.mark.parametrize(
     ("argv", "expected"),
     (
-        (["test query"], ["query", "test query"]),
+        (["/usr/bin/c", "test query"], ["query", "test query"]),
         # When we just call `c` and do anything, we print help
         (
             [],
             [],
         ),
-        (["history"], ["history"]),
+        (["/usr/bin/c", "history"], ["history"]),
     ),
 )
 def test_add_default_command(argv, expected, monkeypatch):

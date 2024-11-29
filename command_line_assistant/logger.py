@@ -30,7 +30,7 @@ LOGGING_CONFIG_DICTIONARY = {
 }
 
 
-def setup_logging(config: Config, verbose: bool = False):
+def setup_logging(config: Config):
     """Setup basic logging functionality"""
 
     # TODO(r0x0d): This will be removed as clad will manage the logs
@@ -41,7 +41,7 @@ def setup_logging(config: Config, verbose: bool = False):
 
     logging_configuration["handlers"]["file"]["filename"] = config.logging.file
 
-    if verbose:
+    if config.logging.verbose:
         logging_configuration["handlers"]["console"]["formatter"] = "verbose"
         logging_configuration["loggers"]["root"]["handlers"].append("console")
 
