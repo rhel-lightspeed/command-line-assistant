@@ -20,7 +20,7 @@ def test_register_command():
     parser = ArgumentParser()
     sub_parser = parser.add_subparsers()
 
-    query.QueryCommand.register_subcommand(sub_parser)
+    query.register_subcommand(sub_parser)
 
     parser.parse_args(["query", "test"])
 
