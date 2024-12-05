@@ -1,10 +1,12 @@
 import logging
 from argparse import Namespace
+from pathlib import Path
 
-from command_line_assistant.commands.utils import BaseCLICommand, SubParsersAction
 from command_line_assistant.history import handle_history_write
+from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
 
 logger = logging.getLogger(__name__)
+
 
 class HistoryCommand(BaseCLICommand):
     def __init__(self, clear: bool) -> None:
@@ -15,7 +17,7 @@ class HistoryCommand(BaseCLICommand):
         if self._clear:
             logger.info("Clearing history of conversation")
             # TODO(r0x0d): Rewrite this.
-            handle_history_write("/tmp/test_history.json", [], "")
+            handle_history_write(Path("/tmp/test_history.json"), [], "")
 
 
 def register_subcommand(parser: SubParsersAction):

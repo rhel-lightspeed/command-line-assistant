@@ -1,75 +1,104 @@
-from unittest.mock import Mock, patch
+from argparse import ArgumentParser
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-from command_line_assistant.commands.record import RecordCommand
+from command_line_assistant.commands.record import RecordCommand, register_subcommand
 
 
 @pytest.fixture
-def record_command(mock_config):
-    """Fixture for RecordCommand instance"""
-    return RecordCommand(mock_config)
+def record_command():
+    """Fixture to create a RecordCommand instance."""
+    test_output_file = "/tmp/test_output.txt"
+    return RecordCommand(test_output_file)
 
 
-class TestRecordCommand:
-    def test_init(self, record_command, mock_config):
-        """Test RecordCommand initialization"""
-        assert record_command._config == mock_config
+@pytest.fixture
+def parser():
+    """Fixture to create an ArgumentParser instance."""
+    parser = ArgumentParser()
+    return parser.add_subparsers()
 
-    @patch("command_line_assistant.commands.record.handle_script_session")
-    @patch("os.path.exists")
-    def test_run_with_existing_file(
-        self, mock_exists, mock_script_session, record_command
-    ):
-        """Test run() when output file exists"""
-        mock_exists.return_value = True
+
+def test_init(record_command):
+    """Test initialization of RecordCommand."""
+    assert record_command._output_file == "/tmp/test_output.txt"
+
+
+@patch("command_line_assistant.commands.record.handle_script_session")
+def test_run(mock_handle_script_session, record_command):
+    """Test the run method of RecordCommand."""
+    record_command.run()
+
+    # Verify handle_script_session was called with correct path
+    mock_handle_script_session.assert_called_once_with(Path("/tmp/test_output.txt"))
+
+
+@patch("command_line_assistant.commands.record.handle_script_session")
+def test_run_with_empty_output_file(mock_handle_script_session):
+    """Test the run method with empty output file."""
+    record_command = RecordCommand("")
+    record_command.run()
+
+    # Verify handle_script_session was called with empty path
+    mock_handle_script_session.assert_called_once_with(Path(""))
+
+
+@patch("command_line_assistant.commands.record.handle_script_session")
+def test_run_with_error(mock_handle_script_session, record_command):
+    """Test the run method when handle_script_session raises an exception."""
+    mock_handle_script_session.side_effect = Exception("Script session error")
+
+    with pytest.raises(Exception) as exc_info:
         record_command.run()
-        mock_script_session.assert_called_once_with(record_command._config.output.file)
 
-    @patch("command_line_assistant.commands.record.handle_script_session")
-    @patch("os.path.exists")
-    @patch("sys.exit")
-    def test_run_without_file_enforced(
-        self, mock_exit, mock_exists, mock_script_session, record_command
-    ):
-        """Test run() when output file doesn't exist and script is enforced"""
-        mock_exists.return_value = False
-        record_command.run()
-        mock_script_session.assert_called_once_with(record_command._config.output.file)
-
-    @patch("command_line_assistant.commands.record.handle_script_session")
-    @patch("os.path.exists")
-    def test_run_without_enforcement(
-        self, mock_exists, mock_script_session, mock_config
-    ):
-        """Test run() when script enforcement is disabled"""
-        mock_config.output.enforce_script = False
-        command = RecordCommand(mock_config)
-        mock_exists.return_value = False
-
-        command.run()
-        mock_script_session.assert_called_once_with(command._config.output.file)
+    assert str(exc_info.value) == "Script session error"
+    mock_handle_script_session.assert_called_once()
 
 
-def test_register_subcommand(mock_config):
-    """Test register_subcommand function"""
-    mock_parser = Mock()
-    mock_parser.add_parser.return_value = mock_parser
+def test_register_subcommand(parser):
+    """Test registration of subcommand in parser."""
+    # Register subcommand
+    register_subcommand(parser)
 
-    from command_line_assistant.commands.record import register_subcommand
+    # Create parent parser to test argument parsing
+    parent_parser = ArgumentParser()
+    subparsers = parent_parser.add_subparsers()
+    register_subcommand(subparsers)
 
-    register_subcommand(mock_parser, mock_config)
+    # Parse args with record command
+    args = parent_parser.parse_args(["record"])
 
-    mock_parser.add_parser.assert_called_once_with(
-        "record", help="Start a recording session for script output."
-    )
-    assert mock_parser.set_defaults.called
-
-
-def test_command_factory(mock_config):
-    """Test _command_factory function"""
-    from command_line_assistant.commands.record import _command_factory
-
-    command = _command_factory(mock_config)
+    # Verify the command creates correct RecordCommand instance
+    command = args.func(args)
     assert isinstance(command, RecordCommand)
-    assert command._config == mock_config
+
+
+@pytest.mark.parametrize(
+    ("output_file", "expected_path"),
+    [
+        ("/tmp/test.txt", Path("/tmp/test.txt")),
+        ("", Path("")),
+        ("/var/log/output.log", Path("/var/log/output.log")),
+    ],
+)
+@patch("command_line_assistant.commands.record.handle_script_session")
+def test_record_command_different_paths(
+    mock_handle_script_session, output_file, expected_path
+):
+    """Test RecordCommand with different output file paths."""
+    command = RecordCommand(output_file)
+    command.run()
+    mock_handle_script_session.assert_called_once_with(expected_path)
+
+
+def test_record_command_attributes():
+    """Test RecordCommand instance attributes."""
+    output_file = "/tmp/test_output.txt"
+    command = RecordCommand(output_file)
+
+    assert hasattr(command, "_output_file")
+    assert command._output_file == output_file
+    assert hasattr(command, "run")
+    assert callable(command.run)

@@ -1,8 +1,7 @@
 import logging
-import os
-import sys
+from argparse import Namespace
+from pathlib import Path
 
-from command_line_assistant.config import Config
 from command_line_assistant.handlers import handle_script_session
 from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
 
@@ -12,24 +11,15 @@ logger = logging.getLogger(__name__)
 
 
 class RecordCommand(BaseCLICommand):
-    def __init__(self, config: Config) -> None:
-        self._config = config
+    def __init__(self, output_file: str) -> None:
+        self._output_file = output_file
         super().__init__()
 
     def run(self) -> None:
-        enforce_script_session = self._config.output.enforce_script
-        output_file = self._config.output.file
-
-        if enforce_script_session and not os.path.exists(output_file):
-            logger.error(
-                "Please call `%s record` first to initialize script session or create the output file.",
-                sys.argv[0],
-            )
-
-        handle_script_session(output_file)
+        handle_script_session(Path(self._output_file))
 
 
-def register_subcommand(parser: SubParsersAction, config: Config):
+def register_subcommand(parser: SubParsersAction):
     """
     Register this command to argparse so it's available for the datasets-cli
 
@@ -40,10 +30,12 @@ def register_subcommand(parser: SubParsersAction, config: Config):
         "record",
         help="Start a recording session for script output.",
     )
+    record_parser.add_argument(
+        "--output-file", help="The place where to store the output file."
+    )
 
-    # TODO(r0x0d): This is temporary as it will get removed
-    record_parser.set_defaults(func=lambda args: _command_factory(config))
+    record_parser.set_defaults(func=_command_factory)
 
 
-def _command_factory(config: Config) -> RecordCommand:
-    return RecordCommand(config)
+def _command_factory(args: Namespace) -> RecordCommand:
+    return RecordCommand(args.output_file)

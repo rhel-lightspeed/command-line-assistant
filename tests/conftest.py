@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import pytest
 
@@ -10,18 +11,16 @@ from command_line_assistant.config import (
     LoggingSchema,
     OutputSchema,
 )
+from command_line_assistant.config.schemas import AuthSchema
 
 
 @pytest.fixture(autouse=True)
-def setup_logger(request, tmp_path):
+def setup_logger(request):
     # This makes it so we can skip this using @pytest.mark.noautofixtures
     if "noautofixtures" in request.keywords:
         return
 
-    tmp_log_file = tmp_path / "conftest" / "cla.log"
-    logger.setup_logging(
-        config.Config(logging=config.LoggingSchema(file=tmp_log_file, verbose=True))
-    )
+    logger.setup_logging(config.Config(logging=config.LoggingSchema(level="DEBUG")))
 
     # get root logger
     root_logger = logging.getLogger()
@@ -39,10 +38,11 @@ def mock_config():
             prompt_separator="$",
         ),
         backend=BackendSchema(
-            endpoint="http://test.endpoint/v1/query", verify_ssl=True
+            endpoint="http://test.endpoint/v1/query",
+            auth=AuthSchema(cert_file=Path(""), key_file=Path(""), verify_ssl=True),
         ),
         history=HistorySchema(
             enabled=True, file=Path("/tmp/test_history.json"), max_size=100
         ),
-        logging=LoggingSchema(type="minimal"),
+        logging=LoggingSchema(level="debug"),
     )

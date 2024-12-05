@@ -1,8 +1,8 @@
 from argparse import Namespace
 
-from command_line_assistant.commands.utils import BaseCLICommand, SubParsersAction
 from command_line_assistant.dbus.constants import SERVICE_IDENTIFIER
 from command_line_assistant.dbus.definitions import MessageInput, MessageOutput
+from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
 
 
 class QueryCommand(BaseCLICommand):

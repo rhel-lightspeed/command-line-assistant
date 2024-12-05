@@ -1,7 +1,10 @@
 import sys
 
 from command_line_assistant.commands import history, query, record
-from command_line_assistant.utils.cli import add_default_command, create_argument_parser
+from command_line_assistant.utils.cli import (
+    add_default_command,
+    create_argument_parser,
+)
 
 
 def initialize() -> int:

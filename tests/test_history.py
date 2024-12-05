@@ -68,23 +68,16 @@ class TestHistoryRead:
 
 
 class TestHistoryWrite:
-    def test_not_enabled(self):
-        config = Config(history=HistorySchema(enabled=False))
-        assert not history.handle_history_write(config, [], "")
-
     def test_history_file_missing(self, tmp_path):
         history_file = tmp_path / "history" / "non-existing-file.json"
-        config = Config(history=HistorySchema(file=history_file))
 
-        history.handle_history_write(config, [], "test")
+        history.handle_history_write(history_file, [], "test")
         assert Path(history_file).exists()
 
     def test_history_write(self, tmp_path):
         expected = [{"role": "assistant", "content": "test"}]
         history_file = tmp_path / "history" / "non-existing-file.json"
-        config = Config(history=HistorySchema(file=history_file))
-
-        history.handle_history_write(config, [], "test")
+        history.handle_history_write(history_file, [], "test")
 
         raw_history = Path(history_file).read_text()
         assert json.loads(raw_history) == expected
@@ -94,9 +87,8 @@ class TestHistoryWrite:
         expected.append({"role": "assistant", "content": "test"})
 
         history_file = tmp_path / "history" / "non-existing-file.json"
-        config = Config(history=HistorySchema(file=history_file))
 
-        history.handle_history_write(config, MOCK_HISTORY_CONVERSATION, "test")
+        history.handle_history_write(history_file, MOCK_HISTORY_CONVERSATION, "test")
 
         raw_history = Path(history_file).read_text()
         assert json.loads(raw_history) == expected
