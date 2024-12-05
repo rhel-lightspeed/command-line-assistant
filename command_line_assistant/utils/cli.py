@@ -1,11 +1,11 @@
-import select
-import sys
 from abc import ABC, abstractmethod
 from argparse import SUPPRESS, ArgumentParser, _SubParsersAction
+import select
+import sys
 from typing import Optional
 
-from command_line_assistant.config import CONFIG_DEFAULT_PATH
 from command_line_assistant.constants import VERSION
+
 
 # Define the type here so pyright is happy with it.
 SubParsersAction = _SubParsersAction
@@ -64,11 +64,6 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
         version=VERSION,
         default=SUPPRESS,
         help="Show command line assistant version and exit.",
-    )
-    parser.add_argument(
-        "--config",
-        default=CONFIG_DEFAULT_PATH,
-        help="Path to the config file.",
     )
     commands_parser = parser.add_subparsers(
         dest="command", help="command line assistant helpers"

@@ -50,7 +50,7 @@ A simple wrapper to interact with RAG
 %{__rm} %{buildroot}/%{_bindir}/%{daemon_binary_name}
 
 # System units
-%{__install} -D -m 0644 data/systemd/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
+%{__install} -D -m 0644 data/release/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
 
 %files
 %doc README.md
@@ -63,17 +63,10 @@ A simple wrapper to interact with RAG
 %{_sbindir}/%{daemon_binary_name}
 %{_unitdir}/%{daemon_binary_name}.service
 
-
-%post
-systemctl daemon-reload || :
-
 %preun
 if [ "$1" -eq 0 ]; then
     systemctl stop %{daemon_binary_name}.service || :
     systemctl disable %{daemon_binary_name}.service || :
 fi
-
-%postun
-systemctl daemon-reload || :
 
 %changelog

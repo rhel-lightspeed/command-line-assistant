@@ -1,8 +1,8 @@
 import logging
 from argparse import Namespace
 
-from command_line_assistant.commands.utils import BaseCLICommand, SubParsersAction
 from command_line_assistant.history import handle_history_write
+from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
 
 logger = logging.getLogger(__name__)
 

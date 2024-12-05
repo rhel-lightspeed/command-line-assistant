@@ -1,8 +1,8 @@
 from argparse import ArgumentParser, Namespace
 from unittest.mock import Mock, patch
 
-from dasbus.server.template import InterfaceTemplate
 import pytest
+from dasbus.server.template import InterfaceTemplate
 
 from command_line_assistant.commands import query
 
