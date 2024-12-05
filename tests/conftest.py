@@ -6,15 +6,12 @@ from command_line_assistant import config, logger
 
 
 @pytest.fixture(autouse=True)
-def setup_logger(request, tmp_path):
+def setup_logger(request):
     # This makes it so we can skip this using @pytest.mark.noautofixtures
     if "noautofixtures" in request.keywords:
         return
 
-    tmp_log_file = tmp_path / "conftest" / "cla.log"
-    logger.setup_logging(
-        config.Config(logging=config.LoggingSchema(file=tmp_log_file, verbose=True))
-    )
+    logger.setup_logging(config.Config(logging=config.LoggingSchema(level="DEBUG")))
 
     # get root logger
     root_logger = logging.getLogger()

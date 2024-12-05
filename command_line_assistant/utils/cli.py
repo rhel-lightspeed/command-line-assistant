@@ -1,18 +1,22 @@
+import select
+import sys
 from abc import ABC, abstractmethod
 from argparse import SUPPRESS, ArgumentParser, _SubParsersAction
+from typing import Optional
+
+from command_line_assistant.constants import VERSION
 
 # Define the type here so pyright is happy with it.
 SubParsersAction = _SubParsersAction
+
+PARENT_ARGS: list[str] = ["--version", "-v", "-h", "--help"]
+ARGS_WITH_VALUES: list[str] = ["--clear"]
 
 
 class BaseCLICommand(ABC):
     @abstractmethod
     def run(self):
         raise NotImplementedError("Not implemented in base class.")
-
-
-PARENT_ARGS = ["--version", "-v", "-h", "--help"]
-ARGS_WITH_VALUES = ["--clear"]
 
 
 def add_default_command(argv):
@@ -56,7 +60,7 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     parser.add_argument(
         "--version",
         action="version",
-        version="0.1.0",
+        version=VERSION,
         default=SUPPRESS,
         help="Show command line assistant version and exit.",
     )
@@ -65,3 +69,25 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     )
 
     return parser, commands_parser
+
+
+def read_stdin() -> Optional[str]:
+    """Parse the std input when a user give us.
+
+    For example, consider the following scenario:
+        >>> echo "how to run podman?" | c
+
+    Or a more complex one
+        >>> cat error-log | c "How to fix this?"
+
+    Returns:
+        In case we have a stdin, we parse and retrieve it. Otherwise, just
+        return None.
+    """
+    # Check if there's input available on stdin
+    if select.select([sys.stdin], [], [], 0.0)[0]:
+        # If there is input, read it
+        input_data = sys.stdin.read().strip()
+        return input_data
+    # If no input, return None or handle as you prefer
+    return None

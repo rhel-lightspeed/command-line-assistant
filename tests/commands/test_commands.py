@@ -2,7 +2,7 @@ import sys
 
 import pytest
 
-from command_line_assistant.commands import utils
+from command_line_assistant.utils import cli
 
 
 @pytest.mark.parametrize(
@@ -19,7 +19,7 @@ from command_line_assistant.commands import utils
 )
 def test_add_default_command(argv, expected, monkeypatch):
     monkeypatch.setattr(sys, "argv", argv)
-    assert utils.add_default_command(argv) == expected
+    assert cli.add_default_command(argv) == expected
 
 
 @pytest.mark.parametrize(
@@ -32,4 +32,4 @@ def test_add_default_command(argv, expected, monkeypatch):
     ),
 )
 def test_subcommand_used(argv, expected):
-    assert utils._subcommand_used(argv) == expected
+    assert cli._subcommand_used(argv) == expected

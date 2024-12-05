@@ -10,6 +10,7 @@ from command_line_assistant.config.schemas import (
     LoggingSchema,
     OutputSchema,
 )
+from command_line_assistant.utils.environment import get_xdg_path
 
 # tomllib is available in the stdlib after Python3.11. Before that, we import
 # from tomli.
@@ -19,34 +20,12 @@ except ImportError:
     import tomli as tomllib  # pyright: ignore[reportMissingImports]
 
 
-CONFIG_DEFAULT_PATH: Path = Path(
-    "~/Workspace/command-line-assistant/config.toml"
-).expanduser()
+CONFIG_FILE_DEFINITION: tuple[str, str] = (
+    "command_line_assistant",
+    "config.toml",
+)
 
-# TODO(r0x0d): Move this to the command-line-assistant.spec
-# tomllib does not support writting files, so we will create our own.
-CONFIG_TEMPLATE = """\
-[output]
-# otherwise recording via script session will be enforced
-enforce_script = {enforce_script}
-# file with output(s) of regular commands (e.g. ls, echo, etc.)
-file = "{output_file}"
-# Keep non-empty if your file contains only output of commands (not prompt itself)
-prompt_separator = "{prompt_separator}"
-
-[history]
-enabled = {enabled}
-file = "{history_file}"
-# max number of queries in history (including responses)
-max_size = {max_size}
-
-[backend]
-endpoint = "{endpoint}"
-verify_ssl = {verify_ssl}
-
-[logging]
-verbose = {logging_verbose}
-"""
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -75,12 +54,14 @@ def load_config_file() -> Config:
     """Read configuration file."""
 
     config_dict = {}
+    config_file_path = Path(get_xdg_path(), *CONFIG_FILE_DEFINITION)
 
     try:
-        data = CONFIG_DEFAULT_PATH.read_text()
+        print(f"Loading configuration file from {config_file_path}")
+        data = config_file_path.read_text()
         config_dict = tomllib.loads(data)
     except (FileNotFoundError, tomllib.TOMLDecodeError) as ex:
-        logging.error(ex)
+        logger.error(ex)
         raise ex
 
     return Config(

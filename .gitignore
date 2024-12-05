@@ -28,4 +28,4 @@ coverage*
 junit.xml
 
 # systemd
-data/systemd/clad-user.service
+data/development/systemd/clad-user.service
