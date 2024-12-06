@@ -1,0 +1,14 @@
+[Unit]
+Description=Command Line Assistant Daemon Development Service
+Documentation=https://github.com/rhel-lightspeed/command-line-assistant
+After=network.service
+
+[Service]
+PrivateTmp=yes
+RemainAfterExit=no
+ExecStart={{ EXEC_START }}
+Environment="XDG_CONFIG_DIRS={{ CONFIG_FILE_PATH }}"
+
+[Install]
+WantedBy=multi-user.target
+Alias=clad.service

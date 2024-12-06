@@ -1,0 +1,14 @@
+[Unit]
+Description=Command Line Assistant Daemon Service
+Documentation=https://github.com/rhel-lightspeed/command-line-assistant
+After=network.service
+
+[Service]
+BusName=redhat.rhel.lightspeed
+PrivateTmp=yes
+RemainAfterExit=no
+ExecStart=$(exec_prefix}/sbin/clad
+
+[Install]
+WantedBy=multi-user.target
+Alias=clad.service

@@ -26,3 +26,6 @@ htmlcov/
 .tox
 coverage*
 junit.xml
+
+# systemd
+data/development/systemd/clad-user.service

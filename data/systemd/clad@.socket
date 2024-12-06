@@ -1,0 +1,8 @@
+[Unit]
+Description=Command Line Assistant Daemon Socket
+
+[Socket]
+ListenStream=clad@_%i
+
+[Install]
+WantedBy=sockets.target
