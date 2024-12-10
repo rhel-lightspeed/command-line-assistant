@@ -1,46 +1,39 @@
-import logging
-import os
 import sys
 from pathlib import Path
 
-from command_line_assistant.cli import get_args
+from command_line_assistant.commands import history, query, record
 from command_line_assistant.config import (
+    CONFIG_DEFAULT_PATH,
     load_config_file,
 )
-from command_line_assistant.handlers import (
-    handle_history_write,
-    handle_query,
-    handle_script_session,
-)
 from command_line_assistant.logger import setup_logging
+from command_line_assistant.utils.cli import add_default_command, create_argument_parser
 
 
 def main() -> int:
-    parser, args = get_args()
-
-    config_file = Path(args.config).expanduser()
+    config_file = Path(CONFIG_DEFAULT_PATH)
     config = load_config_file(config_file)
 
-    setup_logging(config, args.verbose)
+    setup_logging(config, False)
 
-    enforce_script_session = config.output.enforce_script
-    output_file = config.output.file
+    parser, commands_parser = create_argument_parser()
 
-    if enforce_script_session and (not args.record or not os.path.exists(output_file)):
-        parser.error(
-            f"Please call `{sys.argv[0]} --record` first to initialize script session or create the output file."
-        )
+    # TODO: add autodetection of BaseCLICommand classes in the future so we can just drop
+    # new subcommand python modules into the directory and then loop and call `register_subcommand()`
+    # on each one.
+    query.register_subcommand(commands_parser, config)  # type: ignore
+    history.register_subcommand(commands_parser, config)  # type: ignore
+    record.register_subcommand(commands_parser, config)  # type: ignore
 
-    # NOTE: This needs more refinement, script session can't be combined with other arguments
-    if args.record:
-        handle_script_session(output_file)
-        return 0
-    if args.history_clear:
-        logging.info("Clearing history of conversation")
-        handle_history_write(config, [], "")
-    if args.query_string:
-        handle_query(args.query_string, config)
+    args = add_default_command(sys.argv)
+    args = parser.parse_args(args)
 
+    if not hasattr(args, "func"):
+        parser.print_help()
+        return 1
+
+    service = args.func(args)
+    service.run()
     return 0
 
 
