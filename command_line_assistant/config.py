@@ -13,7 +13,6 @@ try:
 except ImportError:
     import tomli as tomllib  # pyright: ignore[reportMissingImports]
 
-
 CONFIG_DEFAULT_PATH: Path = Path(
     "~/.config/command-line-assistant/config.toml"
 ).expanduser()
