@@ -29,35 +29,6 @@ def test_read_stdin_no_input(monkeypatch):
     assert not cli.read_stdin()
 
 
-@pytest.mark.parametrize(
-    ("input_args", "expected"),
-    [
-        (["script_name"], []),
-        (["script_name", "history", "--clear"], ["history", "--clear"]),
-        (["script_name", "how to list files"], ["query", "how to list files"]),
-    ],
-)
-def test_add_default_command(input_args, expected):
-    """Test add_default_command with various inputs"""
-    args = cli.add_default_command(input_args)
-    assert args == expected
-
-
-@pytest.mark.parametrize(
-    ("input_args", "expected"),
-    [
-        (["script_name", "query", "some text"], "query"),
-        (["script_name", "history", "--clear"], "history"),
-        (["script_name", "--version"], "--version"),
-        (["script_name", "--help"], "--help"),
-        (["script_name", "some text"], None),
-    ],
-)
-def test_subcommand_used(input_args, expected):
-    """Test _subcommand_used with various inputs"""
-    assert cli._subcommand_used(input_args) == expected
-
-
 def test_create_argument_parser():
     """Test create_argument_parser returns parser and subparser"""
     parser, commands_parser = cli.create_argument_parser()
@@ -65,3 +36,36 @@ def test_create_argument_parser():
     assert commands_parser is not None
     assert parser.description is not None
     assert commands_parser.dest == "command"
+
+
+@pytest.mark.parametrize(
+    ("args", "expected"),
+    [
+        (["c"], []),
+        (["c", "query", "test query"], ["query", "test query"]),
+        (["c", "how to list files?"], ["query", "how to list files?"]),
+        (["/usr/bin/c", "test query"], ["query", "test query"]),
+        # When we just call `c` and do anything, we print help
+        (
+            [],
+            [],
+        ),
+        (["/usr/bin/c", "history"], ["history"]),
+    ],
+)
+def test_add_default_command(args, expected):
+    """Test adding default 'query' command when no command is specified"""
+    assert cli.add_default_command(args) == expected
+
+
+@pytest.mark.parametrize(
+    ("argv", "expected"),
+    (
+        (["query"], "query"),
+        (["--version"], "--version"),
+        (["--help"], "--help"),
+        (["--clear"], None),
+    ),
+)
+def test_subcommand_used(argv, expected):
+    assert cli._subcommand_used(argv) == expected

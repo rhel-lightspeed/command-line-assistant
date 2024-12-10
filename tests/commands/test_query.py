@@ -91,7 +91,7 @@ def test_query_command_config_validation(mock_config):
 @patch("command_line_assistant.commands.query.handle_query")
 def test_query_command_with_special_characters(mock_handle_query, mock_config):
     """Test QueryCommand with special characters in query"""
-    special_query = "test\nquery\twith\rspecial\characters"
+    special_query = r"test\nquery\twith\rspecial\characters"
     command = QueryCommand(special_query, mock_config)
     command.run()
     mock_handle_query.assert_called_once_with(special_query, mock_config)
