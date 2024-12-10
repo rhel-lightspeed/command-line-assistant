@@ -7,47 +7,37 @@ from command_line_assistant.commands import history
 from command_line_assistant.commands.history import (
     HistoryCommand,
     _command_factory,
-    register_subcommand,
 )
 
 
 @pytest.fixture
-def history_command(mock_config):
+def history_command():
     """Fixture to create a HistoryCommand instance"""
-    return HistoryCommand(clear=True, config=mock_config)
+    return HistoryCommand(clear=True)
 
 
 @pytest.fixture
-def history_command_no_clear(mock_config):
+def history_command_no_clear():
     """Fixture to create a HistoryCommand instance"""
-    return HistoryCommand(clear=False, config=mock_config)
+    return HistoryCommand(clear=False)
 
 
 class TestHistoryCommand:
-    def test_init(self, history_command, mock_config):
+    def test_init(self, history_command):
         """Test HistoryCommand initialization"""
         assert history_command._clear is True
-        assert history_command._config == mock_config
 
     @patch("command_line_assistant.commands.history.handle_history_write")
     def test_run_with_clear(self, mock_history_write, history_command):
         """Test run() method when clear=True"""
         history_command.run()
-        mock_history_write.assert_called_once_with(history_command._config, [], "")
+        mock_history_write.assert_called_once_with("/tmp/test_history.json", [], "")
 
     @patch("command_line_assistant.commands.history.handle_history_write")
     def test_run_without_clear(self, mock_history_write, history_command_no_clear):
         """Test run() method when clear=False"""
         history_command_no_clear.run()
         mock_history_write.assert_not_called()
-
-    @patch("command_line_assistant.commands.history.handle_history_write")
-    def test_run_with_clear_and_disabled_history(self, mock_history_write, mock_config):
-        """Test run() method when history is disabled"""
-        mock_config.history.enabled = False
-        command = HistoryCommand(clear=True, config=mock_config)
-        command.run()
-        mock_history_write.assert_called_once_with(command._config, [], "")
 
 
 def test_register_subcommand():
@@ -60,12 +50,11 @@ def test_register_subcommand():
     parser.parse_args(["history", "--clear"])
 
 
-def test_command_factory(mock_config):
+def test_command_factory():
     """Test _command_factory function"""
 
     args = Namespace(clear=True)
-    command = _command_factory(args, mock_config)
+    command = _command_factory(args)
 
     assert isinstance(command, HistoryCommand)
     assert command._clear is True
-    assert command._config == mock_config

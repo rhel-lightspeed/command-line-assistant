@@ -6,6 +6,7 @@ from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
 
 logger = logging.getLogger(__name__)
 
+
 class HistoryCommand(BaseCLICommand):
     def __init__(self, clear: bool) -> None:
         self._clear = clear

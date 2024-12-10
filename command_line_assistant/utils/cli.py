@@ -1,11 +1,10 @@
-from abc import ABC, abstractmethod
-from argparse import SUPPRESS, ArgumentParser, _SubParsersAction
 import select
 import sys
+from abc import ABC, abstractmethod
+from argparse import SUPPRESS, ArgumentParser, _SubParsersAction
 from typing import Optional
 
 from command_line_assistant.constants import VERSION
-
 
 # Define the type here so pyright is happy with it.
 SubParsersAction = _SubParsersAction

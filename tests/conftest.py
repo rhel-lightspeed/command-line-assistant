@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import pytest
 
@@ -10,6 +11,7 @@ from command_line_assistant.config import (
     LoggingSchema,
     OutputSchema,
 )
+from command_line_assistant.config.schemas import AuthSchema
 
 
 @pytest.fixture(autouse=True)
@@ -36,10 +38,11 @@ def mock_config():
             prompt_separator="$",
         ),
         backend=BackendSchema(
-            endpoint="http://test.endpoint/v1/query", verify_ssl=True
+            endpoint="http://test.endpoint/v1/query",
+            auth=AuthSchema(cert_file=Path(""), key_file=Path(""), verify_ssl=True),
         ),
         history=HistorySchema(
             enabled=True, file=Path("/tmp/test_history.json"), max_size=100
         ),
-        logging=LoggingSchema(type="minimal"),
+        logging=LoggingSchema(level="debug"),
     )
