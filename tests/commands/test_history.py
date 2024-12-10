@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -31,7 +32,9 @@ class TestHistoryCommand:
     def test_run_with_clear(self, mock_history_write, history_command):
         """Test run() method when clear=True"""
         history_command.run()
-        mock_history_write.assert_called_once_with("/tmp/test_history.json", [], "")
+        mock_history_write.assert_called_once_with(
+            Path("/tmp/test_history.json"), [], ""
+        )
 
     @patch("command_line_assistant.commands.history.handle_history_write")
     def test_run_without_clear(self, mock_history_write, history_command_no_clear):
