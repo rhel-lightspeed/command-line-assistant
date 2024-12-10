@@ -1,6 +1,8 @@
 import select
 import sys
 
+import pytest
+
 from command_line_assistant.utils import cli
 
 
@@ -27,43 +29,33 @@ def test_read_stdin_no_input(monkeypatch):
     assert not cli.read_stdin()
 
 
-def test_add_default_command_no_args():
-    """Test add_default_command with no arguments"""
-    args = cli.add_default_command(["script_name"])
-    assert args == []
+@pytest.mark.parametrize(
+    ("input_args", "expected"),
+    [
+        (["script_name"], []),
+        (["script_name", "history", "--clear"], ["history", "--clear"]),
+        (["script_name", "how to list files"], ["query", "how to list files"]),
+    ],
+)
+def test_add_default_command(input_args, expected):
+    """Test add_default_command with various inputs"""
+    args = cli.add_default_command(input_args)
+    assert args == expected
 
 
-def test_add_default_command_with_subcommand():
-    """Test add_default_command with explicit subcommand"""
-    args = cli.add_default_command(["script_name", "history", "--clear"])
-    assert args == ["history", "--clear"]
-
-
-def test_add_default_command_no_subcommand():
-    """Test add_default_command adds query command when no subcommand given"""
-    args = cli.add_default_command(["script_name", "how to list files"])
-    assert args == ["query", "how to list files"]
-
-
-def test_subcommand_used_query():
-    """Test _subcommand_used detects query command"""
-    assert cli._subcommand_used(["script_name", "query", "some text"]) == "query"
-
-
-def test_subcommand_used_history():
-    """Test _subcommand_used detects history command"""
-    assert cli._subcommand_used(["script_name", "history", "--clear"]) == "history"
-
-
-def test_subcommand_used_parent_args():
-    """Test _subcommand_used detects parent args"""
-    assert cli._subcommand_used(["script_name", "--version"]) == "--version"
-    assert cli._subcommand_used(["script_name", "--help"]) == "--help"
-
-
-def test_subcommand_used_none():
-    """Test _subcommand_used returns None when no subcommand found"""
-    assert cli._subcommand_used(["script_name", "some text"]) is None
+@pytest.mark.parametrize(
+    ("input_args", "expected"),
+    [
+        (["script_name", "query", "some text"], "query"),
+        (["script_name", "history", "--clear"], "history"),
+        (["script_name", "--version"], "--version"),
+        (["script_name", "--help"], "--help"),
+        (["script_name", "some text"], None),
+    ],
+)
+def test_subcommand_used(input_args, expected):
+    """Test _subcommand_used with various inputs"""
+    assert cli._subcommand_used(input_args) == expected
 
 
 def test_create_argument_parser():
