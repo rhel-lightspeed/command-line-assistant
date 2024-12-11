@@ -19,9 +19,9 @@ BuildRequires:  python3-wheel
 BuildRequires:  python3-pip
 BuildRequires:  systemd-units
 
-# Needed by python3-dasbus
 Requires:       python3-dasbus
 Requires:       python3-requests
+Requires:       python3-colorama
 Requires:       systemd
 
 # Not needed after RHEL 10 as it is native in Python 3.11+
