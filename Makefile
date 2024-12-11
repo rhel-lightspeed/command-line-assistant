@@ -70,8 +70,17 @@ clean: ## Clean project files
 	@find . -name '__pycache__' -exec rm -fr {} +
 	@find . -name '*.pyc' -exec rm -f {} +
 	@find . -name '*.pyo' -exec rm -f {} +
-	@rm -rf .pdm-build .ruff_cache .coverage .pdm-python dist .tox junit.xml coverage.xml
-	@coverage erase
+	@rm -rf htmlcov \
+	   .pytest_cache \
+	   command_line_assistant.egg-info \
+	   .pdm-build \
+	   .ruff_cache \
+	   .coverage \
+	   .pdm-python \
+	   dist \
+	   .tox \
+	   junit.xml \
+	   coverage.xml
 
 link-systemd-units: ## Link the systemd units to /etc/systemd/user
 	@echo "Linking the systemd units from $(CLAD_SYSTEMD_DEVEL_PATH) to $(SYSTEMD_USER_UNITS)/clad.service"
