@@ -6,7 +6,7 @@ ERROR_MAPPER = ErrorMapper()
 
 SESSION_BUS = SessionMessageBus(error_mapper=ERROR_MAPPER)
 
-SERVICE_NAMESPACE = ("redhat", "rhel", "lightspeed")
+SERVICE_NAMESPACE = ("com", "redhat", "lightspeed")
 
 # Define the service identifier for a query
 SERVICE_IDENTIFIER = DBusServiceIdentifier(
