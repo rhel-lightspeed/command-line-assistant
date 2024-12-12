@@ -1,7 +1,7 @@
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.style import StyleDecorator
 from command_line_assistant.rendering.decorators.text import TextWrapDecorator
-from command_line_assistant.rendering.render import TextRenderer
+from command_line_assistant.rendering.renders.text import TextRenderer
 
 
 def test_text_renderer_multiple_decorators():

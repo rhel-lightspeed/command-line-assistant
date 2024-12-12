@@ -29,8 +29,13 @@ def setup_logger(request):
 
 
 @pytest.fixture
-def mock_config():
+def mock_config(tmp_path):
     """Fixture to create a mock configuration"""
+    cert_file = tmp_path / "cert.pem"
+    key_file = tmp_path / "key.pem"
+
+    cert_file.write_text("cert")
+    key_file.write_text("key")
     return Config(
         output=OutputSchema(
             enforce_script=False,
@@ -39,7 +44,7 @@ def mock_config():
         ),
         backend=BackendSchema(
             endpoint="http://test.endpoint/v1/query",
-            auth=AuthSchema(cert_file=Path(""), key_file=Path(""), verify_ssl=True),
+            auth=AuthSchema(cert_file=cert_file, key_file=key_file, verify_ssl=False),
         ),
         history=HistorySchema(
             enabled=True, file=Path("/tmp/test_history.json"), max_size=100

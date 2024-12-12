@@ -7,7 +7,7 @@ from command_line_assistant.utils.cli import BaseCLICommand
 
 
 class MockCommand(BaseCLICommand):
-    def run(self):
+    def run(self):  # type: ignore
         return True
 
 
