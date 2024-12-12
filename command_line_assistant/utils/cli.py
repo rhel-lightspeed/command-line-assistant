@@ -16,7 +16,7 @@ ARGS_WITH_VALUES: list[str] = ["--clear"]
 class BaseCLICommand(ABC):
     @abstractmethod
     def run(self):
-        raise NotImplementedError("Not implemented in base class.")
+        pass
 
 
 def add_default_command(argv):

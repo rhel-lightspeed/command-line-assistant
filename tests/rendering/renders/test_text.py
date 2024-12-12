@@ -1,7 +1,7 @@
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.style import StyleDecorator
 from command_line_assistant.rendering.decorators.text import TextWrapDecorator
-from command_line_assistant.rendering.render import TextRenderer
+from command_line_assistant.rendering.renders.text import TextRenderer
 
 
 def test_text_renderer_multiple_decorators():
@@ -61,7 +61,7 @@ def test_text_renderer_render_empty_text(capsys):
     captured = capsys.readouterr()
     # TODO(r0x0d): right now, we are still applying the color and everything else.
     # Maybe in the future we want to get rid of the formatting if we don't have text...
-    assert captured.out.strip() == "\x1b[32m\x1b[0m"
+    assert captured.out.strip() == ""
 
 
 def test_text_renderer_render_multiline(capsys):

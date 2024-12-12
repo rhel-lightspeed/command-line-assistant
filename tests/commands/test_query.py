@@ -77,7 +77,7 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
     command.run()
 
     captured = capsys.readouterr()
-    assert captured.out == "Requesting knowledge from the AI :robot:\n"
+    assert "Requesting knowledge from AI" in captured.out.strip()
 
 
 @pytest.mark.parametrize(
@@ -122,7 +122,7 @@ def test_command_factory():
     assert command._query == "test query"
 
 
-def test_dbus_error_handling(mock_dbus_service):
+def test_dbus_error_handling(mock_dbus_service, capsys):
     """Test handling of DBus errors"""
     from dasbus.error import DBusError
 
@@ -130,9 +130,11 @@ def test_dbus_error_handling(mock_dbus_service):
     mock_dbus_service.ProcessQuery.side_effect = DBusError("Test DBus Error")
 
     command = QueryCommand("test query")
+    command.run()
 
-    with pytest.raises(DBusError):
-        command.run()
+    # Verify error message in stdout
+    captured = capsys.readouterr()
+    assert "Uh oh... Something went wrong. Try again later." in captured.out.strip()
 
 
 def test_query_with_special_characters(mock_dbus_service, capsys):

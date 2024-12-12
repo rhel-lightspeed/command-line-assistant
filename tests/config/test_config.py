@@ -47,7 +47,7 @@ def test_load_config_file(tmp_path, monkeypatch, get_config_template):
     config_file.parent.mkdir()
     config_file.write_text(get_config_template)
 
-    monkeypatch.setattr(config, "get_xdg_path", lambda: config_file_path)
+    monkeypatch.setattr(config, "get_xdg_config_path", lambda: config_file_path)
     instance = config.load_config_file()
 
     assert isinstance(instance, config.Config)
@@ -58,7 +58,7 @@ def test_load_config_file(tmp_path, monkeypatch, get_config_template):
 
 def test_load_config_file_not_found(tmp_path, monkeypatch):
     config_file = tmp_path / "whatever"
-    monkeypatch.setattr(config, "get_xdg_path", lambda: config_file)
+    monkeypatch.setattr(config, "get_xdg_config_path", lambda: config_file)
 
     with pytest.raises(FileNotFoundError):
         config.load_config_file()
@@ -73,7 +73,7 @@ def test_load_config_file_decoded_error(tmp_path, monkeypatch):
 enforce_script = False
                            """)
 
-    monkeypatch.setattr(config, "get_xdg_path", lambda: config_file_path)
+    monkeypatch.setattr(config, "get_xdg_config_path", lambda: config_file_path)
 
     with pytest.raises(tomllib.TOMLDecodeError):
         config.load_config_file()

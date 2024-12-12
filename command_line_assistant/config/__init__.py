@@ -10,7 +10,7 @@ from command_line_assistant.config.schemas import (
     LoggingSchema,
     OutputSchema,
 )
-from command_line_assistant.utils.environment import get_xdg_path
+from command_line_assistant.utils.environment import get_xdg_config_path
 
 # tomllib is available in the stdlib after Python3.11. Before that, we import
 # from tomli.
@@ -54,7 +54,7 @@ def load_config_file() -> Config:
     """Read configuration file."""
 
     config_dict = {}
-    config_file_path = Path(get_xdg_path(), *CONFIG_FILE_DEFINITION)
+    config_file_path = Path(get_xdg_config_path(), *CONFIG_FILE_DEFINITION)
 
     try:
         print(f"Loading configuration file from {config_file_path}")

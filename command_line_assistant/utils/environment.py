@@ -1,10 +1,31 @@
 import os
+from pathlib import Path
 
 # The wanted xdg path where the configuration files will live.
-WANTED_XDG_PATH = "/etc/xdg"
+WANTED_XDG_PATH = Path("/etc/xdg")
+
+# The wanted xdg state path in case $XDG_STATE_HOME is not defined.
+WANTED_XDG_STATE_PATH = Path("~/.local/state").expanduser()
 
 
-def get_xdg_path() -> str:
+def get_xdg_state_path() -> Path:
+    """Check for the existence of XDG_STATE_HOME environment variable.
+
+    In case it is not present, this function will return the default path that
+    is `~/.local/state`, which is where we want to place temporary state files for
+    Command Line Assistant.
+
+    See: https://specifications.freedesktop.org/basedir-spec/latest/
+    """
+    xdg_state_home = os.getenv("XDG_STATE_HOME", "")
+
+    # We call expanduser() for the xdg_state_home in case someone do "~/"
+    return (
+        Path(xdg_state_home).expanduser() if xdg_state_home else WANTED_XDG_STATE_PATH
+    )
+
+
+def get_xdg_config_path() -> Path:
     """Check for the existence of XDG_CONFIG_DIRS environment variable.
 
     In case it is not present, this function will return the default path that
@@ -35,11 +56,11 @@ def get_xdg_path() -> str:
     # XDG_CONFIG_DIRS was overrided and pointed to a specific location.
     # We hope to find the config file there.
     if len(xdg_config_dirs) == 1:
-        return xdg_config_dirs[0]
+        return Path(xdg_config_dirs[0])
 
     # Try to find the first occurence of the wanted_xdg_dir in the path, in
     # case it is not present, return the default value.
     xdg_dir_found = next(
         (dir for dir in xdg_config_dirs if dir == WANTED_XDG_PATH), WANTED_XDG_PATH
     )
-    return xdg_dir_found
+    return Path(xdg_dir_found)

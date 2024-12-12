@@ -2,7 +2,7 @@ from typing import Optional
 
 from colorama import Style
 
-from command_line_assistant.rendering.decorators.base import RenderDecorator
+from command_line_assistant.rendering.base import RenderDecorator
 
 
 class StyleDecorator(RenderDecorator):

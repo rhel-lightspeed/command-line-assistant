@@ -3,7 +3,7 @@ from typing import Optional
 
 from colorama import Back, Fore, Style
 
-from command_line_assistant.rendering.decorators.base import RenderDecorator
+from command_line_assistant.rendering.base import RenderDecorator
 
 
 class ColorDecorator(RenderDecorator):
