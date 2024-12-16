@@ -1,8 +1,9 @@
 import logging
 from argparse import Namespace
-from pathlib import Path
 
-from command_line_assistant.history import handle_history_write
+from dasbus.error import DBusError
+
+from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
 from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
 
 logger = logging.getLogger(__name__)
@@ -14,10 +15,15 @@ class HistoryCommand(BaseCLICommand):
         super().__init__()
 
     def run(self) -> None:
+        proxy = HISTORY_IDENTIFIER.get_proxy()
+
         if self._clear:
-            logger.info("Clearing history of conversation")
-            # TODO(r0x0d): Rewrite this.
-            handle_history_write(Path("/tmp/test_history.json"), [], "")
+            try:
+                logger.info("Cleaning the history.")
+                proxy.ClearHistory()
+            except DBusError as e:
+                logger.info("Failed to clean the history: %s", e)
+                raise e
 
 
 def register_subcommand(parser: SubParsersAction):

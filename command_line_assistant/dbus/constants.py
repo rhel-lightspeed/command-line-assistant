@@ -8,7 +8,14 @@ SESSION_BUS = SystemMessageBus(error_mapper=ERROR_MAPPER)
 
 SERVICE_NAMESPACE = ("com", "redhat", "lightspeed")
 
+QUERY_NAMESAPCE = (*SERVICE_NAMESPACE, "query")
+HISTORY_NAMESPACE = (*SERVICE_NAMESPACE, "history")
+
 # Define the service identifier for a query
-SERVICE_IDENTIFIER = DBusServiceIdentifier(
-    namespace=SERVICE_NAMESPACE, message_bus=SESSION_BUS
+QUERY_IDENTIFIER = DBusServiceIdentifier(
+    namespace=QUERY_NAMESAPCE, message_bus=SESSION_BUS
+)
+# Define the service identifier for a history
+HISTORY_IDENTIFIER = DBusServiceIdentifier(
+    namespace=HISTORY_NAMESPACE, message_bus=SESSION_BUS
 )

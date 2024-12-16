@@ -1,27 +1,26 @@
 from argparse import ArgumentParser, Namespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from command_line_assistant.commands.query import QueryCommand, register_subcommand
-from command_line_assistant.dbus.definitions import MessageInput, MessageOutput
+from command_line_assistant.dbus.structures import Message
 
 
 # Mock the entire DBus service/constants module
 @pytest.fixture(autouse=True)
-def mock_dbus_service():
+def mock_dbus_service(mock_proxy):
     """Fixture to mock DBus service and automatically use it for all tests"""
     with patch(
-        "command_line_assistant.commands.query.SERVICE_IDENTIFIER"
+        "command_line_assistant.commands.query.QUERY_IDENTIFIER"
     ) as mock_service:
         # Create a mock proxy that will be returned by get_proxy()
-        mock_proxy = MagicMock()
         mock_service.get_proxy.return_value = mock_proxy
 
         # Setup default mock response
-        mock_output = MessageOutput()
+        mock_output = Message()
         mock_output.message = "default mock response"
-        mock_proxy.RetrieveAnswer = MessageOutput.to_structure(mock_output)
+        mock_proxy.RetrieveAnswer = Message.to_structure(mock_output)
 
         yield mock_proxy
 
@@ -46,19 +45,19 @@ def test_query_command_initialization():
 def test_query_command_run(mock_dbus_service, test_input, expected_output, capsys):
     """Test QueryCommand run method with different inputs"""
     # Setup mock response for this specific test
-    mock_output = MessageOutput()
+    mock_output = Message()
     mock_output.message = expected_output
-    mock_dbus_service.RetrieveAnswer = MessageOutput.to_structure(mock_output)
+    mock_dbus_service.RetrieveAnswer = Message.to_structure(mock_output)
 
     # Create and run command
     command = QueryCommand(test_input)
     command.run()
 
     # Verify ProcessQuery was called with correct input
-    expected_input = MessageInput()
+    expected_input = Message()
     expected_input.message = test_input
     mock_dbus_service.ProcessQuery.assert_called_once_with(
-        MessageInput.to_structure(expected_input)
+        Message.to_structure(expected_input)
     )
 
     # Verify output was printed
@@ -69,9 +68,9 @@ def test_query_command_run(mock_dbus_service, test_input, expected_output, capsy
 def test_query_command_empty_response(mock_dbus_service, capsys):
     """Test QueryCommand handling empty response"""
     # Setup empty response
-    mock_output = MessageOutput()
+    mock_output = Message()
     mock_output.message = ""
-    mock_dbus_service.RetrieveAnswer = MessageOutput.to_structure(mock_output)
+    mock_dbus_service.RetrieveAnswer = Message.to_structure(mock_output)
 
     command = QueryCommand("test query")
     command.run()
@@ -142,17 +141,17 @@ def test_query_with_special_characters(mock_dbus_service, capsys):
     special_query = "test!@#$%^&*()_+ query"
     expected_response = "response with special chars !@#$"
 
-    mock_output = MessageOutput()
+    mock_output = Message()
     mock_output.message = expected_response
-    mock_dbus_service.RetrieveAnswer = MessageOutput.to_structure(mock_output)
+    mock_dbus_service.RetrieveAnswer = Message.to_structure(mock_output)
 
     command = QueryCommand(special_query)
     command.run()
 
-    expected_input = MessageInput()
+    expected_input = Message()
     expected_input.message = special_query
     mock_dbus_service.ProcessQuery.assert_called_once_with(
-        MessageInput.to_structure(expected_input)
+        Message.to_structure(expected_input)
     )
 
     captured = capsys.readouterr()

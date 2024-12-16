@@ -2,8 +2,8 @@ from argparse import Namespace
 
 from dasbus.error import DBusError
 
-from command_line_assistant.dbus.constants import SERVICE_IDENTIFIER
-from command_line_assistant.dbus.definitions import MessageInput, MessageOutput
+from command_line_assistant.dbus.constants import QUERY_IDENTIFIER
+from command_line_assistant.dbus.structures import Message
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
@@ -68,16 +68,15 @@ class QueryCommand(BaseCLICommand):
         super().__init__()
 
     def run(self) -> None:
-        proxy = SERVICE_IDENTIFIER.get_proxy()
-
-        input_query = MessageInput()
+        proxy = QUERY_IDENTIFIER.get_proxy()
+        input_query = Message()
         input_query.message = self._query
 
         output = "Nothing to see here..."
         try:
             with self._spinner_renderer:
-                proxy.ProcessQuery(MessageInput.to_structure(input_query))
-                output = MessageOutput.from_structure(proxy.RetrieveAnswer).message
+                proxy.ProcessQuery(input_query.to_structure(input_query))
+                output = Message.from_structure(proxy.RetrieveAnswer).message
 
             self._legal_renderer.render(LEGAL_NOTICE)
             self._text_renderer.render(output)

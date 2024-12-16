@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -51,3 +52,16 @@ def mock_config(tmp_path):
         ),
         logging=LoggingSchema(level="debug"),
     )
+
+
+@pytest.fixture
+def mock_dbus_session():
+    """Create a mock DBus session."""
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_proxy():
+    """Create a mock proxy for testing."""
+    proxy = MagicMock()
+    return proxy
