@@ -4,11 +4,10 @@ Documentation=https://github.com/rhel-lightspeed/command-line-assistant
 After=network.service
 
 [Service]
-BusName=com.rhel.lightspeed
 PrivateTmp=yes
 RemainAfterExit=no
-ExecStart=$(exec_prefix}/sbin/clad
+ExecStart=/usr/sbin/clad
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 Alias=clad.service

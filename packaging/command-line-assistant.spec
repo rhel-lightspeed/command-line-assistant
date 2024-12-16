@@ -52,6 +52,7 @@ A simple wrapper to interact with RAG
 
 # System units
 %{__install} -D -m 0644 data/release/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
+%{__install} -D -m 0644 data/release/com.redhat.lightspeed.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
 
 # Config file
 %{__install} -D -m 0644 data/release/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}/config.toml
@@ -71,6 +72,7 @@ A simple wrapper to interact with RAG
 
 # Config file
 %config %{_sysconfdir}/xdg/%{python_package_src}/config.toml
+%config %{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
 
 %preun
 if [ "$1" -eq 0 ]; then
