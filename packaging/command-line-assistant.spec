@@ -44,6 +44,7 @@ A simple wrapper to interact with RAG
 
 # Create sbin directory in buildroot
 %{__install} -d %{buildroot}/%{_sbindir}
+%{__install} -d %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}
 
 # Move the daemon to /usr/sbin instead of /usr/bin
 %{__install} -m 0755 %{buildroot}/%{_bindir}/%{daemon_binary_name} %{buildroot}/%{_sbindir}/%{daemon_binary_name}
@@ -51,6 +52,9 @@ A simple wrapper to interact with RAG
 
 # System units
 %{__install} -D -m 0644 data/release/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
+
+# Config file
+%{__install} -D -m 0644 data/release/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}/config.toml
 
 %files
 %doc README.md
@@ -61,7 +65,12 @@ A simple wrapper to interact with RAG
 # Binaries
 %{_bindir}/%{binary_name}
 %{_sbindir}/%{daemon_binary_name}
+
+# System units
 %{_unitdir}/%{daemon_binary_name}.service
+
+# Config file
+%config %{_sysconfdir}/xdg/%{python_package_src}/config.toml
 
 %preun
 if [ "$1" -eq 0 ]; then
