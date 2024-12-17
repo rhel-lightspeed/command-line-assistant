@@ -8,6 +8,8 @@ PrivateTmp=yes
 RemainAfterExit=no
 ExecStart={{ EXEC_START }}
 Environment="XDG_CONFIG_DIRS={{ CONFIG_FILE_PATH }}"
+# This is a workaround for intended only for local development.
+Environment="DBUS_SYSTEM_BUS_ADDRESS={{ DBUS_SESSION_ADDRESS }}"
 
 [Install]
 WantedBy=multi-user.target

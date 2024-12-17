@@ -7,7 +7,7 @@ from command_line_assistant.config import Config
 from command_line_assistant.dbus.constants import (
     HISTORY_IDENTIFIER,
     QUERY_IDENTIFIER,
-    SESSION_BUS,
+    SYSTEM_BUS,
 )
 from command_line_assistant.dbus.context import HistoryContext, QueryContext
 from command_line_assistant.dbus.interfaces import HistoryInterface, QueryInterface
@@ -19,24 +19,22 @@ def serve(config: Config):
     """Start the daemon."""
     logger.info("Starting clad!")
     try:
-        SESSION_BUS.publish_object(
+        SYSTEM_BUS.publish_object(
             QUERY_IDENTIFIER.object_path, QueryInterface(QueryContext(config))
         )
-        SESSION_BUS.publish_object(
+        SYSTEM_BUS.publish_object(
             HISTORY_IDENTIFIER.object_path, HistoryInterface(HistoryContext(config))
         )
 
         # The flag DBUS_NAME_FLAG_REPLACE_EXISTING is needed during development
         # so ew can replace the existing bus.
         # TODO(r0x0d): See what to do with it later.
-        SESSION_BUS.register_service(
-            QUERY_IDENTIFIER.service_name, flags=DBUS_NAME_FLAG_REPLACE_EXISTING
-        )
-        SESSION_BUS.register_service(
+        SYSTEM_BUS.register_service(QUERY_IDENTIFIER.service_name)
+        SYSTEM_BUS.register_service(
             HISTORY_IDENTIFIER.service_name, flags=DBUS_NAME_FLAG_REPLACE_EXISTING
         )
         loop = EventLoop()
         loop.run()
     finally:
         # Unregister the DBus service and objects.
-        SESSION_BUS.disconnect()
+        SYSTEM_BUS.disconnect()

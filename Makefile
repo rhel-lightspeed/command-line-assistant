@@ -86,6 +86,7 @@ link-systemd-units: ## Link the systemd units to /etc/systemd/user
 	@echo "Linking the systemd units from $(CLAD_SYSTEMD_DEVEL_PATH) to $(SYSTEMD_USER_UNITS)/clad.service"
 	@sed -e 's/{{ EXEC_START }}/$(CLAD_VENV_BIN)/'			   \
 		 -e 's/{{ CONFIG_FILE_PATH }}/$(XDG_CONFIG_DIRS)/' \
+		 -e 's/{{ DBUS_SESSION_ADDRESS }}/$(subst /,\/,$(DBUS_SESSION_BUS_ADDRESS))/' \
 	     $(CLAD_SYSTEMD_DEVEL_PATH) > $(CLAD_SYSTEMD_USER_PATH)
 	@ln -s $(CLAD_SYSTEMD_USER_PATH) $(SYSTEMD_USER_UNITS)/clad.service
 

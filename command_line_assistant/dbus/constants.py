@@ -4,7 +4,7 @@ from dasbus.identifier import DBusServiceIdentifier
 
 ERROR_MAPPER = ErrorMapper()
 
-SESSION_BUS = SystemMessageBus(error_mapper=ERROR_MAPPER)
+SYSTEM_BUS = SystemMessageBus(error_mapper=ERROR_MAPPER)
 
 SERVICE_NAMESPACE = ("com", "redhat", "lightspeed")
 
@@ -13,9 +13,9 @@ HISTORY_NAMESPACE = (*SERVICE_NAMESPACE, "history")
 
 # Define the service identifier for a query
 QUERY_IDENTIFIER = DBusServiceIdentifier(
-    namespace=QUERY_NAMESAPCE, message_bus=SESSION_BUS
+    namespace=QUERY_NAMESAPCE, message_bus=SYSTEM_BUS
 )
 # Define the service identifier for a history
 HISTORY_IDENTIFIER = DBusServiceIdentifier(
-    namespace=HISTORY_NAMESPACE, message_bus=SESSION_BUS
+    namespace=HISTORY_NAMESPACE, message_bus=SYSTEM_BUS
 )
