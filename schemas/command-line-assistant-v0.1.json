@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/rhel-lightspeed/command-line-assistant/main/schemas/command-line-assistant-v0.1.json",
+  "title": "General schema for CLA (Queries and History)",
+  "description": "This schema defines the structure to send/receive a query and history.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "Message": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Base class for message input and output"
+        }
+      },
+      "required": [
+        "message"
+      ]
+    },
+    "HistoryEntry": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "entries"
+      ]
+    }
+  }
+}
