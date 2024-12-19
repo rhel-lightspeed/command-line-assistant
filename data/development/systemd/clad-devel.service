@@ -7,10 +7,9 @@ After=network.service
 PrivateTmp=yes
 RemainAfterExit=no
 ExecStart={{ EXEC_START }}
+# The environment variables here are just workarounds for local development.
 Environment="XDG_CONFIG_DIRS={{ CONFIG_FILE_PATH }}"
-# This is a workaround for intended only for local development.
 Environment="DBUS_SYSTEM_BUS_ADDRESS={{ DBUS_SESSION_ADDRESS }}"
 
 [Install]
-WantedBy=multi-user.target
-Alias=clad.service
+WantedBy=default.target

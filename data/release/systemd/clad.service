@@ -1,13 +1,12 @@
 [Unit]
 Description=Command Line Assistant Daemon Service
 Documentation=https://github.com/rhel-lightspeed/command-line-assistant
-After=network.service
+After=network-online.service dbus.service
+Requires=network-online.target
 
 [Service]
+Type=dbus
+BusName=com.redhat.lightspeed
 PrivateTmp=yes
 RemainAfterExit=no
 ExecStart=/usr/sbin/clad
-
-[Install]
-WantedBy=default.target
-Alias=clad.service

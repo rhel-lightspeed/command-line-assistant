@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=com.redhat.lightspeed.query
+Exec=/bin/false
+User=root
+SystemdService=clad.service

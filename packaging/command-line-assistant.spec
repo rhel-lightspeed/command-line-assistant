@@ -51,17 +51,30 @@ A simple wrapper to interact with RAG
 %{__rm} %{buildroot}/%{_bindir}/%{daemon_binary_name}
 
 # System units
-%{__install} -D -m 0644 data/release/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
-%{__install} -D -m 0644 data/release/com.redhat.lightspeed.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
+%{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
+
+# d-bus policy config
+%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
+%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.query.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.query.service
+%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.history.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 
 # Config file
-%{__install} -D -m 0644 data/release/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}/config.toml
+%{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}/config.toml
 
 # History file
 ## Create the folder under /var/lib/command-line-assistatnt
 %{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
 ## Place the history file there
-%{__install} -D -m 0644 data/release/history.json %{buildroot}/%{_sharedstatedir}/%{name}/history.json
+%{__install} -D -m 0644 data/release/xdg/history.json %{buildroot}/%{_sharedstatedir}/%{name}/history.json
+
+%post
+%systemd_post %{daemon_binary_name}.service
+
+%preun
+%systemd_preun %{daemon_binary_name}.service
+
+%postun
+%systemd_postun_with_restart %{daemon_binary_name}.service
 
 %files
 %doc README.md
@@ -76,17 +89,15 @@ A simple wrapper to interact with RAG
 # System units
 %{_unitdir}/%{daemon_binary_name}.service
 
+# d-bus policy config
+%config %{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
+%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.query.service
+%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
+
 # Config file
 %config %{_sysconfdir}/xdg/%{python_package_src}/config.toml
-%config %{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
 
 # History file
 %{_sharedstatedir}/%{name}/history.json
-
-%preun
-if [ "$1" -eq 0 ]; then
-    systemctl stop %{daemon_binary_name}.service || :
-    systemctl disable %{daemon_binary_name}.service || :
-fi
 
 %changelog
