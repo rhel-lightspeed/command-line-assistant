@@ -3,7 +3,7 @@ from typing import Optional
 from dasbus.signal import Signal
 
 from command_line_assistant.config import Config
-from command_line_assistant.dbus.structures import Message
+from command_line_assistant.dbus.structures import MessageInput
 
 
 class BaseContext:
@@ -20,12 +20,12 @@ class QueryContext(BaseContext):
     """This is the process context that will handle anything query related"""
 
     def __init__(self, config: Config) -> None:
-        self._input_query: Optional[Message] = None
+        self._input_query: Optional[MessageInput] = None
         self._query_changed = Signal()
         super().__init__(config)
 
     @property
-    def query(self) -> Optional[Message]:
+    def query(self) -> Optional[MessageInput]:
         """Make it accessible publicly"""
         return self._input_query
 
@@ -33,7 +33,7 @@ class QueryContext(BaseContext):
     def query_changed(self) -> Signal:
         return self._query_changed
 
-    def process_query(self, input_query: Message) -> None:
+    def process_query(self, input_query: MessageInput) -> None:
         """Emit the signal that the query has changed"""
         self._input_query = input_query
         self._query_changed.emit()
