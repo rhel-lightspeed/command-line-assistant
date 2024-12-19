@@ -9,7 +9,8 @@ from command_line_assistant.dbus.structures import (
     HistoryEntry,
     Message,
 )
-from command_line_assistant.history import handle_history_read, handle_history_write
+from command_line_assistant.history.manager import HistoryManager
+from command_line_assistant.history.plugins.local import LocalHistory
 
 
 @dbus_interface(QUERY_IDENTIFIER.interface_name)
@@ -19,11 +20,13 @@ class QueryInterface(InterfaceTemplate):
     @property
     def RetrieveAnswer(self) -> Structure:
         """This method is mainly called by the client to retrieve it's answer."""
-        llm_response = submit(
-            self.implementation.query.message, self.implementation.config
-        )
+        query = self.implementation.query.message
+        llm_response = submit(query, self.implementation.config)
         message = Message()
         message.message = llm_response
+        manager = HistoryManager(self.implementation.config, LocalHistory)
+        current_history = manager.read()
+        manager.write(current_history, query, llm_response)
         return Message.to_structure(message)
 
     @emits_properties_changed
@@ -34,11 +37,47 @@ class QueryInterface(InterfaceTemplate):
 
 @dbus_interface(HISTORY_IDENTIFIER.interface_name)
 class HistoryInterface(InterfaceTemplate):
-    @property
     def GetHistory(self) -> Structure:
-        history = HistoryEntry()
-        history.entries = handle_history_read(self.implementation.config)
-        return history.to_structure(history)
+        """Get all conversations from history."""
+        manager = HistoryManager(self.implementation.config, LocalHistory)
+        history = manager.read()
+
+        history_entry = HistoryEntry()
+        if history.history:
+            [history_entry.set_from_dict(entry.to_dict()) for entry in history.history]
+        else:
+            history_entry.entries = []
+
+        return HistoryEntry.to_structure(history_entry)
+
+    # Add new methods with parameters
+    def GetFirstConversation(self) -> Structure:
+        """Get first conversation from history."""
+        manager = HistoryManager(self.implementation.config, LocalHistory)
+        history = manager.read()
+        history_entry = HistoryEntry()
+        if history.history:
+            last_entry = history.history[0]
+            history_entry.set_from_dict(last_entry.to_dict())
+        else:
+            history_entry.entries = []
+
+        return HistoryEntry.to_structure(history_entry)
+
+    def GetLastConversation(self) -> Structure:
+        """Get last conversation from history."""
+        manager = HistoryManager(self.implementation.config, LocalHistory)
+        history = manager.read()
+        history_entry = HistoryEntry()
+
+        if history.history:
+            last_entry = history.history[-1]
+            history_entry.set_from_dict(last_entry.to_dict())
+        else:
+            history_entry.entries = []
+
+        return HistoryEntry.to_structure(history_entry)
 
     def ClearHistory(self) -> None:
-        handle_history_write(self.implementation.config.history.file, [], "")
+        manager = HistoryManager(self.implementation.config, LocalHistory)
+        manager.clear()

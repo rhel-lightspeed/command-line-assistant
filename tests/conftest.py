@@ -34,6 +34,7 @@ def mock_config(tmp_path):
     """Fixture to create a mock configuration"""
     cert_file = tmp_path / "cert.pem"
     key_file = tmp_path / "key.pem"
+    history_file = tmp_path / "command_line_assistant" / "history.json"
 
     cert_file.write_text("cert")
     key_file.write_text("key")
@@ -47,9 +48,7 @@ def mock_config(tmp_path):
             endpoint="http://test.endpoint/v1/query",
             auth=AuthSchema(cert_file=cert_file, key_file=key_file, verify_ssl=False),
         ),
-        history=HistorySchema(
-            enabled=True, file=Path("/tmp/test_history.json"), max_size=100
-        ),
+        history=HistorySchema(enabled=True, file=history_file),
         logging=LoggingSchema(level="debug"),
     )
 

@@ -38,9 +38,8 @@ class HistorySchema:
 
     enabled: bool = True
     file: Union[str, Path] = Path(  # type: ignore
-        "~/.local/share/command-line-assistant/command-line-assistant_history.json"
+        "/var/lib/command-line-assistant/history.json"
     )
-    max_size: int = 100
 
     def __post_init__(self):
         self.file: Path = Path(self.file).expanduser()

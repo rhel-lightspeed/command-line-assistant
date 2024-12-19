@@ -1,4 +1,4 @@
-from command_line_assistant.dbus.structures import HistoryEntry, Message
+from command_line_assistant.dbus.structures import HistoryEntry, HistoryItem, Message
 
 
 def test_message_init():
@@ -19,7 +19,7 @@ def test_history_entry_init():
 
 def test_history_entry_setter():
     history = HistoryEntry()
-    test_entries = ["entry1", "entry2", "entry3"]
+    test_entries = [HistoryItem(), HistoryItem(), HistoryItem()]
     history.entries = test_entries
     assert history.entries == test_entries
 
@@ -38,6 +38,6 @@ def test_message_empty_string():
 
 def test_history_entry_single_entry():
     history = HistoryEntry()
-    history.entries = ["single entry"]
+
+    history.entries = [HistoryItem()]
     assert len(history.entries) == 1
-    assert history.entries[0] == "single entry"

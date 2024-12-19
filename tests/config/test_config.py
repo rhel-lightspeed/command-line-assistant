@@ -28,7 +28,6 @@ prompt_separator = "$"
 enabled = true
 file = "{history_file}"
 # max number of queries in history (including responses)
-max_size = 1
 
 [backend]
 endpoint = "https://localhost"
