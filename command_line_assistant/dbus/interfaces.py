@@ -16,21 +16,15 @@ from command_line_assistant.history import handle_history_read, handle_history_w
 class QueryInterface(InterfaceTemplate):
     """The DBus interface of a query."""
 
-    def connect_signals(self) -> None:
-        """Connect the signals."""
-        # Watch for property changes based on the query_changed method.
-        self.watch_property("RetrieveAnswer", self.implementation.query_changed)
-
     @property
     def RetrieveAnswer(self) -> Structure:
         """This method is mainly called by the client to retrieve it's answer."""
-        output = Message()
         llm_response = submit(
             self.implementation.query.message, self.implementation.config
         )
-        print("llm_response", llm_response)
-        output.message = llm_response
-        return Message.to_structure(output)
+        message = Message()
+        message.message = llm_response
+        return Message.to_structure(message)
 
     @emits_properties_changed
     def ProcessQuery(self, query: Structure) -> None:
