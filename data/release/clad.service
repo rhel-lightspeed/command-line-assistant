@@ -4,6 +4,10 @@ Documentation=https://github.com/rhel-lightspeed/command-line-assistant
 After=network.service
 
 [Service]
+Type=dbus
+BusName=com.redhat.lightspeed
+NotifyAccess=main
+WatchdogSec=300
 PrivateTmp=yes
 RemainAfterExit=no
 ExecStart=/usr/sbin/clad
