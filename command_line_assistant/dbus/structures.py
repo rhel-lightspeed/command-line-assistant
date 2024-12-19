@@ -2,9 +2,7 @@ from dasbus.structure import DBusData
 from dasbus.typing import Str
 
 
-class Message(DBusData):
-    """Base class for message input and output"""
-
+class BaseMessage(DBusData):
     def __init__(self) -> None:
         self._message: Str = ""
         super().__init__()
@@ -16,6 +14,26 @@ class Message(DBusData):
     @message.setter
     def message(self, value: Str) -> None:
         self._message = value
+
+
+class MessageInput(BaseMessage):
+    """Base class for message input"""
+
+
+class MessageOutput(BaseMessage):
+    """Base class for message output"""
+
+    def __init__(self) -> None:
+        self._command: list[str] = []
+        super().__init__()
+
+    @property
+    def command(self) -> list[str]:
+        return self._command
+
+    @command.setter
+    def command(self, value: list[str]) -> None:
+        self._command = value
 
 
 class HistoryEntry(DBusData):

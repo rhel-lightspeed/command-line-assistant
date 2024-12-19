@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 from pathlib import Path
 
 from command_line_assistant.config import Config
@@ -47,3 +48,22 @@ def handle_caret(query: str, config: Config) -> str:
     query = query.replace("^", "")
     query = f"Context data: {output}\nQuestion: " + query
     return query
+
+
+def handle_command_execution(command: str) -> None:
+    """Execute the given command."""
+    try:
+        subprocess.run(command, shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error("Failed to execute command: %s", e)
+        raise
+
+
+def handle_command_save(command: str, filepath: Path) -> None:
+    """Save the command to a file."""
+    try:
+        with open(filepath, "a") as f:
+            f.write(f"{command}\n")
+    except IOError as e:
+        logger.error("Failed to save command to file: %s", e)
+        raise

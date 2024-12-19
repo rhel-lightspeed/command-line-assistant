@@ -1,9 +1,13 @@
 from argparse import Namespace
+from pathlib import Path
 
 from dasbus.error import DBusError
 
 from command_line_assistant.dbus.constants import QUERY_IDENTIFIER
-from command_line_assistant.dbus.structures import Message
+from command_line_assistant.dbus.structures import MessageInput, MessageOutput
+from command_line_assistant.handlers import (
+    handle_command_save,
+)
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
@@ -64,23 +68,31 @@ class QueryCommand(BaseCLICommand):
         self._text_renderer: TextRenderer = _initialize_text_renderer()
         self._legal_renderer: TextRenderer = _initialize_legal_renderer(write_once=True)
         self._warning_renderer: TextRenderer = _initialize_legal_renderer()
-
         super().__init__()
+
+    def _handle_menu_selection(self, selection: str, command: str) -> None:
+        if selection == "save":
+            save_path = Path("/tmp/test")
+            self._text_renderer.render(f"\nSaving command to {save_path}...")
+            handle_command_save(command, save_path)
+        else:  # deny
+            self._text_renderer.render("\nCommand discarded.")
 
     def run(self) -> None:
         proxy = QUERY_IDENTIFIER.get_proxy()
-        input_query = Message()
+        input_query = MessageInput()
         input_query.message = self._query
 
-        output = "Nothing to see here..."
         try:
             with self._spinner_renderer:
                 proxy.ProcessQuery(input_query.to_structure(input_query))
-                output = Message.from_structure(proxy.RetrieveAnswer).message
+                response = MessageOutput.from_structure(proxy.RetrieveAnswer)
 
+            breakpoint()
             self._legal_renderer.render(LEGAL_NOTICE)
-            self._text_renderer.render(output)
+            self._text_renderer.render(response.message)
             self._warning_renderer.render(ALWAYS_LEGAL_MESSAGE)
+
         except DBusError:
             self._text_renderer.update(ColorDecorator(foreground="red"))
             self._text_renderer.update(EmojiDecorator(emoji="U+1F641"))
