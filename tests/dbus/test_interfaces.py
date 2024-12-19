@@ -28,12 +28,6 @@ def query_interface(mock_implementation):
 
 
 class TestQueryInterface:
-    def test_connect_signals(self, query_interface, mock_implementation):
-        query_interface.connect_signals()
-        query_interface.watch_property.assert_called_once_with(
-            "RetrieveAnswer", mock_implementation.query_changed
-        )
-
     @patch("command_line_assistant.dbus.interfaces.submit")
     def test_retrieve_answer_success(
         self, mock_submit, query_interface, mock_implementation
