@@ -10,9 +10,9 @@ from command_line_assistant.daemon.http import query
 @responses.activate
 def test_handle_query():
     responses.post(
-        url="http://localhost/v1/query",
+        url="http://localhost/infer",
         json={
-            "response": "test",
+            "data": {"text": "test"},
         },
     )
 
@@ -30,12 +30,12 @@ def test_handle_query():
 @responses.activate
 def test_handle_query_raising_status():
     responses.post(
-        url="http://localhost/v1/query",
+        url="http://localhost/infer",
         status=404,
     )
     config = Config(
         backend=BackendSchema(
-            endpoint="http://localhost/v1/query", auth=AuthSchema(verify_ssl=False)
+            endpoint="http://localhost/infer", auth=AuthSchema(verify_ssl=False)
         )
     )
     with pytest.raises(requests.exceptions.RequestException):
@@ -44,7 +44,9 @@ def test_handle_query_raising_status():
 
 @responses.activate
 def test_disable_ssl_verification(caplog):
-    responses.post(url="https://localhost/v1/query", json={"response": "yeah, test!"})
+    responses.post(
+        url="https://localhost/infer", json={"data": {"text": "yeah, test!"}}
+    )
 
     config = Config(
         backend=BackendSchema(

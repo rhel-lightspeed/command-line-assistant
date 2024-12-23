@@ -33,7 +33,8 @@ def submit(query: str, config: Config) -> str:
 
         response.raise_for_status()
         data = response.json()
-        return data.get("response", "")
+        data = data.get("data", {})
+        return data.get("text", "")
     except RequestException as e:
         logger.error("Failed to get response from AI: %s", e)
         raise
