@@ -78,11 +78,11 @@ def test_query_interface_retrieve_answer(query_interface, mock_implementation):
     """Test retrieving answer from query interface."""
     expected_response = "test response"
     mock_implementation.config.history.file.parent.mkdir()
-    mock_implementation.config.history.file.write_text("")
+    mock_implementation.config.history.file.write_text(History().to_json())
     with patch(
         "command_line_assistant.dbus.interfaces.submit", return_value=expected_response
     ) as mock_submit:
-        response = query_interface.RetrieveAnswer
+        response = query_interface.RetrieveAnswer()
 
         mock_submit.assert_called_once_with(
             mock_implementation.query.message, mock_implementation.config

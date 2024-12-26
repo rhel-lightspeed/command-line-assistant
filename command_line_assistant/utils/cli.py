@@ -15,7 +15,7 @@ ARGS_WITH_VALUES: list[str] = ["--clear"]
 
 class BaseCLICommand(ABC):
     @abstractmethod
-    def run(self):
+    def run(self) -> int:
         pass
 
 

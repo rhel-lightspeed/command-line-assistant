@@ -1,9 +1,11 @@
 import logging
 from argparse import Namespace
 
-from dasbus.error import DBusError
-
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
+from command_line_assistant.dbus.exceptions import (
+    CorruptedHistoryError,
+    MissingHistoryFileError,
+)
 from command_line_assistant.dbus.structures import HistoryEntry
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
@@ -26,7 +28,7 @@ def _initialize_spinner_renderer() -> SpinnerRenderer:
 
 
 def _initialize_qa_renderer(is_assistant: bool = False) -> TextRenderer:
-    text = TextRenderer(stream=StdoutStream())
+    text = TextRenderer(stream=StdoutStream(end="\n"))
     foreground = "lightblue" if is_assistant else "lightgreen"
     text.update(ColorDecorator(foreground=foreground))
     text.update(EmojiDecorator("🤖"))
@@ -34,7 +36,7 @@ def _initialize_qa_renderer(is_assistant: bool = False) -> TextRenderer:
 
 
 def _initialize_text_renderer() -> TextRenderer:
-    text = TextRenderer(stream=StdoutStream())
+    text = TextRenderer(stream=StdoutStream(end="\n"))
     return text
 
 
@@ -49,84 +51,80 @@ class HistoryCommand(BaseCLICommand):
         self._assistant_renderer = _initialize_qa_renderer(is_assistant=True)
         self._text_renderer = _initialize_text_renderer()
         self._spinner_renderer = _initialize_spinner_renderer()
+
         super().__init__()
 
-    def run(self) -> None:
-        if self._clear:
-            return self._clear_history()
+    def run(self) -> int:
+        try:
+            if self._clear:
+                self._clear_history()
 
-        if self._first:
-            return self._retrieve_first_conversation()
+            if self._first:
+                self._retrieve_first_conversation()
 
-        if self._last:
-            return self._retrieve_last_conversation()
+            if self._last:
+                self._retrieve_last_conversation()
 
-        return self._retrieve_all_conversations()
+            if not self._last and not self._clear and not self._first:
+                self._retrieve_all_conversations()
 
-    def _retrieve_all_conversations(self):
+            return 0
+        except (MissingHistoryFileError, CorruptedHistoryError) as e:
+            self._text_renderer.update(ColorDecorator(foreground="red"))
+            self._text_renderer.update(EmojiDecorator(emoji="U+1F641"))
+            self._text_renderer.render(str(e))
+            return 1
+
+    def _retrieve_all_conversations(self) -> None:
         """Retrieve and display all conversations from history."""
-        try:
-            logger.info("Getting all conversations from history.")
-            response = self._proxy.GetHistory()
-            history = HistoryEntry.from_structure(response)
+        self._text_renderer.render("Getting all conversations from history.")
+        response = self._proxy.GetHistory()
+        history = HistoryEntry.from_structure(response)
 
-            if history.entries:
-                for entry in history.entries:
-                    self._user_renderer.render(f"Query: {entry.query}")
-                    self._assistant_renderer.render(f"Answer: {entry.response}")
-                    self._text_renderer.render(f"Time: {entry.timestamp}")
-                    self._text_renderer.render(
-                        "-" * 50
-                    )  # Separator between conversations
-            else:
-                print("No history found.")
-        except DBusError as e:
-            logger.info("Failed to get history: %s", e)
-            raise e
+        if not history.entries:
+            self._text_renderer.render("No history found.")
+            return
 
-    def _retrieve_first_conversation(self):
-        try:
-            logger.info("Getting first conversation from history.")
-            response = self._proxy.GetFirstConversation()
-            history = HistoryEntry.from_structure(response)
-            if history.entries:
-                # Display the conversation
-                entry = history.entries[0]
-                self._user_renderer.render(f"Query: {entry.query}")
-                self._assistant_renderer.render(f"Answer: {entry.response}")
-                self._text_renderer.render(f"Time: {entry.timestamp}")
-            else:
-                print("No history found.")
-        except DBusError as e:
-            logger.info("Failed to get first conversation: %s", e)
-            raise e
+        for entry in history.entries:
+            self._user_renderer.render(f"Query: {entry.query}")
+            self._assistant_renderer.render(f"Answer: {entry.response}")
+            self._text_renderer.render(f"Time: {entry.timestamp}")
+            self._text_renderer.render("-" * 50)  # Separator between conversations
+
+    def _retrieve_first_conversation(self) -> None:
+        logger.info("Getting first conversation from history.")
+        response = self._proxy.GetFirstConversation()
+        history = HistoryEntry.from_structure(response)
+
+        if not history.entries:
+            self._text_renderer.render("No history found.")
+            return
+
+        entry = history.entries[0]
+        self._user_renderer.render(f"Query: {entry.query}")
+        self._assistant_renderer.render(f"Answer: {entry.response}")
+        self._text_renderer.render(f"Time: {entry.timestamp}")
 
     def _retrieve_last_conversation(self):
-        try:
-            logger.info("Getting last conversation from history.")
-            response = self._proxy.GetLastConversation()
+        logger.info("Getting last conversation from history.")
+        response = self._proxy.GetLastConversation()
 
-            # Handle and display the response
-            history = HistoryEntry.from_structure(response)
-            if history.entries:
-                # Display the conversation
-                entry = history.entries[0]
-                self._user_renderer.render(f"Query: {entry.query}")
-                self._assistant_renderer.render(f"Answer: {entry.response}")
-                self._text_renderer.render(f"Time: {entry.timestamp}")
-            else:
-                print("No history found.")
-        except DBusError as e:
-            logger.info("Failed to get last conversation: %s", e)
-            raise e
+        # Handle and display the response
+        history = HistoryEntry.from_structure(response)
+
+        if not history.entries:
+            self._text_renderer.render("No history found.")
+            return
+
+        # Display the conversation
+        entry = history.entries[-1]
+        self._user_renderer.render(f"Query: {entry.query}")
+        self._assistant_renderer.render(f"Answer: {entry.response}")
+        self._text_renderer.render(f"Time: {entry.timestamp}")
 
     def _clear_history(self) -> None:
-        try:
-            logger.info("Cleaning the history.")
-            self._proxy.ClearHistory()
-        except DBusError as e:
-            logger.info("Failed to clean the history: %s", e)
-            raise e
+        self._text_renderer.render("Cleaning the history.")
+        self._proxy.ClearHistory()
 
 
 def register_subcommand(parser: SubParsersAction):

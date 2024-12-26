@@ -1,8 +1,11 @@
 from argparse import Namespace
 
-from dasbus.error import DBusError
-
 from command_line_assistant.dbus.constants import QUERY_IDENTIFIER
+from command_line_assistant.dbus.exceptions import (
+    CorruptedHistoryError,
+    MissingHistoryFileError,
+    RequestFailedError,
+)
 from command_line_assistant.dbus.structures import Message
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
@@ -67,26 +70,31 @@ class QueryCommand(BaseCLICommand):
 
         super().__init__()
 
-    def run(self) -> None:
+    def run(self) -> int:
         proxy = QUERY_IDENTIFIER.get_proxy()
         input_query = Message()
         input_query.message = self._query
 
         output = "Nothing to see here..."
+
         try:
             with self._spinner_renderer:
                 proxy.ProcessQuery(input_query.to_structure(input_query))
-                output = Message.from_structure(proxy.RetrieveAnswer).message
-
-            self._legal_renderer.render(LEGAL_NOTICE)
-            self._text_renderer.render(output)
-            self._warning_renderer.render(ALWAYS_LEGAL_MESSAGE)
-        except DBusError:
+                output = Message.from_structure(proxy.RetrieveAnswer()).message
+        except (
+            RequestFailedError,
+            MissingHistoryFileError,
+            CorruptedHistoryError,
+        ) as e:
             self._text_renderer.update(ColorDecorator(foreground="red"))
             self._text_renderer.update(EmojiDecorator(emoji="U+1F641"))
-            self._text_renderer.render(
-                "Uh oh... Something went wrong. Try again later."
-            )
+            self._text_renderer.render(str(e))
+            return 1
+
+        self._legal_renderer.render(LEGAL_NOTICE)
+        self._text_renderer.render(output)
+        self._warning_renderer.render(ALWAYS_LEGAL_MESSAGE)
+        return 0
 
 
 def register_subcommand(parser: SubParsersAction) -> None:
@@ -98,7 +106,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
     """
     query_parser = parser.add_parser(
         "query",
-        help="",
+        help="ask a question and get an answer from llm.",
     )
     # Positional argument, required only if no optional arguments are provided
     query_parser.add_argument(

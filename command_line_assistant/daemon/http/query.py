@@ -5,6 +5,7 @@ from requests import RequestException
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.http.session import get_session
+from command_line_assistant.dbus.exceptions import RequestFailedError
 from command_line_assistant.handlers import handle_caret
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,6 @@ def submit(query: str, config: Config) -> str:
         The response from the API.
     """
     query = handle_caret(query, config)
-    # NOTE: Add more query handling here
 
     query_endpoint = f"{config.backend.endpoint}/infer"
     payload = {"question": query}
@@ -37,4 +37,6 @@ def submit(query: str, config: Config) -> str:
         return data.get("text", "")
     except RequestException as e:
         logger.error("Failed to get response from AI: %s", e)
-        raise
+        raise RequestFailedError(
+            "There was a problem communicating with the server. Please, try again in a few minutes."
+        ) from e

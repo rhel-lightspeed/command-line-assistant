@@ -4,6 +4,11 @@ from unittest.mock import patch
 import pytest
 
 from command_line_assistant.commands.query import QueryCommand, register_subcommand
+from command_line_assistant.dbus.exceptions import (
+    CorruptedHistoryError,
+    MissingHistoryFileError,
+    RequestFailedError,
+)
 from command_line_assistant.dbus.structures import Message
 
 
@@ -20,7 +25,7 @@ def mock_dbus_service(mock_proxy):
         # Setup default mock response
         mock_output = Message()
         mock_output.message = "default mock response"
-        mock_proxy.RetrieveAnswer = Message.to_structure(mock_output)
+        mock_proxy.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
         yield mock_proxy
 
@@ -47,7 +52,7 @@ def test_query_command_run(mock_dbus_service, test_input, expected_output, capsy
     # Setup mock response for this specific test
     mock_output = Message()
     mock_output.message = expected_output
-    mock_dbus_service.RetrieveAnswer = Message.to_structure(mock_output)
+    mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
     # Create and run command
     command = QueryCommand(test_input)
@@ -70,7 +75,7 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
     # Setup empty response
     mock_output = Message()
     mock_output.message = ""
-    mock_dbus_service.RetrieveAnswer = Message.to_structure(mock_output)
+    mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
     command = QueryCommand("test query")
     command.run()
@@ -121,19 +126,34 @@ def test_command_factory():
     assert command._query == "test query"
 
 
-def test_dbus_error_handling(mock_dbus_service, capsys):
+@pytest.mark.parametrize(
+    ("exception", "expected"),
+    (
+        (
+            RequestFailedError("Test DBus Error"),
+            "Test DBus Error",
+        ),
+        (
+            MissingHistoryFileError("Test DBus Error"),
+            "Test DBus Error",
+        ),
+        (
+            CorruptedHistoryError("Test DBus Error"),
+            "Test DBus Error",
+        ),
+    ),
+)
+def test_dbus_error_handling(exception, expected, mock_dbus_service, capsys):
     """Test handling of DBus errors"""
-    from dasbus.error import DBusError
-
     # Make ProcessQuery raise a DBus error
-    mock_dbus_service.ProcessQuery.side_effect = DBusError("Test DBus Error")
+    mock_dbus_service.ProcessQuery.side_effect = exception
 
     command = QueryCommand("test query")
     command.run()
 
     # Verify error message in stdout
     captured = capsys.readouterr()
-    assert "Uh oh... Something went wrong. Try again later." in captured.out.strip()
+    assert expected in captured.out.strip()
 
 
 def test_query_with_special_characters(mock_dbus_service, capsys):
@@ -143,7 +163,7 @@ def test_query_with_special_characters(mock_dbus_service, capsys):
 
     mock_output = Message()
     mock_output.message = expected_response
-    mock_dbus_service.RetrieveAnswer = Message.to_structure(mock_output)
+    mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
     command = QueryCommand(special_query)
     command.run()

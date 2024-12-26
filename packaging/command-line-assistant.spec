@@ -57,6 +57,12 @@ A simple wrapper to interact with RAG
 # Config file
 %{__install} -D -m 0644 data/release/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}/config.toml
 
+# History file
+## Create the folder under /var/lib/command-line-assistatnt
+%{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
+## Place the history file there
+%{__install} -D -m 0644 data/release/history.json %{buildroot}/%{_sharedstatedir}/%{name}/history.json
+
 %files
 %doc README.md
 %license LICENSE
@@ -73,6 +79,9 @@ A simple wrapper to interact with RAG
 # Config file
 %config %{_sysconfdir}/xdg/%{python_package_src}/config.toml
 %config %{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
+
+# History file
+%{_sharedstatedir}/%{name}/history.json
 
 %preun
 if [ "$1" -eq 0 ]; then

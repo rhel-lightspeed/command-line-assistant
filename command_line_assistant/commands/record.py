@@ -15,8 +15,9 @@ class RecordCommand(BaseCLICommand):
         self._output_file = output_file
         super().__init__()
 
-    def run(self) -> None:
+    def run(self) -> int:
         handle_script_session(Path(self._output_file))
+        return 0
 
 
 def register_subcommand(parser: SubParsersAction):

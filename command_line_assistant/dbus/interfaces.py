@@ -17,16 +17,23 @@ from command_line_assistant.history.plugins.local import LocalHistory
 class QueryInterface(InterfaceTemplate):
     """The DBus interface of a query."""
 
-    @property
     def RetrieveAnswer(self) -> Structure:
         """This method is mainly called by the client to retrieve it's answer."""
         query = self.implementation.query.message
+
+        # Submit query to backend
         llm_response = submit(query, self.implementation.config)
+
+        # Create message object
         message = Message()
         message.message = llm_response
+
+        # Deal with history management
         manager = HistoryManager(self.implementation.config, LocalHistory)
         current_history = manager.read()
         manager.write(current_history, query, llm_response)
+
+        # Return the data - okay
         return Message.to_structure(message)
 
     @emits_properties_changed
@@ -59,8 +66,6 @@ class HistoryInterface(InterfaceTemplate):
         if history.history:
             last_entry = history.history[0]
             history_entry.set_from_dict(last_entry.to_dict())
-        else:
-            history_entry.entries = []
 
         return HistoryEntry.to_structure(history_entry)
 
@@ -73,8 +78,6 @@ class HistoryInterface(InterfaceTemplate):
         if history.history:
             last_entry = history.history[-1]
             history_entry.set_from_dict(last_entry.to_dict())
-        else:
-            history_entry.entries = []
 
         return HistoryEntry.to_structure(history_entry)
 

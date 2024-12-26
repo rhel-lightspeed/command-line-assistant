@@ -4,6 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
+from command_line_assistant.dbus.exceptions import (
+    CorruptedHistoryError,
+    MissingHistoryFileError,
+)
 from command_line_assistant.history.plugins.local import LocalHistory
 from command_line_assistant.history.schemas import (
     History,
@@ -82,12 +86,11 @@ def test_read_invalid_json(local_history, caplog):
     with patch("pathlib.Path.read_text") as mock_read:
         mock_read.return_value = "invalid json"
 
-        with caplog.at_level(logging.ERROR):
-            history = local_history.read()
-
-        assert isinstance(history, History)
-        assert len(history.history) == 0
-        assert "Failed to read history file" in caplog.text
+        with (
+            caplog.at_level(logging.ERROR),
+            pytest.raises(CorruptedHistoryError, match="seems to be corrupted."),
+        ):
+            local_history.read()
 
 
 def test_write_new_entry(local_history):
@@ -126,7 +129,12 @@ def test_write_with_error(local_history, caplog):
     with patch("pathlib.Path.write_text") as mock_write:
         mock_write.side_effect = json.JSONDecodeError("Test error", "doc", 0)
 
-        with caplog.at_level(logging.ERROR):
+        with (
+            caplog.at_level(logging.ERROR),
+            pytest.raises(
+                CorruptedHistoryError, match="Can't write data to the history file"
+            ),
+        ):
             local_history.write(current_history, "query", "response")
 
         assert "Failed to write history file" in caplog.text
@@ -145,13 +153,11 @@ def test_clear_history(local_history):
 
 def test_clear_history_with_error(local_history, caplog):
     """Test clearing history when an error occurs."""
-    with patch("pathlib.Path.write_text") as mock_write:
-        mock_write.side_effect = Exception("Test error")
-
-        with caplog.at_level(logging.ERROR):
-            local_history.clear()
-
-        assert "Failed to clear history" in caplog.text
+    with (
+        caplog.at_level(logging.ERROR),
+        pytest.raises(MissingHistoryFileError, match="The history file"),
+    ):
+        local_history.clear()
 
 
 def test_check_if_history_is_enabled(local_history):

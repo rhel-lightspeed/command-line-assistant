@@ -1,10 +1,10 @@
 import pytest
-import requests
 import responses
 
 from command_line_assistant.config import Config
 from command_line_assistant.config.schemas import AuthSchema, BackendSchema
 from command_line_assistant.daemon.http import query
+from command_line_assistant.dbus.exceptions import RequestFailedError
 
 
 @responses.activate
@@ -38,7 +38,10 @@ def test_handle_query_raising_status():
             endpoint="http://localhost/infer", auth=AuthSchema(verify_ssl=False)
         )
     )
-    with pytest.raises(requests.exceptions.RequestException):
+    with pytest.raises(
+        RequestFailedError,
+        match="There was a problem communicating with the server. Please, try again in a few minutes.",
+    ):
         query.submit(query="test", config=config)
 
 

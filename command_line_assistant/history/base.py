@@ -39,8 +39,8 @@ class BaseHistory(ABC):
                 response=ResponseData(
                     text=response,
                     tokens=len(
-                        response.split()
-                    ),  # TODO(r0x0d): Simple token count, replace with actual
+                        response.split()  # TODO(r0x0d): Simple token count, replace with actual
+                    ),
                 ),
             )
         )
@@ -54,7 +54,8 @@ class BaseHistory(ABC):
         return current_history
 
     def _check_if_history_is_enabled(self) -> bool:
+        """Check if the history is enabled in the configuration file."""
         if not self._config.history.enabled:
-            logger.info("History disabled. Nothing to return.")
+            logger.info("History disabled. Nothing to do.")
 
         return self._config.history.enabled
