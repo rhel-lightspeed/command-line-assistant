@@ -14,8 +14,9 @@ class StderrStream(BaseStream):
         """Constructor of class.
 
         Args:
-            end (str): The string to append after the text. Defaults to "\n".
+            end (str): The string to append after the text. Defaults to newline.
         """
+
         super().__init__(stream=sys.stderr, end=end)
 
 
@@ -26,6 +27,7 @@ class StdoutStream(BaseStream):
         """Constructor of class.
 
         Args:
-            end (str): The string to append after the text. Defaults to "\n".
+            end (str): The string to append after the text. Defaults to newline.
         """
+
         super().__init__(stream=sys.stdout, end=end)

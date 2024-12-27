@@ -29,3 +29,7 @@ junit.xml
 
 # systemd
 data/development/systemd/clad-user.service
+
+# sphinx
+docs/build/*
+docs/source/_autosummary

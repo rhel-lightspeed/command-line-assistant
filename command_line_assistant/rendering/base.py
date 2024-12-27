@@ -5,14 +5,15 @@ from typing import TextIO
 
 
 class BaseDecorator(ABC):
-    """Abstract base class for render decorators"""
+    """Abstract base class for render decorators."""
 
     @abstractmethod
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
 
         Args:
-            text (str): The text that needs to be decorated. This usually is being set from a renderer class.
+            text (str): The text that needs to be decorated. This usually is
+            being set from a renderer class.
 
         Returns:
             str: The text decorated.
@@ -27,8 +28,9 @@ class BaseStream:
 
         Args:
             stream (TextIO): The stream to use (stdout or stderr).
-            end (str, optional): How the line should end in the stream. Defaults to "\n".
+            end (str, optional): How the line should end in the stream. Defaults to newline.
         """
+
         self._stream = stream
         self._end = end
 
@@ -38,10 +40,12 @@ class BaseStream:
         Args:
             text (str): The text to be written
         """
+
         self._stream.write(f"{text}{self._end}")
 
     def flush(self) -> None:
         """Flush the output stream"""
+
         self._stream.flush()
 
     def execute(self, text: str) -> None:
@@ -51,6 +55,7 @@ class BaseStream:
         Args:
             text (str): The text to be written
         """
+
         if text:
             self.write(text)
             self.flush()
@@ -65,6 +70,7 @@ class BaseRenderer(ABC):
         Args:
             stream (OutputStreamWritter): The instance of a stream writer (either stdout or stderr).
         """
+
         self._stream = stream
         self._decorators: dict[type, BaseDecorator] = {}
 
@@ -74,6 +80,7 @@ class BaseRenderer(ABC):
         Args:
             decorator (RenderDecorator): An instance of a rendering decorator to be applied.
         """
+
         self._decorators[type(decorator)] = decorator
 
     def _apply_decorators(self, text: str) -> str:
@@ -85,6 +92,7 @@ class BaseRenderer(ABC):
         Returns:
             str: The text decorated
         """
+
         decorated_text = text
         for decorator in self._decorators.values():
             decorated_text = decorator.decorate(decorated_text)
