@@ -1,3 +1,5 @@
+"""Handle the http sessions that the daemon issues to the backend."""
+
 import logging
 
 import urllib3
@@ -7,8 +9,8 @@ from command_line_assistant.config import Config
 from command_line_assistant.constants import VERSION
 from command_line_assistant.daemon.http.adapters import RetryAdapter, SSLAdapter
 
-# Define the custom user agent for clad
 USER_AGENT = f"clad/{VERSION}"
+#: Define the custom user agent for clad
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,12 @@ def get_session(config: Config) -> Session:
     multi-user scenario. Currently, we don't have that implemented.
 
     For now, we only mount the TLS information to the endpoint.
+
+    Args:
+        config (Config): Instance of the config class
+
+    Returns:
+        Session: A mounted session with the necessary adapters.
     """
     session = Session()
 

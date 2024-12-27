@@ -1,3 +1,5 @@
+"""Module to control the history plugins and provide an abstract interface to execute them."""
+
 from typing import Optional, Type
 
 from command_line_assistant.config import Config
@@ -21,8 +23,8 @@ class HistoryManager:
         """Initialize the history manager.
 
         Args:
-            config: Application configuration
-            plugin: Optional history implementation class. Defaults to LocalHistory
+            config (Config): Instance of configuration class
+            plugin (Optional[Type[BaseHistory]], optional): Optional history implementation class
         """
         self._config = config
         self._plugin: Optional[Type[BaseHistory]] = None
@@ -34,7 +36,11 @@ class HistoryManager:
 
     @property
     def plugin(self) -> Optional[Type[BaseHistory]]:
-        """Get the current plugin class."""
+        """Property for the internal plugin attribute
+
+        Returns:
+            Optional[Type[BaseHistory]]: Instance of the provided plugin (if any)
+        """
         return self._plugin
 
     @plugin.setter
@@ -42,7 +48,7 @@ class HistoryManager:
         """Set and initialize a new plugin.
 
         Args:
-            plugin_cls: History implementation class to use
+            plugin_cls (Type[BaseHistory]): History implementation class to use
 
         Raises:
             TypeError: If plugin_cls is not a subclass of BaseHistory
@@ -58,11 +64,11 @@ class HistoryManager:
     def read(self) -> History:
         """Read history entries using the current plugin.
 
-        Returns:
-            History object containing entries and metadata
-
         Raises:
             RuntimeError: If no plugin is set
+
+        Returns:
+            History object containing entries and metadata
         """
         if not self._instance:
             raise RuntimeError("No history plugin set. Set plugin before operations.")
@@ -73,8 +79,9 @@ class HistoryManager:
         """Write a new history entry using the current plugin.
 
         Args:
-            query: The user's query
-            response: The LLM's response
+            current_history (History): The current user history
+            query (str): The user's query
+            response (str): The LLM's response
 
         Raises:
             RuntimeError: If no plugin is set

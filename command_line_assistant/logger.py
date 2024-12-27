@@ -1,3 +1,5 @@
+"""Module for logging configuration."""
+
 import copy
 import logging.config
 
@@ -22,10 +24,15 @@ LOGGING_CONFIG_DICTIONARY = {
     },
     "loggers": {"root": {"handlers": ["console"], "level": "DEBUG"}},
 }
+#: Define the dictionary configuration for the logger instance
 
 
 def setup_logging(config: Config):
-    """Setup basic logging functionality"""
+    """Setup basic logging functionality"
+
+    Args:
+        config (Config): Instance of a config class.
+    """
 
     logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
     logging_configuration["loggers"]["root"]["level"] = config.logging.level

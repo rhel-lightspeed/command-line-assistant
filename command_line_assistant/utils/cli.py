@@ -1,3 +1,8 @@
+"""
+Utilitary module to interact with the CLI. This olds the basic implementation
+that is reused across commands and other interactions.
+"""
+
 import select
 import sys
 from abc import ABC, abstractmethod
@@ -14,13 +19,19 @@ ARGS_WITH_VALUES: list[str] = ["--clear"]
 
 
 class BaseCLICommand(ABC):
+    """Absctract class to define a CLI Command."""
+
     @abstractmethod
     def run(self) -> int:
-        pass
+        """Entrypoint method for all CLI commands."""
 
 
-def add_default_command(argv):
-    """Add the default command when none is given"""
+def add_default_command(argv: list[str]):
+    """Add the default command when none is given
+
+    Args:
+        argv: THe arguments passed from the stdin.
+    """
     args = argv[1:]
 
     # Early exit if we don't have any argv
@@ -34,7 +45,7 @@ def add_default_command(argv):
     return args
 
 
-def _subcommand_used(args):
+def _subcommand_used(args: list[str]):
     """Return what subcommand has been used by the user. Return None if no subcommand has been used."""
     for index, argument in enumerate(args):
         # If we have a exact match for any of the commands, return directly
@@ -89,5 +100,6 @@ def read_stdin() -> Optional[str]:
         # If there is input, read it
         input_data = sys.stdin.read().strip()
         return input_data
+
     # If no input, return None or handle as you prefer
     return None

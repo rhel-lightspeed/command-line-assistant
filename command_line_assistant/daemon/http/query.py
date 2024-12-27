@@ -1,3 +1,5 @@
+"""Module to handle the query submission to the backend."""
+
 import json
 import logging
 
@@ -14,8 +16,15 @@ logger = logging.getLogger(__name__)
 def submit(query: str, config: Config) -> str:
     """Method to submit the query to the backend.
 
+    Args:
+        query (str): User query config (Config): Instance of a config class
+
+    Raises:
+        RequestFailedError: In case the request can't processed or there is an
+        internal error in the backend.
+
     Returns:
-        The response from the API.
+        str: The response from the backend.
     """
     query = handle_caret(query, config)
 

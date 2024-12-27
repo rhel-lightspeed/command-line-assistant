@@ -1,3 +1,5 @@
+"""D-Bus server definition"""
+
 import logging
 
 from dasbus.constants import DBUS_NAME_FLAG_REPLACE_EXISTING
@@ -16,7 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 def serve(config: Config):
-    """Start the daemon."""
+    """Main function to serve and start the daemon server.
+
+    Args:
+        config (Config): An instance of the configuration class.
+    """
     logger.info("Starting clad!")
     try:
         SYSTEM_BUS.publish_object(

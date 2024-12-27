@@ -1,12 +1,25 @@
+"""Module to track all *style* decorations applied to renderers"""
+
 from typing import Optional
 
 from colorama import Style
 
-from command_line_assistant.rendering.base import RenderDecorator
+from command_line_assistant.rendering.base import BaseDecorator
 
 
-class StyleDecorator(RenderDecorator):
-    """Decorator for adding text styles using colorama"""
+class StyleDecorator(BaseDecorator):
+    """Decorator class to add font style to the textual string.
+
+    Example:
+        This is an example on how to use this decorator:
+
+        >>> decorator = StyleDecorator(style="dim")
+        >>> renderer.update(decorator)
+        >>> renderer.render(message)
+
+    Attributes:
+        STYLES: dict[str, str]: A dictionary containing the styles available to the decorator.
+    """
 
     STYLES = {
         "dim": Style.DIM,
@@ -16,16 +29,25 @@ class StyleDecorator(RenderDecorator):
     }
 
     def __init__(self, style: Optional[str] = None) -> None:
-        """
-        Initialize the style decorator with the specified styles.
+        """Constructor of the class.
 
         Args:
-            style: Name of a style to be applied ("dim", "normal", "bright")
+            style (Optional[str], optional): Name of a style to be applied ("dim", "normal", "bright"). Defaults to None.
         """
         self.style = self._get_style(style) if style else None
 
     def _get_style(self, style: str) -> str:
-        """Get the colorama style code."""
+        """Get the appropriate style unicode representation.
+
+        Args:
+            style (str): The name of the style that matches the values in `self.STYLES`
+
+        Raises:
+            ValueError: In case the specified style is not present in `self.STYLES` class attribute.
+
+        Returns:
+            str: The font style unicode provided by colorama.
+        """
         style = style.lower()
         if style not in self.STYLES:
             raise ValueError(
@@ -34,7 +56,14 @@ class StyleDecorator(RenderDecorator):
         return self.STYLES[style]
 
     def decorate(self, text: str) -> str:
-        """Apply the style formatting to the text."""
+        """Decorate the text string and returns it.
+
+        Args:
+            text (str): The text that needs to be decorated. This usually is being set from a renderer class.
+
+        Returns:
+            str: The text decorated with the font style.
+        """
         if self.style:
             return f"{self.style}{text}{Style.RESET_ALL}"
 

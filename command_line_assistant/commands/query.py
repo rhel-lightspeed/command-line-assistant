@@ -1,3 +1,5 @@
+"""Module to handle the query command."""
+
 from argparse import Namespace
 
 from command_line_assistant.dbus.constants import QUERY_IDENTIFIER
@@ -24,12 +26,19 @@ LEGAL_NOTICE = (
     "Interactions with RHEL Lightspeed may be reviewed and used to improve our "
     "products and service."
 )
+#: Legal notice that we need to output once per user
 ALWAYS_LEGAL_MESSAGE = (
     "Always check AI/LLM-generated responses for accuracy prior to use."
 )
+#: Always good to have legal message.
 
 
 def _initialize_spinner_renderer() -> SpinnerRenderer:
+    """Initialize a new spinner renderer class
+
+    Returns:
+        SpinnerRenderer: Instance of a spinner renderer class with decorators.
+    """
     spinner = SpinnerRenderer(
         message="Requesting knowledge from AI", stream=StdoutStream(end="")
     )
@@ -41,6 +50,11 @@ def _initialize_spinner_renderer() -> SpinnerRenderer:
 
 
 def _initialize_text_renderer() -> TextRenderer:
+    """Initialize a new text renderer class
+
+    Returns:
+        TextRenderer: Instance of a text renderer class with decorators.
+    """
     text = TextRenderer(stream=StdoutStream(end="\n"))
     text.update(ColorDecorator(foreground="green"))  # Robot emoji
     text.update(TextWrapDecorator())
@@ -49,6 +63,14 @@ def _initialize_text_renderer() -> TextRenderer:
 
 
 def _initialize_legal_renderer(write_once: bool = False) -> TextRenderer:
+    """Initialize a new text renderer class
+
+    Args:
+        write_once (bool): If it should add the `py:WriteOnceDecorator` or not.
+
+    Returns:
+        SpinnerRenderer: Instance of a text renderer class with decorators.
+    """
     text = TextRenderer(stream=StderrStream())
     text.update(ColorDecorator(foreground="lightyellow"))
     text.update(TextWrapDecorator())
@@ -60,7 +82,14 @@ def _initialize_legal_renderer(write_once: bool = False) -> TextRenderer:
 
 
 class QueryCommand(BaseCLICommand):
+    """Class that represents the query command."""
+
     def __init__(self, query_string: str) -> None:
+        """Constructor of the class.
+
+        Args:
+            query_string (str): The query provided by the user.
+        """
         self._query = query_string
 
         self._spinner_renderer: SpinnerRenderer = _initialize_spinner_renderer()
@@ -71,6 +100,11 @@ class QueryCommand(BaseCLICommand):
         super().__init__()
 
     def run(self) -> int:
+        """Main entrypoint for the command to run.
+
+        Returns:
+            int: Status code of the execution
+        """
         proxy = QUERY_IDENTIFIER.get_proxy()
         input_query = Message()
         input_query.message = self._query
@@ -99,14 +133,14 @@ class QueryCommand(BaseCLICommand):
 
 def register_subcommand(parser: SubParsersAction) -> None:
     """
-    Register this command to argparse so it's available for the datasets-cli
+    Register this command to argparse so it's available for the root parser.
 
     Args:
-        parser: Root parser to register command-specific arguments
+        parser (SubParsersAction): Root parser to register command-specific arguments
     """
     query_parser = parser.add_parser(
         "query",
-        help="ask a question and get an answer from llm.",
+        help="Ask a question and get an answer from LLM.",
     )
     # Positional argument, required only if no optional arguments are provided
     query_parser.add_argument(
@@ -117,4 +151,12 @@ def register_subcommand(parser: SubParsersAction) -> None:
 
 
 def _command_factory(args: Namespace) -> QueryCommand:
+    """Internal command factory to create the command class
+
+    Args:
+        args (Namespace): The arguments processed with argparse.
+
+    Returns:
+        QueryCommand: Return an instance of class
+    """
     return QueryCommand(args.query_string)

@@ -1,3 +1,5 @@
+"""Main configuration module."""
+
 from __future__ import annotations
 
 import dataclasses
@@ -24,6 +26,7 @@ CONFIG_FILE_DEFINITION: tuple[str, str] = (
     "command_line_assistant",
     "config.toml",
 )
+#: Define the config file path.
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +40,11 @@ class Config:
     >>> config = Config()
     >>> config.output.enforce_script
 
-    The currently available top-level fields are:
-        * output = Match the `py:OutputSchema` class and their fields
-        * history = Match the `py:HistorySchema` class and their fields
-        * backend = Match the `py:BackendSchema` class and their fields
-        * logging = Match the `py:LoggingSchema` class and their fields
+    Attributes:
+        output (OutputSchema): Match the `py:OutputSchema` class and their fields
+        history (HistorySchema): Match the `py:HistorySchema` class and their fields
+        backend (BackendSchema): Match the `py:BackendSchema` class and their fields
+        logging (LoggingSchema): Match the `py:LoggingSchema` class and their fields
     """
 
     output: OutputSchema = dataclasses.field(default_factory=OutputSchema)
@@ -51,8 +54,15 @@ class Config:
 
 
 def load_config_file() -> Config:
-    """Read configuration file."""
+    """Load the configuration file from the system.
 
+    Raises:
+        FileNotFoundError: In case the configuration file is missing
+        tomllib.TOMLDecodeError: In case it is not possible to decode the config file
+
+    Returns:
+        Config: An instance of the configuration file
+    """
     config_dict = {}
     config_file_path = Path(get_xdg_config_path(), *CONFIG_FILE_DEFINITION)
 

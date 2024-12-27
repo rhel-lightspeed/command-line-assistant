@@ -1,3 +1,7 @@
+"""
+Utilitary module to interact with environment variables.
+"""
+
 import os
 from pathlib import Path
 

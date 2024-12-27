@@ -1,3 +1,5 @@
+"""Module that is the entrypoint for the daemon that will run in systemd."""
+
 import logging
 import sys
 
@@ -9,7 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 def daemonize() -> int:
-    """Main start point for clad."""
+    """Main start point for the clad binary.
+
+    Returns:
+        int: The status code.
+    """
     # Load up the configuration file
     config = load_config_file()
     setup_logging(config)

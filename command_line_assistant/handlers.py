@@ -1,3 +1,5 @@
+"""Module to track the handlers for text process."""
+
 import logging
 import os
 from pathlib import Path
@@ -8,8 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 def handle_script_session(command_line_assistant_tmp_file: Path) -> None:
-    """
-    Starts a 'script' session and writes the PID to a file, but leaves control of the terminal to the user.
+    """Starts a 'script' session and writes the PID to a file, but leaves control of the terminal to the user.
+
+    Args:
+        command_line_assistant_tmp_file (Path): Path to the tmp file.
     """
     # Prepare the script command
     script_command = ["script", "-f", str(command_line_assistant_tmp_file)]
@@ -24,8 +28,17 @@ def handle_script_session(command_line_assistant_tmp_file: Path) -> None:
 
 
 def handle_caret(query: str, config: Config) -> str:
-    """
-    Replaces caret (^) with command output specified in config file.
+    """Replaces caret (^) with command output specified in config file.
+
+    Args:
+        query (str): The user provided query
+        config (Config): The instance of a config class
+
+    Raises:
+        ValueError: In case the output file does not exist.
+
+    Returns:
+        str: Context data and the question itself.
     """
     if "^" not in query:
         return query

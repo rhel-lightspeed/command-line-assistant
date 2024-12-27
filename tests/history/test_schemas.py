@@ -19,13 +19,11 @@ def test_query_data_initialization():
     """Test QueryData initialization and defaults"""
     query = QueryData()
     assert query.text is None
-    assert query.context is None
     assert query.role == "user"
 
     # Test with values
-    query = QueryData(text="test query", context="some context", role="custom")
+    query = QueryData(text="test query", role="custom")
     assert query.text == "test query"
-    assert query.context == "some context"
     assert query.role == "custom"
 
 

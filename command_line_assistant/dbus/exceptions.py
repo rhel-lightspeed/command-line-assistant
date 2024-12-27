@@ -1,3 +1,5 @@
+"""Module that holds all the exceptions that can be raised by the dbus methods."""
+
 from dasbus.error import DBusError, get_error_decorator
 
 from command_line_assistant.dbus.constants import (
@@ -7,8 +9,8 @@ from command_line_assistant.dbus.constants import (
     SERVICE_NAMESPACE,
 )
 
-# The decorator for DBus errors.
 dbus_error = get_error_decorator(ERROR_MAPPER)
+#: Special decorator for mapping exceptions to dbus style exceptions
 
 
 @dbus_error("NotAuthorizedUser", namespace=SERVICE_NAMESPACE)

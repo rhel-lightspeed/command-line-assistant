@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from command_line_assistant.rendering.base import OutputStreamWritter
+from command_line_assistant.rendering.base import BaseStream
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
@@ -13,7 +13,7 @@ from command_line_assistant.rendering.decorators.text import (
 from command_line_assistant.rendering.renders.spinner import Frames, SpinnerRenderer
 
 
-class MockStream(OutputStreamWritter):
+class MockStream(BaseStream):
     """Mock stream class for testing"""
 
     def __init__(self):

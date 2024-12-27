@@ -1,3 +1,5 @@
+"""Module to handle the history command."""
+
 import logging
 from argparse import Namespace
 
@@ -21,6 +23,11 @@ logger = logging.getLogger(__name__)
 
 
 def _initialize_spinner_renderer() -> SpinnerRenderer:
+    """Initialize a new text renderer class
+
+    Returns:
+        SpinnerRenderer: Instance of a text renderer class with decorators.
+    """
     spinner = SpinnerRenderer(message="Loading history", stream=StdoutStream(end=""))
     spinner.update(TextWrapDecorator())
 
@@ -28,6 +35,14 @@ def _initialize_spinner_renderer() -> SpinnerRenderer:
 
 
 def _initialize_qa_renderer(is_assistant: bool = False) -> TextRenderer:
+    """Initialize a new text renderer class.
+
+    Args:
+        is_assistant (bool): Apply different decorators if it is assistant.
+
+    Returns:
+        TextRenderer: Instance of a text renderer class with decorators.
+    """
     text = TextRenderer(stream=StdoutStream(end="\n"))
     foreground = "lightblue" if is_assistant else "lightgreen"
     text.update(ColorDecorator(foreground=foreground))
@@ -36,12 +51,30 @@ def _initialize_qa_renderer(is_assistant: bool = False) -> TextRenderer:
 
 
 def _initialize_text_renderer() -> TextRenderer:
+    """Initialize a new text renderer class
+
+    Returns:
+        TextRenderer: Instance of a text renderer class with decorators.
+    """
     text = TextRenderer(stream=StdoutStream(end="\n"))
     return text
 
 
 class HistoryCommand(BaseCLICommand):
+    """Class that represents the history command."""
+
     def __init__(self, clear: bool, first: bool, last: bool) -> None:
+        """Constructor of the class.
+
+        Note:
+            If none of the above is specified, the command will retrieve all
+            user history.
+
+        Args:
+            clear (bool): If the history should be cleared
+            first (bool): Retrieve only the first conversation from history
+            last (bool): Retrieve only last conversation from history
+        """
         self._clear = clear
         self._first = first
         self._last = last
@@ -55,6 +88,11 @@ class HistoryCommand(BaseCLICommand):
         super().__init__()
 
     def run(self) -> int:
+        """Main entrypoint for the command to run.
+
+        Returns:
+            int: Status code of the execution.
+        """
         try:
             if self._clear:
                 self._clear_history()
@@ -92,6 +130,7 @@ class HistoryCommand(BaseCLICommand):
             self._text_renderer.render("-" * 50)  # Separator between conversations
 
     def _retrieve_first_conversation(self) -> None:
+        """Retrieve the first conversation in the conversation cache."""
         logger.info("Getting first conversation from history.")
         response = self._proxy.GetFirstConversation()
         history = HistoryEntry.from_structure(response)
@@ -106,6 +145,7 @@ class HistoryCommand(BaseCLICommand):
         self._text_renderer.render(f"Time: {entry.timestamp}")
 
     def _retrieve_last_conversation(self):
+        """Retrieve the last conversation in the conversation cache."""
         logger.info("Getting last conversation from history.")
         response = self._proxy.GetLastConversation()
 
@@ -123,16 +163,17 @@ class HistoryCommand(BaseCLICommand):
         self._text_renderer.render(f"Time: {entry.timestamp}")
 
     def _clear_history(self) -> None:
+        """Clear the user history"""
         self._text_renderer.render("Cleaning the history.")
         self._proxy.ClearHistory()
 
 
 def register_subcommand(parser: SubParsersAction):
     """
-    Register this command to argparse so it's available for the datasets-cli
+    Register this command to argparse so it's available for the root parser.
 
     Args:
-        parser: Root parser to register command-specific arguments
+        parser (SubParsersAction): Root parser to register command-specific arguments
     """
     history_parser = parser.add_parser(
         "history",
@@ -157,4 +198,12 @@ def register_subcommand(parser: SubParsersAction):
 
 
 def _command_factory(args: Namespace) -> HistoryCommand:
+    """Internal command factory to create the command class
+
+    Args:
+        args (Namespace): The arguments processed with argparse.
+
+    Returns:
+        HistoryCommand: Return an instance of class
+    """
     return HistoryCommand(args.clear, args.first, args.last)

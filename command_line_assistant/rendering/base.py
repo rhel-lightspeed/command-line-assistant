@@ -1,42 +1,55 @@
+"""Base module to track all the abstract classes for the rendering module."""
+
 from abc import ABC, abstractmethod
 from typing import TextIO
 
 
-class RenderDecorator(ABC):
+class BaseDecorator(ABC):
     """Abstract base class for render decorators"""
 
     @abstractmethod
     def decorate(self, text: str) -> str:
-        pass
+        """Decorate the text string and returns it.
+
+        Args:
+            text (str): The text that needs to be decorated. This usually is being set from a renderer class.
+
+        Returns:
+            str: The text decorated.
+        """
 
 
-class OutputStreamWritter(ABC):
+class BaseStream:
     """Abstract base class for output stream decorators"""
 
     def __init__(self, stream: TextIO, end: str = "\n") -> None:
-        """
-        Initialize the output stream decorator.
+        """Constructor of the class.
 
         Args:
-            stream: The output stream to use
-            end: The string to append after the text (defaults to newline)
+            stream (TextIO): The stream to use (stdout or stderr).
+            end (str, optional): How the line should end in the stream. Defaults to "\n".
         """
         self._stream = stream
         self._end = end
 
-    @abstractmethod
     def write(self, text: str) -> None:
-        """Write the text to the output stream"""
-        pass
+        """Write the text to the output stream
 
-    @abstractmethod
+        Args:
+            text (str): The text to be written
+        """
+        self._stream.write(f"{text}{self._end}")
+
     def flush(self) -> None:
         """Flush the output stream"""
-        pass
+        self._stream.flush()
 
     def execute(self, text: str) -> None:
         """
-        Write the text to the output stream and return the original text for chaining.
+        Write the text to the output stream and flush it immediatly.
+
+        Args:
+            text (str): The text to be written
         """
         if text:
             self.write(text)
@@ -46,16 +59,32 @@ class OutputStreamWritter(ABC):
 class BaseRenderer(ABC):
     """Base class for renderers providing common functionality."""
 
-    def __init__(self, stream: OutputStreamWritter) -> None:
-        self._stream = stream
-        self._decorators: dict[type, RenderDecorator] = {}
+    def __init__(self, stream: BaseStream) -> None:
+        """Constructor of the class.
 
-    def update(self, decorator: RenderDecorator) -> None:
-        """Update or add a decorator of the same type."""
+        Args:
+            stream (OutputStreamWritter): The instance of a stream writer (either stdout or stderr).
+        """
+        self._stream = stream
+        self._decorators: dict[type, BaseDecorator] = {}
+
+    def update(self, decorator: BaseDecorator) -> None:
+        """Update or add a decorator of the same type.
+
+        Args:
+            decorator (RenderDecorator): An instance of a rendering decorator to be applied.
+        """
         self._decorators[type(decorator)] = decorator
 
     def _apply_decorators(self, text: str) -> str:
-        """Apply all decorators to the text."""
+        """Apply all decorators to the text.
+
+        Args:
+            text (str): The text to be apply the decorator customization
+
+        Returns:
+            str: The text decorated
+        """
         decorated_text = text
         for decorator in self._decorators.values():
             decorated_text = decorator.decorate(decorated_text)
@@ -63,5 +92,10 @@ class BaseRenderer(ABC):
 
     @abstractmethod
     def render(self, text: str) -> None:
-        """Render the text with all decorators applied."""
-        pass
+        """Render the text with decorators applied.
+
+        It uses the `self._decorators` property to apply the decorators.
+
+        Args:
+            text (str): The text to be rendered.
+        """

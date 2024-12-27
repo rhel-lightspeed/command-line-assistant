@@ -1,3 +1,5 @@
+"""D-Bus interfaces that defines and powers our commands."""
+
 from dasbus.server.interface import dbus_interface
 from dasbus.server.property import emits_properties_changed
 from dasbus.server.template import InterfaceTemplate
@@ -18,7 +20,11 @@ class QueryInterface(InterfaceTemplate):
     """The DBus interface of a query."""
 
     def RetrieveAnswer(self) -> Structure:
-        """This method is mainly called by the client to retrieve it's answer."""
+        """This method is mainly called by the client to retrieve it's answer.
+
+        Returns:
+            Structure: The message output in format of a d-bus structure.
+        """
         query = self.implementation.query.message
 
         # Submit query to backend
@@ -38,20 +44,33 @@ class QueryInterface(InterfaceTemplate):
 
     @emits_properties_changed
     def ProcessQuery(self, query: Structure) -> None:
-        """Process the given query."""
+        """Process a given query by the user
+
+        Args:
+            query (Structure): The user query
+        """
         self.implementation.process_query(Message.from_structure(query))
 
 
 @dbus_interface(HISTORY_IDENTIFIER.interface_name)
 class HistoryInterface(InterfaceTemplate):
+    """The DBus interface of a history"""
+
     def GetHistory(self) -> Structure:
-        """Get all conversations from history."""
+        """Get all conversations from history.
+
+        Returns:
+            Structure: The history entries in a dbus structure format.
+        """
         manager = HistoryManager(self.implementation.config, LocalHistory)
         history = manager.read()
 
         history_entry = HistoryEntry()
         if history.history:
-            [history_entry.set_from_dict(entry.to_dict()) for entry in history.history]
+            _ = [
+                history_entry.set_from_dict(entry.to_dict())
+                for entry in history.history
+            ]
         else:
             history_entry.entries = []
 
@@ -59,7 +78,11 @@ class HistoryInterface(InterfaceTemplate):
 
     # Add new methods with parameters
     def GetFirstConversation(self) -> Structure:
-        """Get first conversation from history."""
+        """Get first conversation from history.
+
+        Returns:
+            Structure: A single history entry in a dbus structure format.
+        """
         manager = HistoryManager(self.implementation.config, LocalHistory)
         history = manager.read()
         history_entry = HistoryEntry()
@@ -70,7 +93,11 @@ class HistoryInterface(InterfaceTemplate):
         return HistoryEntry.to_structure(history_entry)
 
     def GetLastConversation(self) -> Structure:
-        """Get last conversation from history."""
+        """Get last conversation from history.
+
+        Returns:
+            Structure: A single history entyr in a dbus structure format.
+        """
         manager = HistoryManager(self.implementation.config, LocalHistory)
         history = manager.read()
         history_entry = HistoryEntry()
@@ -82,5 +109,6 @@ class HistoryInterface(InterfaceTemplate):
         return HistoryEntry.to_structure(history_entry)
 
     def ClearHistory(self) -> None:
+        """Clear the user history."""
         manager = HistoryManager(self.implementation.config, LocalHistory)
         manager.clear()
