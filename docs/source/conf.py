@@ -6,6 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
 import sys
 
 project = "command-line-assistant"
@@ -49,7 +50,7 @@ modindex_common_prefix = ["command_line_assistant."]
 
 default_role = "code"
 
-sys.path.append("../")
+sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
