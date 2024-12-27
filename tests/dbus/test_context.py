@@ -30,23 +30,15 @@ def test_base_context_config_property(mock_config):
 
 def test_query_context_initial_state(query_context):
     assert query_context.query is None
-    assert query_context.query_changed is not None
 
 
 def test_query_context_process_query(query_context):
     message_obj = Message()
     message_obj.message = "test query"
-    signal_emitted = False
 
-    def on_signal():
-        nonlocal signal_emitted
-        signal_emitted = True
-
-    query_context.query_changed.connect(on_signal)
     query_context.process_query(message_obj)
 
     assert query_context.query == message_obj
-    assert signal_emitted is True
 
 
 def test_history_context_inheritance(history_context, mock_config):

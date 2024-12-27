@@ -30,7 +30,7 @@ def sample_history_data():
                 "id": "test-id",
                 "timestamp": "2024-01-01T00:00:00Z",
                 "interaction": {
-                    "query": {"text": "test query", "context": None, "role": "user"},
+                    "query": {"text": "test query", "role": "user"},
                     "response": {
                         "text": "test response",
                         "tokens": 2,
