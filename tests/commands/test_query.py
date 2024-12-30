@@ -33,7 +33,7 @@ def mock_dbus_service(mock_proxy):
 def test_query_command_initialization():
     """Test QueryCommand initialization"""
     query = "test query"
-    command = QueryCommand(query)
+    command = QueryCommand(query, None)
     assert command._query == query
 
 
@@ -45,6 +45,7 @@ def test_query_command_initialization():
     [
         ("how to list files?", "Use the ls command"),
         ("what is linux?", "Linux is an operating system"),
+        ("test!@#$%^&*()_+ query", "response with special chars !@#%"),
     ],
 )
 def test_query_command_run(mock_dbus_service, test_input, expected_output, capsys):
@@ -55,7 +56,7 @@ def test_query_command_run(mock_dbus_service, test_input, expected_output, capsy
     mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
     # Create and run command
-    command = QueryCommand(test_input)
+    command = QueryCommand(test_input, None)
     command.run()
 
     # Verify ProcessQuery was called with correct input
@@ -77,7 +78,7 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
     mock_output.message = ""
     mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
-    command = QueryCommand("test query")
+    command = QueryCommand("test query", None)
     command.run()
 
     captured = capsys.readouterr()
@@ -93,7 +94,7 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
 )
 def test_query_command_invalid_inputs(mock_dbus_service, test_args):
     """Test QueryCommand with invalid inputs"""
-    command = QueryCommand(test_args)
+    command = QueryCommand(test_args, None)
     command.run()
     # Verify DBus calls still happen even with invalid input
     mock_dbus_service.ProcessQuery.assert_called_once()
@@ -114,16 +115,32 @@ def test_register_subcommand():
     assert hasattr(args, "func")
 
 
-def test_command_factory():
+@pytest.mark.parametrize(
+    ("query_string", "stdin"),
+    (
+        (
+            "test query",
+            None,
+        ),
+        (None, "stdin"),
+        ("test query", "test stdin"),
+    ),
+)
+def test_command_factory(query_string, stdin):
     """Test _command_factory function"""
 
     from command_line_assistant.commands.query import _command_factory
 
-    args = Namespace(query_string="test query")
+    args = (
+        Namespace(query_string=query_string, stdin=stdin)
+        if stdin
+        else Namespace(query_string=query_string)
+    )
     command = _command_factory(args)
 
     assert isinstance(command, QueryCommand)
-    assert command._query == "test query"
+    assert command._query == query_string
+    assert command._stdin == stdin
 
 
 @pytest.mark.parametrize(
@@ -148,31 +165,9 @@ def test_dbus_error_handling(exception, expected, mock_dbus_service, capsys):
     # Make ProcessQuery raise a DBus error
     mock_dbus_service.ProcessQuery.side_effect = exception
 
-    command = QueryCommand("test query")
+    command = QueryCommand("test query", None)
     command.run()
 
     # Verify error message in stdout
     captured = capsys.readouterr()
     assert expected in captured.out.strip()
-
-
-def test_query_with_special_characters(mock_dbus_service, capsys):
-    """Test query containing special characters"""
-    special_query = "test!@#$%^&*()_+ query"
-    expected_response = "response with special chars !@#$"
-
-    mock_output = Message()
-    mock_output.message = expected_response
-    mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
-
-    command = QueryCommand(special_query)
-    command.run()
-
-    expected_input = Message()
-    expected_input.message = special_query
-    mock_dbus_service.ProcessQuery.assert_called_once_with(
-        Message.to_structure(expected_input)
-    )
-
-    captured = capsys.readouterr()
-    assert expected_response in captured.out.strip()

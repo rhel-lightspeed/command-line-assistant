@@ -1,6 +1,7 @@
 """Module to handle the query command."""
 
 from argparse import Namespace
+from typing import Optional
 
 from command_line_assistant.dbus.constants import QUERY_IDENTIFIER
 from command_line_assistant.dbus.exceptions import (
@@ -84,13 +85,15 @@ def _initialize_legal_renderer(write_once: bool = False) -> TextRenderer:
 class QueryCommand(BaseCLICommand):
     """Class that represents the query command."""
 
-    def __init__(self, query_string: str) -> None:
+    def __init__(self, query_string: str, stdin: Optional[str]) -> None:
         """Constructor of the class.
 
         Args:
             query_string (str): The query provided by the user.
+            stdin (Optional[str]): The user redirect input from stdin
         """
         self._query = query_string
+        self._stdin = stdin
 
         self._spinner_renderer: SpinnerRenderer = _initialize_spinner_renderer()
         self._text_renderer: TextRenderer = _initialize_text_renderer()
@@ -106,9 +109,16 @@ class QueryCommand(BaseCLICommand):
             int: Status code of the execution
         """
         proxy = QUERY_IDENTIFIER.get_proxy()
-        input_query = Message()
-        input_query.message = self._query
 
+        query = self._query
+        if self._stdin:
+            # If query is provided, the message becomes "{query} {stdin}",
+            # otherwise, to avoid submitting `None` as part of the query, let's
+            # default to submit only the stidn.
+            query = f"{query} {self._stdin}" if query else self._stdin
+
+        input_query = Message()
+        input_query.message = query
         output = "Nothing to see here..."
 
         try:
@@ -159,4 +169,8 @@ def _command_factory(args: Namespace) -> QueryCommand:
     Returns:
         QueryCommand: Return an instance of class
     """
-    return QueryCommand(args.query_string)
+    # We may not always have the stdin argument in the namespace.
+    if "stdin" in args:
+        return QueryCommand(args.query_string, args.stdin)
+
+    return QueryCommand(args.query_string, None)

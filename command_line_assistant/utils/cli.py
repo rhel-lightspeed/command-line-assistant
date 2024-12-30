@@ -26,16 +26,17 @@ class BaseCLICommand(ABC):
         """Entrypoint method for all CLI commands."""
 
 
-def add_default_command(argv: list[str]):
+def add_default_command(stdin: Optional[str], argv: list[str]):
     """Add the default command when none is given
 
     Args:
-        argv: THe arguments passed from the stdin.
+        stdin (str): The input string coming from stdin
+        argv (list[str]): List of arguments from CLI
     """
     args = argv[1:]
 
-    # Early exit if we don't have any argv
-    if not args:
+    # Early exit if we don't have any argv or stdin
+    if not args and not stdin:
         return args
 
     subcommand = _subcommand_used(argv)

@@ -11,8 +11,7 @@ enabled = true
 file = "~/.local/share/command-line-assistant/command-line-assistant_history.json"
 
 [backend]
-endpoint = "https://rlsapi-rhel-lightspeed--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redat.com"
-# endpoint = "http://localhost:8080"
+endpoint = "http://localhost:8080"
 
 [backend.auth]
 cert_file = "data/development/certificate/fake-certificate.pem"
