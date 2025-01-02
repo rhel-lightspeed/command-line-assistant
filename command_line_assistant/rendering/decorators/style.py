@@ -2,9 +2,9 @@
 
 from typing import Optional
 
-from colorama import Style
-
 from command_line_assistant.rendering.base import BaseDecorator
+
+RESET_ALL = "\033[0m"
 
 
 class StyleDecorator(BaseDecorator):
@@ -22,10 +22,10 @@ class StyleDecorator(BaseDecorator):
     """
 
     STYLES = {
-        "dim": Style.DIM,
-        "normal": Style.NORMAL,
-        "bright": Style.BRIGHT,
-        "reset": Style.RESET_ALL,
+        "bright": 1,
+        "dim": 2,
+        "normal": 22,
+        "reset": 0,
     }
 
     def __init__(self, style: Optional[str] = None) -> None:
@@ -46,14 +46,14 @@ class StyleDecorator(BaseDecorator):
             ValueError: In case the specified style is not present in `self.STYLES` class attribute.
 
         Returns:
-            str: The font style unicode provided by colorama.
+            str: The font style unicode.
         """
         style = style.lower()
         if style not in self.STYLES:
             raise ValueError(
                 f"Invalid style. Choose from: {', '.join(self.STYLES.keys())}"
             )
-        return self.STYLES[style]
+        return f"\033[{self.STYLES[style]}m"
 
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
@@ -65,6 +65,6 @@ class StyleDecorator(BaseDecorator):
             str: The text decorated with the font style.
         """
         if self.style:
-            return f"{self.style}{text}{Style.RESET_ALL}"
+            return f"{self.style}{text}{RESET_ALL}"
 
         return text

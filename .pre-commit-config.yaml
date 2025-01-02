@@ -52,7 +52,6 @@ repos:
         - responses
         - tomli; python_version<"3.11"
         - setuptools
-        - colorama
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.22.0

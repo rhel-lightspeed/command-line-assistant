@@ -14,7 +14,6 @@ dependencies = [
     'tomli; python_version<"3.11"',
     "requests",
     "dasbus",
-    "colorama",
     "PyGObject",
 ]
 requires-python = ">=3.9" # RHEL 9 and 10

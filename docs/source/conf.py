@@ -32,7 +32,6 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "dasbus": ("https://dasbus.readthedocs.io/en/latest/", None),
     "requests": ("https://requests.readthedocs.io/en/latest/", None),
-    "colorama": ("https://super-devops.readthedocs.io/en/latest/", None),
 }
 
 templates_path = ["_templates"]

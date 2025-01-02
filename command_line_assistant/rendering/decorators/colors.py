@@ -3,13 +3,13 @@
 import os
 from typing import Optional
 
-from colorama import Back, Fore, Style
-
 from command_line_assistant.rendering.base import BaseDecorator
+
+RESET_ALL = "\033[0m"
 
 
 class ColorDecorator(BaseDecorator):
-    """Decorator for adding foreground and background colors to text using colorama
+    """Decorator for adding foreground and background colors to text
 
     Example:
         This is an example on how to use this decorator:
@@ -32,45 +32,45 @@ class ColorDecorator(BaseDecorator):
     """
 
     FOREGROUND_COLORS = {
-        "black": Fore.BLACK,
-        "red": Fore.RED,
-        "green": Fore.GREEN,
-        "yellow": Fore.YELLOW,
-        "blue": Fore.BLUE,
-        "magenta": Fore.MAGENTA,
-        "cyan": Fore.CYAN,
-        "white": Fore.WHITE,
-        "reset": Fore.RESET,
+        "black": 30,
+        "red": 31,
+        "green": 32,
+        "yellow": 33,
+        "blue": 34,
+        "magenta": 35,
+        "cyan": 36,
+        "white": 37,
+        "reset": 39,
         # Light variants
-        "lightblack": Fore.LIGHTBLACK_EX,
-        "lightred": Fore.LIGHTRED_EX,
-        "lightgreen": Fore.LIGHTGREEN_EX,
-        "lightyellow": Fore.LIGHTYELLOW_EX,
-        "lightblue": Fore.LIGHTBLUE_EX,
-        "lightmagenta": Fore.LIGHTMAGENTA_EX,
-        "lightcyan": Fore.LIGHTCYAN_EX,
-        "lightwhite": Fore.LIGHTWHITE_EX,
+        "lightblack": 90,
+        "lightred": 91,
+        "lightgreen": 92,
+        "lightyellow": 93,
+        "lightblue": 94,
+        "lightmagenta": 95,
+        "lightcyan": 96,
+        "lightwhite": 96,
     }
 
     BACKGROUND_COLORS = {
-        "black": Back.BLACK,
-        "red": Back.RED,
-        "green": Back.GREEN,
-        "yellow": Back.YELLOW,
-        "blue": Back.BLUE,
-        "magenta": Back.MAGENTA,
-        "cyan": Back.CYAN,
-        "white": Back.WHITE,
-        "reset": Back.RESET,
+        "black": 40,
+        "red": 41,
+        "green": 42,
+        "yellow": 43,
+        "blue": 44,
+        "magenta": 45,
+        "cyan": 46,
+        "white": 47,
+        "reset": 49,
         # Light variants
-        "lightblack": Back.LIGHTBLACK_EX,
-        "lightred": Back.LIGHTRED_EX,
-        "lightgreen": Back.LIGHTGREEN_EX,
-        "lightyellow": Back.LIGHTYELLOW_EX,
-        "lightblue": Back.LIGHTBLUE_EX,
-        "lightmagenta": Back.LIGHTMAGENTA_EX,
-        "lightcyan": Back.LIGHTCYAN_EX,
-        "lightwhite": Back.LIGHTWHITE_EX,
+        "lightblack": 100,
+        "lightred": 101,
+        "lightgreen": 102,
+        "lightyellow": 103,
+        "lightblue": 104,
+        "lightmagenta": 105,
+        "lightcyan": 106,
+        "lightwhite": 107,
     }
 
     def __init__(
@@ -104,7 +104,7 @@ class ColorDecorator(BaseDecorator):
             raise ValueError(
                 f"Invalid foreground color. Choose from: {', '.join(self.FOREGROUND_COLORS.keys())}"
             )
-        return self.FOREGROUND_COLORS[color]
+        return f"\033[{self.FOREGROUND_COLORS[color]}m"
 
     def _get_background_color(self, color: str) -> str:
         """Get the unicode for the requested color.
@@ -123,7 +123,7 @@ class ColorDecorator(BaseDecorator):
             raise ValueError(
                 f"Invalid background color. Choose from: {', '.join(self.BACKGROUND_COLORS.keys())}"
             )
-        return self.BACKGROUND_COLORS[color]
+        return f"\033[{self.BACKGROUND_COLORS[color]}m"
 
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
@@ -134,7 +134,7 @@ class ColorDecorator(BaseDecorator):
         Returns:
             str: The text itself colored with the requested foreground and (optionally) background color.
         """
-        formatted_text = f"{self.background}{self.foreground}{text}{Style.RESET_ALL}"
+        formatted_text = f"{self.background}{self.foreground}{text}{RESET_ALL}"
         return formatted_text
 
 
