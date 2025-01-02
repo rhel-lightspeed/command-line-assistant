@@ -1,5 +1,7 @@
 """D-Bus interfaces that defines and powers our commands."""
 
+import logging
+
 from dasbus.server.interface import dbus_interface
 from dasbus.server.property import emits_properties_changed
 from dasbus.server.template import InterfaceTemplate
@@ -14,6 +16,8 @@ from command_line_assistant.dbus.structures import (
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
 
+audit_logger = logging.getLogger("audit")
+
 
 @dbus_interface(QUERY_IDENTIFIER.interface_name)
 class QueryInterface(InterfaceTemplate):
@@ -26,6 +30,7 @@ class QueryInterface(InterfaceTemplate):
             Structure: The message output in format of a d-bus structure.
         """
         query = self.implementation.query.message
+        user = self.implementation.query.user
 
         # Submit query to backend
         llm_response = submit(query, self.implementation.config)
@@ -39,6 +44,14 @@ class QueryInterface(InterfaceTemplate):
         current_history = manager.read()
         manager.write(current_history, query, llm_response)
 
+        audit_logger.info(
+            "Query executed successfully.",
+            extra={
+                "user": user,
+                "query": query,
+                "response": llm_response,
+            },
+        )
         # Return the data - okay
         return Message.to_structure(message)
 

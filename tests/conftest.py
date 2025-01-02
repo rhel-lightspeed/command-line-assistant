@@ -1,6 +1,7 @@
+import copy
 import logging
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -13,20 +14,26 @@ from command_line_assistant.config import (
     OutputSchema,
 )
 from command_line_assistant.config.schemas import AuthSchema
+from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
 
 
 @pytest.fixture(autouse=True)
-def setup_logger(request):
+def setup_logger(tmp_path, request):
     # This makes it so we can skip this using @pytest.mark.noautofixtures
     if "noautofixtures" in request.keywords:
         return
 
-    logger.setup_logging(config.Config(logging=config.LoggingSchema(level="DEBUG")))
+    logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
+    logging_configuration["handlers"]["audit_file"]["filename"] = tmp_path / "audit.log"
+    with patch(
+        "command_line_assistant.logger.LOGGING_CONFIG_DICTIONARY", logging_configuration
+    ):
+        logger.setup_logging(config.Config(logging=config.LoggingSchema(level="DEBUG")))
 
-    # get root logger
-    root_logger = logging.getLogger()
-    for handler in root_logger.handlers:
-        root_logger.removeHandler(handler)
+        # get root logger
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers:
+            root_logger.removeHandler(handler)
 
 
 @pytest.fixture

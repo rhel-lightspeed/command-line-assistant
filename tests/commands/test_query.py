@@ -25,6 +25,7 @@ def mock_dbus_service(mock_proxy):
         # Setup default mock response
         mock_output = Message()
         mock_output.message = "default mock response"
+        mock_output.user = "mock"
         mock_proxy.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
         yield mock_proxy
@@ -53,15 +54,19 @@ def test_query_command_run(mock_dbus_service, test_input, expected_output, capsy
     # Setup mock response for this specific test
     mock_output = Message()
     mock_output.message = expected_output
+    mock_output.user = "mock"
     mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
-    # Create and run command
-    command = QueryCommand(test_input, None)
-    command.run()
+    with patch("command_line_assistant.commands.query.getpass.getuser") as mock_getuser:
+        mock_getuser.return_value = "mock"
+        # Create and run command
+        command = QueryCommand(test_input, None)
+        command.run()
 
     # Verify ProcessQuery was called with correct input
     expected_input = Message()
     expected_input.message = test_input
+    expected_input.user = "mock"
     mock_dbus_service.ProcessQuery.assert_called_once_with(
         Message.to_structure(expected_input)
     )
@@ -76,6 +81,7 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
     # Setup empty response
     mock_output = Message()
     mock_output.message = ""
+    mock_output.user = "mock"
     mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
 
     command = QueryCommand("test query", None)

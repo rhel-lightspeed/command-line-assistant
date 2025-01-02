@@ -10,6 +10,7 @@ class Message(DBusData):
     def __init__(self) -> None:
         """Constructor of class."""
         self._message: Str = ""
+        self._user: Str = ""
         super().__init__()
 
     @property
@@ -29,6 +30,24 @@ class Message(DBusData):
             value (Str): Message to be set to the internal property
         """
         self._message = value
+
+    @property
+    def user(self) -> Str:
+        """Property for internal user attribute.
+
+        Returns:
+            Str: Value of user
+        """
+        return self._user
+
+    @user.setter
+    def user(self, value: Str) -> None:
+        """Set a new user
+
+        Args:
+            value (Str): User to be set to the internal property
+        """
+        self._user = value
 
 
 class HistoryItem(DBusData):

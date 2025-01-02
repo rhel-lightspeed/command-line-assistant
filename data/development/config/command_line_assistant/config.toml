@@ -20,3 +20,8 @@ verify_ssl = false
 
 [logging]
 level = "DEBUG"
+responses = false # Global setting - don't log responses by default
+question = false  # Global setting - don't log questions by default
+
+# User-specific settings
+# users.admin = { responses = true, question = true }

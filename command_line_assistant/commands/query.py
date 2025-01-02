@@ -1,5 +1,6 @@
 """Module to handle the query command."""
 
+import getpass
 from argparse import Namespace
 from typing import Optional
 
@@ -119,6 +120,8 @@ class QueryCommand(BaseCLICommand):
 
         input_query = Message()
         input_query.message = query
+        # Get the current user
+        input_query.user = getpass.getuser()
         output = "Nothing to see here..."
 
         try:

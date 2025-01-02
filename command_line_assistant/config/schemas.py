@@ -11,9 +11,15 @@ class LoggingSchema:
 
     Attributes:
         level (str): The level to log. Defaults to "INFO".
+        responses (bool): If the responses should be logged. Defaults to True.
+        question (bool): If the questions should be logged. Defaults to True.
+        users (dict[str, dict[str, bool]]): A dictionary of users and their logging preferences.
     """
 
     level: str = "INFO"
+    responses: bool = True
+    question: bool = True
+    users: dict[str, dict[str, bool]] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Post initialization method to normalize values
@@ -29,6 +35,23 @@ class LoggingSchema:
             )
 
         self.level = self.level.upper()
+
+    def should_log_for_user(self, username: str, log_type: str) -> bool:
+        """Check if logging should be enabled for a specific user and log type.
+
+        Args:
+            username (str): The username to check
+            log_type (str): The type of log ('responses' or 'question')
+
+        Returns:
+            bool: Whether logging should be enabled for this user and log type
+        """
+        # If user has specific settings, use those
+        if username in self.users:
+            return self.users[username].get(log_type, False)
+
+        # Otherwise fall back to global settings
+        return getattr(self, log_type, False)
 
 
 @dataclasses.dataclass
