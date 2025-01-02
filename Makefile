@@ -24,7 +24,6 @@ CLAD_SYSTEMD_DEVEL_PATH := $(DATA_DEVELOPMENT_PATH)/systemd/clad-devel.service
 CLAD_SYSTEMD_USER_PATH := $(DATA_DEVELOPMENT_PATH)/systemd/clad-user.service
 # Systemd path on the system to place the user unit
 SYSTEMD_USER_UNITS := ~/.config/systemd/user
-# SYSTEMD_USER_UNITS := /etc/systemd/user
 # Path to local XDG_CONFIG_DIRS to load config file
 XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
 
@@ -82,7 +81,7 @@ clean: ## Clean project files
 	   junit.xml \
 	   coverage.xml
 
-link-systemd-units: ## Link the systemd units to /etc/systemd/user
+link-systemd-units: ## Link the systemd units to ~/.config/systemd/user
 	@echo "Linking the systemd units from $(CLAD_SYSTEMD_DEVEL_PATH) to $(SYSTEMD_USER_UNITS)/clad.service"
 	@sed -e 's/{{ EXEC_START }}/$(CLAD_VENV_BIN)/'			   \
 		 -e 's/{{ CONFIG_FILE_PATH }}/$(XDG_CONFIG_DIRS)/' \
@@ -90,7 +89,7 @@ link-systemd-units: ## Link the systemd units to /etc/systemd/user
 	     $(CLAD_SYSTEMD_DEVEL_PATH) > $(CLAD_SYSTEMD_USER_PATH)
 	@ln -s $(CLAD_SYSTEMD_USER_PATH) $(SYSTEMD_USER_UNITS)/clad.service
 
-unlink-systemd-units: ## Unlink the systemd units from /etc/systemd/user
+unlink-systemd-units: ## Unlink the systemd units from ~/.config/systemd/user
 	@echo "Unlinking the systemd units from $(SYSTEMD_USER_UNITS)/clad.service"
 	@unlink $(SYSTEMD_USER_UNITS)/clad.service
 
