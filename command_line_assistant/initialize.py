@@ -1,7 +1,7 @@
 """Main module for the cli."""
 
 import sys
-from argparse import Namespace
+from argparse import ArgumentParser, Namespace
 
 from command_line_assistant.commands import history, query, record
 from command_line_assistant.utils.cli import (
@@ -11,11 +11,11 @@ from command_line_assistant.utils.cli import (
 )
 
 
-def initialize() -> int:
-    """Main function for the cli entrypoint
+def register_subcommands() -> ArgumentParser:
+    """Register all the subcommands for the CLI
 
     Returns:
-        int: Status code of the execution
+        ArgumentParser: The parser with all the subcommands registered.
     """
     parser, commands_parser = create_argument_parser()
 
@@ -25,6 +25,17 @@ def initialize() -> int:
     query.register_subcommand(commands_parser)  # type: ignore
     history.register_subcommand(commands_parser)  # type: ignore
     record.register_subcommand(commands_parser)  # type: ignore
+
+    return parser
+
+
+def initialize() -> int:
+    """Main function for the cli entrypoint
+
+    Returns:
+        int: Status code of the execution
+    """
+    parser = register_subcommands()
 
     stdin = read_stdin()
     args = add_default_command(stdin, sys.argv)

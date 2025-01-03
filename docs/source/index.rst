@@ -23,6 +23,12 @@ Welcome to Command Line Assistant documentation
    logger
    meta
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Manpage:
+
+   man/index
+
 Indices and tables
 ==================
 

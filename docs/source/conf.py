@@ -9,10 +9,13 @@
 import os
 import sys
 
-project = "command-line-assistant"
+project = "Command Line Assistant"
 copyright = "2024, RHEL Lightspeed Team"
 author = "RHEL Lightspeed Team"
-release = "0.1.0"
+release = version = "0.1.0"
+
+# Add the project root to Python path
+sys.path.insert(0, os.path.abspath("../.."))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -26,6 +29,7 @@ extensions = [
     "sphinx.ext.viewcode",  # View source code as html
     "sphinx.ext.todo",  # Add todo notes to the docs
     "sphinx.ext.duration",  # Inspect which module is slowing the docs build
+    "sphinx_argparse_cli",  # Auto generate argparse docs for manpage
 ]
 
 intersphinx_mapping = {
@@ -49,10 +53,19 @@ modindex_common_prefix = ["command_line_assistant."]
 
 default_role = "code"
 
-sys.path.insert(0, os.path.abspath("../.."))
+# Other Sphinx settings
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+
+# -- Options for manapge output ----------------------------------------------
+# Man page configuration
+man_pages = [
+    # (source_start_file, name, description, authors, manual_section)
+    ("man/command-line-assistant.1", "c", "Command Line Assistant Client", [author], 1),
+    ("man/clad.8", "clad", "Command Line Assistant Daemon", [author], 8),
+]

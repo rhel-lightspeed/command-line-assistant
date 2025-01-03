@@ -67,6 +67,7 @@ def _subcommand_used(args: list[str]):
 def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     """Create the argument parser for command line assistant."""
     parser = ArgumentParser(
+        prog="c",
         description="A script with multiple optional arguments and a required positional argument if no optional arguments are provided.",
     )
     parser.add_argument(
@@ -79,7 +80,6 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     commands_parser = parser.add_subparsers(
         dest="command", help="command line assistant helpers"
     )
-
     return parser, commands_parser
 
 
