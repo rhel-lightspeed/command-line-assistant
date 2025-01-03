@@ -62,16 +62,14 @@ jobs:
         - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec
 
   # Test jobs
-  - &default-tests
+  - &deterministic-tests
     job: tests
-    identifier: default-tests-virtual-machine
-    # Run tests on-demand
-    manual_trigger: true
+    identifier: deterministic-tests-virtual-machine
+    manual_trigger: false
     trigger: pull_request
     fmf_url: "https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/cla-tests"
     fmf_ref: main
-    # TODO: Replace with tmt_plan: "plans/e2e" or similar once we have them ready
-    tmt_plan: "plans"
+    tmt_plan: "/plans/deterministic"
     use_internal_tf: True
     targets:
       epel-9-x86_64:
@@ -89,18 +87,20 @@ jobs:
               tags:
                 BusinessUnit: rhel_sst_lightspeed@upstream
     labels:
-      - e2e
+      - deterministic
       - vm
       - default
 
-  - &sanity-tests-virtual-machine
-    job: tests
-    <<: *default-tests
-    identifier: sanity-tests-virtual-machine
-    manual_trigger: false
-    # TODO: Replace with tmt_plan: "plans/sanity"
-    tmt_plan: "plans"
-    labels:
-      - sanity
-      - sanity-vm
-      - vm
+  # TODO: Once the https://issues.redhat.com/browse/RSPEED-390 is done we can run
+  # the non deterministic (eval_answers tests)
+  # - &eval-answers-tests-virtual-machine
+  #   job: tests
+  #   <<: *deterministic-tests
+  #   identifier: eval-answers-tests-virtual-machine
+  #   # Run tests on-demand
+  #   manual_trigger: true
+  #   tmt_plan: "/plans/eval_answers"
+  #   labels:
+  #     - eval-answers
+  #     - eval-answers-vm
+  #     - vm
