@@ -64,27 +64,22 @@ A simple wrapper to interact with RAG
 %{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}/config.toml
 
 # History file
-<<<<<<< HEAD
 %{__install} -D -m 0644 data/release/xdg/history.json %{buildroot}/%{_sharedstatedir}/%{name}/history.json
 
 # Manpages
 %{__install} -D -m 0644 data/release/man/%{binary_name}.1 %{buildroot}/%{_mandir}/man1/%{binary_name}.1
 %{__install} -D -m 0644 data/release/man/%{daemon_binary_name}.8 %{buildroot}/%{_mandir}/man8/%{daemon_binary_name}.8
-=======
+
 ## Create the folder under /var/lib/command-line-assistant
 %{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
+
 ## Place the history file there
 %{__install} -D -m 0644 data/release/xdg/history.json %{buildroot}/%{_sharedstatedir}/%{name}/history.json
 
 # Manpages
-## Create directories for man1 and man8
-%{__install} -d -m 755 %{buildroot}%{_mandir}/man1
-%{__install} -d -m 755 %{buildroot}%{_mandir}/man8
-
 # Install the man1 and man8 for cla(d)
 %{__install} -p docs/build/man/%{binary_name}.1 %{buildroot}%{_mandir}/man1/%{binary_name}.1
 %{__install} -p docs/build/man/%{daemon_binary_name}.8 %{buildroot}%{_mandir}/man8/%{daemon_binary_name}.8
->>>>>>> 119a35b (Generate manpages for CLA and CLAD)
 
 %post
 %systemd_post %{daemon_binary_name}.service
@@ -126,5 +121,6 @@ LICENSE
 # Manpages
 %{_mandir}/man1/%{binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
+
 
 %changelog

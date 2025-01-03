@@ -3,11 +3,7 @@ upstream_package_name: command-line-assistant
 downstream_package_name: command-line-assistant
 upstream_project_url: https://github.com/rhel-lightspeed/command-line-assistant
 
-srpm_build_deps:
-  - python3-pip
-  - python3-dasbus
-  - python3-requests
-  - make
+srpm_build_deps: []
 
 jobs:
   # Build RPMs for each pull request
@@ -21,8 +17,6 @@ jobs:
       - epel-9-aarch64
       - epel-10-aarch64
     actions:
-      post-upstream-clone:
-        - bash -c "cd docs; pip install -r requirements.txt; SPHINXBUILD=/builddir/.local/bin/sphinx-build make man"
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
         - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec
