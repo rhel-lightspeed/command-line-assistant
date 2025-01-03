@@ -4,6 +4,9 @@ import sys
 from argparse import ArgumentParser, Namespace
 
 from command_line_assistant.commands import history, query, record
+from command_line_assistant.rendering.decorators.colors import ColorDecorator
+from command_line_assistant.rendering.decorators.text import EmojiDecorator
+from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.utils.cli import (
     add_default_command,
     create_argument_parser,
@@ -37,7 +40,19 @@ def initialize() -> int:
     """
     parser = register_subcommands()
 
-    stdin = read_stdin()
+    stdin = None
+    try:
+        stdin = read_stdin()
+    except UnicodeDecodeError:
+        # Usually happens when the user try to cat a binary file and redirect that to us.
+        text_renderer = TextRenderer()
+        text_renderer.update(ColorDecorator(foreground="red"))
+        text_renderer.update(EmojiDecorator(emoji="U+1F641"))
+        text_renderer.render(
+            "The stdin provided could not be decoded. Please, make sure it is in textual format."
+        )
+        return 1
+
     args = add_default_command(stdin, sys.argv)
 
     # Small workaround to include the stdin in the namespace object in case it exists.

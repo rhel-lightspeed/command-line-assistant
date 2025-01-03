@@ -116,6 +116,20 @@ def test_initialize_with_help(capsys):
         assert "usage:" in captured.out
 
 
+def test_initialize_bad_stdin(capsys):
+    with patch("command_line_assistant.initialize.read_stdin") as mock_stdin:
+        mock_stdin.side_effect = UnicodeDecodeError(
+            "utf-8", b"", 0, 1, "invalid start byte"
+        )
+        initialize()
+
+    captured = capsys.readouterr()
+    assert (
+        "The stdin provided could not be decoded. Please, make sure it is in textual format."
+        in captured.out
+    )
+
+
 @pytest.mark.parametrize(
     (
         "argv",

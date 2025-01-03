@@ -70,17 +70,6 @@ A simple wrapper to interact with RAG
 %{__install} -D -m 0644 data/release/man/%{binary_name}.1 %{buildroot}/%{_mandir}/man1/%{binary_name}.1
 %{__install} -D -m 0644 data/release/man/%{daemon_binary_name}.8 %{buildroot}/%{_mandir}/man8/%{daemon_binary_name}.8
 
-## Create the folder under /var/lib/command-line-assistant
-%{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
-
-## Place the history file there
-%{__install} -D -m 0644 data/release/xdg/history.json %{buildroot}/%{_sharedstatedir}/%{name}/history.json
-
-# Manpages
-# Install the man1 and man8 for cla(d)
-%{__install} -p docs/build/man/%{binary_name}.1 %{buildroot}%{_mandir}/man1/%{binary_name}.1
-%{__install} -p docs/build/man/%{daemon_binary_name}.8 %{buildroot}%{_mandir}/man8/%{daemon_binary_name}.8
-
 %post
 %systemd_post %{daemon_binary_name}.service
 
@@ -121,6 +110,5 @@ LICENSE
 # Manpages
 %{_mandir}/man1/%{binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
-
 
 %changelog
