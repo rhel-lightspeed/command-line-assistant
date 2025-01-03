@@ -9,6 +9,7 @@
 	unlink-systemd-units \
 	run-clad status-clad \
 	reload-clad \
+	manpages \
 
 # Project directory path - /home/<user>/.../command-line-assistant
 PROJECT_DIR := $(shell pwd)
@@ -80,6 +81,7 @@ clean: ## Clean project files
 	   .tox \
 	   junit.xml \
 	   coverage.xml
+	$(MAKE) -C docs clean
 
 link-systemd-units: ## Link the systemd units to ~/.config/systemd/user
 	@echo "Linking the systemd units from $(CLAD_SYSTEMD_DEVEL_PATH) to $(SYSTEMD_USER_UNITS)/clad.service"
@@ -105,3 +107,8 @@ status-clad: ## Check the status for clad
 reload-clad: ## Reload clad systemd unit
 	@systemctl --user daemon-reload
 	@systemctl restart --user clad
+
+man: ## Build manpages
+	# Build the manpages and change the builddir to match data/release
+	# Also change the doctrees cache to still use the original build directory.
+	$(MAKE) BUILDDIR=../data/release SPHINXOPTS=-d=build -C docs man
