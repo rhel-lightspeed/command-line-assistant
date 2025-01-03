@@ -134,8 +134,10 @@ class ColorDecorator(BaseDecorator):
         Returns:
             str: The text itself colored with the requested foreground and (optionally) background color.
         """
-        formatted_text = f"{self.background}{self.foreground}{text}{RESET_ALL}"
-        return formatted_text
+        if not should_disable_color_output():
+            formatted_text = f"{self.background}{self.foreground}{text}{RESET_ALL}"
+            return formatted_text
+        return text
 
 
 def should_disable_color_output() -> bool:

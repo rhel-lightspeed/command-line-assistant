@@ -9,13 +9,23 @@ from command_line_assistant.rendering.decorators.colors import (
 )
 
 
-def test_color_decorator_basic():
+def test_color_decorator_with_foreground():
     decorator = ColorDecorator(foreground="red")
     text = "Test text"
     result = decorator.decorate(text)
     assert result.startswith("\x1b[31m")  # Red color code
     assert result.endswith("\x1b[0m")  # Reset code
     assert "Test text" in result
+
+
+def test_color_decorator_with_foreground_and_no_color():
+    with patch.dict(os.environ, {"NO_COLOR": "1"}, clear=True):
+        decorator = ColorDecorator(foreground="red")
+        text = "Test text"
+        result = decorator.decorate(text)
+        assert not result.startswith("\x1b[31m")  # Red color code
+        assert not result.endswith("\x1b[0m")  # Reset code
+        assert "Test text" in result
 
 
 def test_color_decorator_with_background():
@@ -26,6 +36,17 @@ def test_color_decorator_with_background():
     assert "\x1b[37m" in result  # White foreground code
     assert result.endswith("\x1b[0m")
     assert "Test text" in result
+
+
+def test_color_decorator_with_background_and_no_color():
+    with patch.dict(os.environ, {"NO_COLOR": "1"}, clear=True):
+        decorator = ColorDecorator(foreground="white", background="blue")
+        text = "Test text"
+        result = decorator.decorate(text)
+        assert not result.startswith("\x1b[44m")  # Blue background code
+        assert "\x1b[37m" not in result  # White foreground code
+        assert not result.endswith("\x1b[0m")
+        assert "Test text" in result
 
 
 def test_color_decorator_invalid_color():
@@ -51,6 +72,7 @@ def test_color_decorator_invalid_color():
         ("FALSE", False),
         ("False", False),
         (None, False),  # NO_COLOR not set
+        ("", True),
     ],
 )
 def test_should_disable_color_output(env_value, expected):
@@ -65,12 +87,6 @@ def test_should_disable_color_output_no_env():
     """Test when NO_COLOR environment variable is not set"""
     with patch.dict(os.environ, {}, clear=True):
         assert should_disable_color_output() is False
-
-
-def test_should_disable_color_output_empty_string():
-    """Test when NO_COLOR is set to empty string"""
-    with patch.dict(os.environ, {"NO_COLOR": ""}, clear=True):
-        assert should_disable_color_output() is True
 
 
 @pytest.mark.parametrize(
