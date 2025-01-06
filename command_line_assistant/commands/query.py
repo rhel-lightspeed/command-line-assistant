@@ -22,15 +22,12 @@ from command_line_assistant.rendering.stream import StderrStream, StdoutStream
 from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
 
 LEGAL_NOTICE = (
-    "RHEL Lightspeed Command Line Assistant can answer questions related to RHEL."
-    " Do not include personal or business sensitive information in your input."
-    "Interactions with RHEL Lightspeed may be reviewed and used to improve our "
-    "products and service."
+    "This feature uses AI technology. Do not include personal information or "
+    "other sensitive information in your input. Interactions may be used to "
+    "improve Red Hat's products or services."
 )
 #: Legal notice that we need to output once per user
-ALWAYS_LEGAL_MESSAGE = (
-    "Always check AI/LLM-generated responses for accuracy prior to use."
-)
+ALWAYS_LEGAL_MESSAGE = "Always review AI generated content prior to use."
 #: Always good to have legal message.
 
 
