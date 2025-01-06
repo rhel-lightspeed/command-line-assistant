@@ -34,7 +34,7 @@ def mock_config(tmp_path):
     """Fixture to create a mock configuration"""
     cert_file = tmp_path / "cert.pem"
     key_file = tmp_path / "key.pem"
-    history_file = tmp_path / "command_line_assistant" / "history.json"
+    history_file = tmp_path / "command-line-assistant" / "history.json"
 
     cert_file.write_text("cert")
     key_file.write_text("key")

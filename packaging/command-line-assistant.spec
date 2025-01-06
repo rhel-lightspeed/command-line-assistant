@@ -43,7 +43,7 @@ A simple wrapper to interact with RAG
 
 # Create needed directories in buildroot
 %{__install} -d %{buildroot}/%{_sbindir}
-%{__install} -d %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}
+%{__install} -d %{buildroot}/%{_sysconfdir}/xdg/%{name}
 %{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
 %{__install} -d %{buildroot}/%{_mandir}/man1
 %{__install} -d %{buildroot}/%{_mandir}/man8
@@ -61,7 +61,7 @@ A simple wrapper to interact with RAG
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.history.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 
 # Config file
-%{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{python_package_src}/config.toml
+%{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
 
 # History file
 %{__install} -D -m 0644 data/release/xdg/history.json %{buildroot}/%{_sharedstatedir}/%{name}/history.json
@@ -102,7 +102,7 @@ LICENSE
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 
 # Config file
-%config %{_sysconfdir}/xdg/%{python_package_src}/config.toml
+%config %{_sysconfdir}/xdg/%{name}/config.toml
 
 # History file
 %{_sharedstatedir}/%{name}/history.json

@@ -23,7 +23,7 @@ except ImportError:
 
 
 CONFIG_FILE_DEFINITION: tuple[str, str] = (
-    "command_line_assistant",
+    "command-line-assistant",
     "config.toml",
 )
 #: Define the config file path.

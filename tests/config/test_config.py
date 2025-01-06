@@ -42,7 +42,7 @@ level = "INFO"
 
 def test_load_config_file(tmp_path, monkeypatch, get_config_template):
     config_file_path = tmp_path
-    config_file = config_file_path / "command_line_assistant" / "config.toml"
+    config_file = config_file_path / "command-line-assistant" / "config.toml"
     config_file.parent.mkdir()
     config_file.write_text(get_config_template)
 
@@ -65,7 +65,7 @@ def test_load_config_file_not_found(tmp_path, monkeypatch):
 
 def test_load_config_file_decoded_error(tmp_path, monkeypatch):
     config_file_path = tmp_path
-    config_file = config_file_path / "command_line_assistant" / "config.toml"
+    config_file = config_file_path / "command-line-assistant" / "config.toml"
     config_file.parent.mkdir()
     config_file.write_text("""
 [output]
