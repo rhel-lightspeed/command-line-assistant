@@ -3,7 +3,7 @@
 import sys
 from argparse import ArgumentParser, Namespace
 
-from command_line_assistant.commands import history, query, record
+from command_line_assistant.commands import history, query
 from command_line_assistant.utils.cli import (
     add_default_command,
     create_argument_parser,
@@ -25,7 +25,6 @@ def register_subcommands() -> ArgumentParser:
     # and call `register_subcommand()` on each one.
     query.register_subcommand(commands_parser)  # type: ignore
     history.register_subcommand(commands_parser)  # type: ignore
-    record.register_subcommand(commands_parser)  # type: ignore
 
     return parser
 

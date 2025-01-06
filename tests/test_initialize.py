@@ -43,7 +43,6 @@ def test_initialize_with_query_command(argv, stdin):
         patch("sys.argv", argv),
         patch("command_line_assistant.commands.query.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
-        patch("command_line_assistant.commands.record.register_subcommand"),
         patch("command_line_assistant.initialize.read_stdin", lambda: stdin),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
@@ -62,26 +61,6 @@ def test_initialize_with_history_command():
         patch("sys.argv", ["c", "history", "--clear"]),
         patch("command_line_assistant.commands.query.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
-        patch("command_line_assistant.commands.record.register_subcommand"),
-        patch("command_line_assistant.initialize.read_stdin", lambda: None),
-        patch("argparse.ArgumentParser.parse_args") as mock_parse,
-    ):
-        mock_parse.return_value.func = mock_command
-        result = initialize()
-
-        assert result == 0
-        mock_command.assert_called_once()
-
-
-def test_initialize_with_record_command():
-    """Test initialize with record command"""
-    mock_command = Mock(return_value=MockCommand())
-
-    with (
-        patch("sys.argv", ["c", "record"]),
-        patch("command_line_assistant.commands.query.register_subcommand"),
-        patch("command_line_assistant.commands.history.register_subcommand"),
-        patch("command_line_assistant.commands.record.register_subcommand"),
         patch("command_line_assistant.initialize.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
@@ -139,7 +118,6 @@ def test_initialize_bad_stdin(capsys):
         (["c"], "query"),  # Default to query
         (["c", "query"], "query"),
         (["c", "history"], "history"),
-        (["c", "record"], "record"),
     ],
 )
 def test_initialize_command_selection(argv, expected_command):
@@ -151,7 +129,6 @@ def test_initialize_command_selection(argv, expected_command):
         patch("command_line_assistant.initialize.read_stdin", lambda: None),
         patch("command_line_assistant.commands.query.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
-        patch("command_line_assistant.commands.record.register_subcommand"),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
