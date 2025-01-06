@@ -74,14 +74,18 @@ class BaseRenderer(ABC):
         self._stream = stream
         self._decorators: dict[type, BaseDecorator] = {}
 
-    def update(self, decorator: BaseDecorator) -> None:
+    def update(self, decorators: list[BaseDecorator]) -> None:
         """Update or add a decorator of the same type.
 
         Args:
-            decorator (RenderDecorator): An instance of a rendering decorator to be applied.
+            decorator (list[BaseDecorator]): An instance of a rendering
+            decorator to be applied.
         """
+        if not isinstance(decorators, list):
+            raise TypeError(f"decorators must be a list, not '{type(decorators)}'")
 
-        self._decorators[type(decorator)] = decorator
+        for decorator in decorators:
+            self._decorators[type(decorator)] = decorator
 
     def _apply_decorators(self, text: str) -> str:
         """Apply all decorators to the text.

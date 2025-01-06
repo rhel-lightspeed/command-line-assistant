@@ -1,6 +1,5 @@
 """Module to handle the history command."""
 
-import logging
 from argparse import Namespace
 
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
@@ -8,56 +7,19 @@ from command_line_assistant.dbus.exceptions import (
     CorruptedHistoryError,
     MissingHistoryFileError,
 )
-from command_line_assistant.dbus.structures import HistoryEntry
+from command_line_assistant.dbus.structures import HistoryEntry, HistoryItem
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
-    TextWrapDecorator,
 )
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
-from command_line_assistant.rendering.stream import StdoutStream
 from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
-
-logger = logging.getLogger(__name__)
-
-
-def _initialize_spinner_renderer() -> SpinnerRenderer:
-    """Initialize a new text renderer class
-
-    Returns:
-        SpinnerRenderer: Instance of a text renderer class with decorators.
-    """
-    spinner = SpinnerRenderer(message="Loading history", stream=StdoutStream(end=""))
-    spinner.update(TextWrapDecorator())
-
-    return spinner
-
-
-def _initialize_qa_renderer(is_assistant: bool = False) -> TextRenderer:
-    """Initialize a new text renderer class.
-
-    Args:
-        is_assistant (bool): Apply different decorators if it is assistant.
-
-    Returns:
-        TextRenderer: Instance of a text renderer class with decorators.
-    """
-    text = TextRenderer(stream=StdoutStream(end="\n"))
-    foreground = "lightblue" if is_assistant else "lightgreen"
-    text.update(ColorDecorator(foreground=foreground))
-    text.update(EmojiDecorator("🤖"))
-    return text
-
-
-def _initialize_text_renderer() -> TextRenderer:
-    """Initialize a new text renderer class
-
-    Returns:
-        TextRenderer: Instance of a text renderer class with decorators.
-    """
-    text = TextRenderer(stream=StdoutStream(end="\n"))
-    return text
+from command_line_assistant.utils.renderers import (
+    create_error_renderer,
+    create_spinner_renderer,
+    create_text_renderer,
+)
 
 
 class HistoryCommand(BaseCLICommand):
@@ -80,10 +42,19 @@ class HistoryCommand(BaseCLICommand):
         self._last = last
 
         self._proxy = HISTORY_IDENTIFIER.get_proxy()
-        self._user_renderer = _initialize_qa_renderer()
-        self._assistant_renderer = _initialize_qa_renderer(is_assistant=True)
-        self._text_renderer = _initialize_text_renderer()
-        self._spinner_renderer = _initialize_spinner_renderer()
+
+        self._spinner_renderer: SpinnerRenderer = create_spinner_renderer(
+            message="Loading history",
+            decorators=[EmojiDecorator(emoji="U+1F916")],
+        )
+        self._q_renderer: TextRenderer = create_text_renderer(
+            decorators=[ColorDecorator("lightgreen")]
+        )
+        self._a_renderer: TextRenderer = create_text_renderer(
+            decorators=[ColorDecorator("lightblue")]
+        )
+        self._text_renderer: TextRenderer = create_text_renderer()
+        self._error_renderer: TextRenderer = create_error_renderer()
 
         super().__init__()
 
@@ -108,9 +79,7 @@ class HistoryCommand(BaseCLICommand):
 
             return 0
         except (MissingHistoryFileError, CorruptedHistoryError) as e:
-            self._text_renderer.update(ColorDecorator(foreground="red"))
-            self._text_renderer.update(EmojiDecorator(emoji="U+1F641"))
-            self._text_renderer.render(str(e))
+            self._error_renderer.render(str(e))
             return 1
 
     def _retrieve_all_conversations(self) -> None:
@@ -119,53 +88,55 @@ class HistoryCommand(BaseCLICommand):
         response = self._proxy.GetHistory()
         history = HistoryEntry.from_structure(response)
 
-        if not history.entries:
-            self._text_renderer.render("No history found.")
-            return
-
-        for entry in history.entries:
-            self._user_renderer.render(f"Query: {entry.query}")
-            self._assistant_renderer.render(f"Answer: {entry.response}")
-            self._text_renderer.render(f"Time: {entry.timestamp}")
-            self._text_renderer.render("-" * 50)  # Separator between conversations
+        # Display the conversation
+        self._show_history(history.entries)
 
     def _retrieve_first_conversation(self) -> None:
         """Retrieve the first conversation in the conversation cache."""
-        logger.info("Getting first conversation from history.")
+        self._text_renderer.render("Getting first conversation from history.")
         response = self._proxy.GetFirstConversation()
         history = HistoryEntry.from_structure(response)
 
-        if not history.entries:
-            self._text_renderer.render("No history found.")
-            return
-
-        entry = history.entries[0]
-        self._user_renderer.render(f"Query: {entry.query}")
-        self._assistant_renderer.render(f"Answer: {entry.response}")
-        self._text_renderer.render(f"Time: {entry.timestamp}")
+        # Display the conversation
+        self._show_history(history.entries)
 
     def _retrieve_last_conversation(self):
         """Retrieve the last conversation in the conversation cache."""
-        logger.info("Getting last conversation from history.")
+        self._text_renderer.render("Getting last conversation from history.")
         response = self._proxy.GetLastConversation()
 
         # Handle and display the response
         history = HistoryEntry.from_structure(response)
 
-        if not history.entries:
-            self._text_renderer.render("No history found.")
-            return
-
         # Display the conversation
-        entry = history.entries[-1]
-        self._user_renderer.render(f"Query: {entry.query}")
-        self._assistant_renderer.render(f"Answer: {entry.response}")
-        self._text_renderer.render(f"Time: {entry.timestamp}")
+        self._show_history(history.entries)
 
     def _clear_history(self) -> None:
         """Clear the user history"""
         self._text_renderer.render("Cleaning the history.")
         self._proxy.ClearHistory()
+
+    def _show_history(self, entries: list[HistoryItem]) -> None:
+        """Internal method to show the history in a standarized way
+
+        Args:
+            entries (list[HistoryItem]): The list of entries in the history
+        """
+        if not entries:
+            self._text_renderer.render("No history found.")
+            return
+
+        is_separator_needed = len(entries) > 1
+        for entry in entries:
+            self._q_renderer.render(f"Query: {entry.query}")
+            self._a_renderer.render(f"Answer: {entry.response}")
+
+            timestamp = f"Time: {entry.timestamp}"
+            self._text_renderer.render(timestamp)
+
+            if is_separator_needed:
+                # Separator between conversations
+                self._text_renderer.render("-" * len(timestamp))
 
 
 def register_subcommand(parser: SubParsersAction):

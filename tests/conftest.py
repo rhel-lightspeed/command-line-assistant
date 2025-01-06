@@ -15,6 +15,7 @@ from command_line_assistant.config import (
 )
 from command_line_assistant.config.schemas import AuthSchema
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
+from tests.helpers import MockStream
 
 
 @pytest.fixture(autouse=True)
@@ -71,3 +72,8 @@ def mock_proxy():
     """Create a mock proxy for testing."""
     proxy = MagicMock()
     return proxy
+
+
+@pytest.fixture
+def mock_stream():
+    return MockStream()

@@ -1,35 +1,14 @@
 import threading
 import time
-from unittest.mock import MagicMock
 
 import pytest
 
-from command_line_assistant.rendering.base import BaseStream
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
     TextWrapDecorator,
 )
 from command_line_assistant.rendering.renders.spinner import Frames, SpinnerRenderer
-
-
-class MockStream(BaseStream):
-    """Mock stream class for testing"""
-
-    def __init__(self):
-        self.written = []
-        super().__init__(stream=MagicMock())
-
-    def write(self, text: str) -> None:
-        self.written.append(text)
-
-    def flush(self) -> None:
-        pass
-
-
-@pytest.fixture
-def mock_stream():
-    return MockStream()
 
 
 @pytest.fixture
@@ -82,7 +61,7 @@ def test_spinner_context_manager(spinner):
 def test_spinner_with_colored_text(mock_stream):
     """Test spinner with colored text"""
     spinner = SpinnerRenderer("Loading...", stream=mock_stream)
-    spinner.update(ColorDecorator(foreground="cyan"))
+    spinner.update([ColorDecorator(foreground="cyan")])
 
     with spinner:
         time.sleep(0.2)
@@ -95,8 +74,7 @@ def test_spinner_with_colored_text(mock_stream):
 def test_spinner_with_emoji_and_color(mock_stream):
     """Test spinner with both emoji and color decorators"""
     spinner = SpinnerRenderer("Processing...", stream=mock_stream)
-    spinner.update(ColorDecorator(foreground="yellow"))
-    spinner.update(EmojiDecorator("⚡"))
+    spinner.update([EmojiDecorator("⚡"), ColorDecorator(foreground="yellow")])
 
     with spinner:
         time.sleep(0.2)
@@ -110,7 +88,7 @@ def test_spinner_with_text_wrap(mock_stream):
     """Test spinner with text wrapping"""
     long_message = "This is a very long message that should be wrapped"
     spinner = SpinnerRenderer(long_message, stream=mock_stream)
-    spinner.update(TextWrapDecorator(width=20))
+    spinner.update([TextWrapDecorator(width=20)])
 
     with spinner:
         time.sleep(0.2)

@@ -6,9 +6,13 @@ from command_line_assistant.rendering.renders.text import TextRenderer
 
 def test_text_renderer_multiple_decorators():
     renderer = TextRenderer()
-    renderer.update(ColorDecorator(foreground="red"))
-    renderer.update(StyleDecorator("bright"))
-    renderer.update(TextWrapDecorator(width=50))
+    renderer.update(
+        [
+            ColorDecorator(foreground="red"),
+            StyleDecorator("bright"),
+            TextWrapDecorator(width=50),
+        ]
+    )
 
     # Verify renderer has all decorators
     assert len(renderer._decorators) == 3
@@ -16,8 +20,9 @@ def test_text_renderer_multiple_decorators():
 
 def test_text_renderer_decorator_override():
     renderer = TextRenderer()
-    renderer.update(ColorDecorator(foreground="red"))
-    renderer.update(ColorDecorator(foreground="blue"))
+    renderer.update(
+        [ColorDecorator(foreground="red"), ColorDecorator(foreground="blue")]
+    )
 
     # Verify last decorator of same type overrides previous
     assert len(renderer._decorators) == 1
@@ -25,7 +30,7 @@ def test_text_renderer_decorator_override():
 
 def test_text_renderer_render_single_decorator(capsys):
     renderer = TextRenderer()
-    renderer.update(ColorDecorator(foreground="red"))
+    renderer.update([ColorDecorator(foreground="red")])
 
     test_text = "Test message"
     renderer.render(test_text)
@@ -36,9 +41,13 @@ def test_text_renderer_render_single_decorator(capsys):
 
 def test_text_renderer_render_multiple_decorators(capsys):
     renderer = TextRenderer()
-    renderer.update(ColorDecorator(foreground="blue"))
-    renderer.update(StyleDecorator("bright"))
-    renderer.update(TextWrapDecorator(width=20))
+    renderer.update(
+        [
+            ColorDecorator(foreground="blue"),
+            StyleDecorator("bright"),
+            TextWrapDecorator(width=20),
+        ]
+    )
 
     test_text = "This is a test message that should be wrapped"
     renderer.render(test_text)
@@ -54,7 +63,7 @@ def test_text_renderer_render_multiple_decorators(capsys):
 
 def test_text_renderer_render_empty_text(capsys):
     renderer = TextRenderer()
-    renderer.update(ColorDecorator(foreground="green"))
+    renderer.update([ColorDecorator(foreground="green")])
 
     renderer.render("")
 
@@ -66,7 +75,7 @@ def test_text_renderer_render_empty_text(capsys):
 
 def test_text_renderer_render_multiline(capsys):
     renderer = TextRenderer()
-    renderer.update(ColorDecorator(foreground="yellow"))
+    renderer.update([ColorDecorator(foreground="yellow")])
 
     test_text = "Line 1\nLine 2\nLine 3"
     renderer.render(test_text)

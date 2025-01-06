@@ -4,9 +4,6 @@ import pytest
 
 from command_line_assistant.commands.history import (
     HistoryCommand,
-    _initialize_qa_renderer,
-    _initialize_spinner_renderer,
-    _initialize_text_renderer,
 )
 from command_line_assistant.dbus.structures import HistoryEntry, HistoryItem
 
@@ -42,17 +39,6 @@ def sample_history_entry():
     return history_entry
 
 
-def test_initialize_renderers():
-    """Test initialization of various renderers."""
-    spinner = _initialize_spinner_renderer()
-    qa = _initialize_qa_renderer()
-    text = _initialize_text_renderer()
-
-    assert spinner is not None
-    assert qa is not None
-    assert text is not None
-
-
 def test_retrieve_all_conversations_success(mock_proxy, sample_history_entry, capsys):
     """Test retrieving all conversations successfully."""
     mock_proxy.GetHistory.return_value = sample_history_entry.to_structure(
@@ -86,7 +72,7 @@ def test_retrieve_first_conversation_success(mock_proxy, sample_history_entry, c
     captured = capsys.readouterr()
     mock_proxy.GetFirstConversation.assert_called_once()
     assert (
-        "\x1b[92mQuery: test query\x1b[0m\n🤖 \x1b[94mAnswer: test response\x1b[0m\n"
+        "\x1b[92mQuery: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
         in captured.out
     )
 
@@ -113,7 +99,7 @@ def test_retrieve_last_conversation_success(mock_proxy, sample_history_entry, ca
     captured = capsys.readouterr()
     mock_proxy.GetLastConversation.assert_called_once()
     assert (
-        "\x1b[92mQuery: test final query\x1b[0m\n🤖 \x1b[94mAnswer: test final response\x1b[0m\n"
+        "\x1b[92mQuery: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
         in captured.out
     )
 
