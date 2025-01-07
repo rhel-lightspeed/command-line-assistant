@@ -62,6 +62,39 @@ def test_retrieve_all_conversations_empty(mock_proxy, capsys):
     assert "No history found.\n" in captured.out
 
 
+def test_retrieve_conversation_filtered_empty(mock_proxy, capsys):
+    """Test retrieving first conversation when history is empty."""
+    empty_history = HistoryEntry()
+    mock_proxy.GetFilteredConversation.return_value = empty_history.to_structure(
+        empty_history
+    )
+
+    HistoryCommand(
+        clear=False, first=True, last=False, filter="missing"
+    )._retrieve_conversation_filtered(filter="missing")
+    captured = capsys.readouterr()
+    assert "No history found.\n" in captured.out
+
+
+def test_retrieve_conversation_filtered_success(
+    mock_proxy, sample_history_entry, capsys
+):
+    """Test retrieving last conversation successfully."""
+    mock_proxy.GetFilteredConversation.return_value = sample_history_entry.to_structure(
+        sample_history_entry
+    )
+
+    HistoryCommand(
+        clear=False, first=False, last=True, filter="test"
+    )._retrieve_conversation_filtered(filter="missing")
+    captured = capsys.readouterr()
+    mock_proxy.GetFilteredConversation.assert_called_once()
+    assert (
+        "\x1b[92mQuery: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
+        in captured.out
+    )
+
+
 def test_retrieve_first_conversation_success(mock_proxy, sample_history_entry, capsys):
     """Test retrieving first conversation successfully."""
     mock_proxy.GetFirstConversation.return_value = sample_history_entry.to_structure(

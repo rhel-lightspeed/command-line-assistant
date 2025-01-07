@@ -39,41 +39,6 @@ def history_interface(mock_implementation):
     return interface
 
 
-@pytest.fixture
-def sample_history_data():
-    """Create sample history data for testing."""
-    return {
-        "history": [
-            {
-                "id": "test-id",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "interaction": {
-                    "query": {"text": "test query", "role": "user"},
-                    "response": {
-                        "text": "test response",
-                        "tokens": 2,
-                        "role": "assistant",
-                    },
-                },
-                "metadata": {
-                    "session_id": "test-session",
-                    "os_info": {
-                        "distribution": "RHEL",
-                        "version": "test",
-                        "arch": "x86_64",
-                    },
-                },
-            }
-        ],
-        "metadata": {
-            "last_updated": "2024-01-01T00:00:00Z",
-            "version": "0.1.0",
-            "entry_count": 1,
-            "size_bytes": 0,
-        },
-    }
-
-
 def test_query_interface_retrieve_answer(query_interface, mock_implementation):
     """Test retrieving answer from query interface."""
     expected_response = "test response"
@@ -149,6 +114,103 @@ def test_history_interface_get_last_conversation(
 
         reconstructed = HistoryEntry.from_structure(response)
         assert len(reconstructed.entries) == 1
+        assert reconstructed.entries[0].query == "test query"
+        assert reconstructed.entries[0].response == "test response"
+
+
+def test_history_interface_get_filtered_conversation(
+    history_interface, mock_implementation, sample_history_data
+):
+    """Test getting filtered conversation through history interface."""
+    mock_history = History.from_json(json.dumps(sample_history_data))
+
+    with patch("command_line_assistant.dbus.interfaces.HistoryManager") as mock_manager:
+        mock_manager.return_value.read.return_value = mock_history
+        response = history_interface.GetFilteredConversation(filter="test")
+
+        reconstructed = HistoryEntry.from_structure(response)
+        assert len(reconstructed.entries) == 1
+        assert reconstructed.entries[0].query == "test query"
+        assert reconstructed.entries[0].response == "test response"
+
+
+def test_history_interface_get_filtered_conversation_duplicate_entries(
+    history_interface, mock_implementation, sample_history_data
+):
+    """Test getting filtered conversation through duplicate history interface."""
+    # Add a new entry manually
+    sample_history_data["history"].append(
+        {
+            "id": "test-id",
+            "timestamp": "2024-01-01T00:00:00Z",
+            "interaction": {
+                "query": {"text": "test query", "role": "user"},
+                "response": {
+                    "text": "test response",
+                    "tokens": 2,
+                    "role": "assistant",
+                },
+            },
+            "metadata": {
+                "session_id": "test-session",
+                "os_info": {
+                    "distribution": "RHEL",
+                    "version": "test",
+                    "arch": "x86_64",
+                },
+            },
+        }
+    )
+    mock_history = History.from_json(json.dumps(sample_history_data))
+
+    with patch("command_line_assistant.dbus.interfaces.HistoryManager") as mock_manager:
+        mock_manager.return_value.read.return_value = mock_history
+        response = history_interface.GetFilteredConversation(filter="test")
+
+        reconstructed = HistoryEntry.from_structure(response)
+        assert len(reconstructed.entries) == 1
+        assert reconstructed.entries[0].query == "test query"
+        assert reconstructed.entries[0].response == "test response"
+
+
+def test_history_interface_get_filtered_conversation_duplicate_entries_not_matching(
+    history_interface, mock_implementation, sample_history_data
+):
+    """Test getting filtered conversation through duplicated history interface.
+
+    This test will have a duplicated entry, but not matching the "id". This should be enough to be considered a new entry
+    """
+    # Add a new entry manually
+    sample_history_data["history"].append(
+        {
+            "id": "test-other-id",
+            "timestamp": "2024-01-01T00:00:00Z",
+            "interaction": {
+                "query": {"text": "test query", "role": "user"},
+                "response": {
+                    "text": "test response",
+                    "tokens": 2,
+                    "role": "assistant",
+                },
+            },
+            "metadata": {
+                "session_id": "test-session",
+                "os_info": {
+                    "distribution": "RHEL",
+                    "version": "test",
+                    "arch": "x86_64",
+                },
+            },
+        }
+    )
+    mock_history = History.from_json(json.dumps(sample_history_data))
+
+    with patch("command_line_assistant.dbus.interfaces.HistoryManager") as mock_manager:
+        mock_manager.return_value.read.return_value = mock_history
+        response = history_interface.GetFilteredConversation(filter="test")
+
+        reconstructed = HistoryEntry.from_structure(response)
+        assert len(reconstructed.entries) == 2
         assert reconstructed.entries[0].query == "test query"
         assert reconstructed.entries[0].response == "test response"
 

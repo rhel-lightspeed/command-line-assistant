@@ -5,7 +5,7 @@ import logging
 from dasbus.server.interface import dbus_interface
 from dasbus.server.property import emits_properties_changed
 from dasbus.server.template import InterfaceTemplate
-from dasbus.typing import Structure
+from dasbus.typing import Str, Structure
 
 from command_line_assistant.daemon.http.query import submit
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER, QUERY_IDENTIFIER
@@ -17,6 +17,7 @@ from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
 
 audit_logger = logging.getLogger("audit")
+logger = logging.getLogger(__name__)
 
 
 @dbus_interface(QUERY_IDENTIFIER.interface_name)
@@ -119,6 +120,40 @@ class HistoryInterface(InterfaceTemplate):
             last_entry = history.history[-1]
             history_entry.set_from_dict(last_entry.to_dict())
 
+        return HistoryEntry.to_structure(history_entry)
+
+    def GetFilteredConversation(self, filter: Str) -> Structure:
+        """Get last conversation from history.
+
+        Args:
+            filter (str): The filter
+
+        Returns:
+            Structure: A single history entyr in a dbus structure format.
+        """
+        manager = HistoryManager(self.implementation.config, LocalHistory)
+        history = manager.read()
+        history_entry = HistoryEntry()
+        found_entries = []
+
+        if history.history:
+            logger.info("Filtering the user history with keyword '%s'", filter)
+            # We ignore the type in the condition as pyright thinks that "Str" is not "str".
+            # Pyright is correct about this, but "Str" is a special type for dbus. It will be "str" in the end.
+            found_entries = [
+                entry
+                for entry in history.history
+                if (
+                    filter in entry.interaction.query.text  # type: ignore
+                    or filter in entry.interaction.response.text  # type: ignore
+                )
+            ]
+
+        logger.info("Found %s entries in the history", len(found_entries))
+        # Normalize the entries to send over dbus
+        _ = [
+            history_entry.set_from_dict(entry.to_dict()) for entry in set(found_entries)
+        ]
         return HistoryEntry.to_structure(history_entry)
 
     def ClearHistory(self) -> None:

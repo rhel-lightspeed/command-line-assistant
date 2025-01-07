@@ -77,3 +77,38 @@ def mock_proxy():
 @pytest.fixture
 def mock_stream():
     return MockStream()
+
+
+@pytest.fixture
+def sample_history_data():
+    """Create sample history data for testing."""
+    return {
+        "history": [
+            {
+                "id": "test-id",
+                "timestamp": "2024-01-01T00:00:00Z",
+                "interaction": {
+                    "query": {"text": "test query", "role": "user"},
+                    "response": {
+                        "text": "test response",
+                        "tokens": 2,
+                        "role": "assistant",
+                    },
+                },
+                "metadata": {
+                    "session_id": "test-session",
+                    "os_info": {
+                        "distribution": "RHEL",
+                        "version": "test",
+                        "arch": "x86_64",
+                    },
+                },
+            }
+        ],
+        "metadata": {
+            "last_updated": "2024-01-01T00:00:00Z",
+            "version": "0.1.0",
+            "entry_count": 1,
+            "size_bytes": 0,
+        },
+    }
