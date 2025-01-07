@@ -1,6 +1,7 @@
 """Module to handle the history command."""
 
 from argparse import Namespace
+from typing import Optional
 
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
 from command_line_assistant.dbus.exceptions import (
@@ -25,7 +26,9 @@ from command_line_assistant.utils.renderers import (
 class HistoryCommand(BaseCLICommand):
     """Class that represents the history command."""
 
-    def __init__(self, clear: bool, first: bool, last: bool) -> None:
+    def __init__(
+        self, clear: bool, first: bool, last: bool, filter: Optional[str] = None
+    ) -> None:
         """Constructor of the class.
 
         Note:
@@ -36,10 +39,12 @@ class HistoryCommand(BaseCLICommand):
             clear (bool): If the history should be cleared
             first (bool): Retrieve only the first conversation from history
             last (bool): Retrieve only last conversation from history
+            filter (Optional[str], optional): Keyword to filter in the user history
         """
         self._clear = clear
         self._first = first
         self._last = last
+        self._filter = filter
 
         self._proxy = HISTORY_IDENTIFIER.get_proxy()
 
@@ -67,14 +72,13 @@ class HistoryCommand(BaseCLICommand):
         try:
             if self._clear:
                 self._clear_history()
-
-            if self._first:
+            elif self._first:
                 self._retrieve_first_conversation()
-
-            if self._last:
+            elif self._last:
                 self._retrieve_last_conversation()
-
-            if not self._last and not self._clear and not self._first:
+            elif self._filter:
+                self._retrieve_conversation_filtered(self._filter)
+            else:
                 self._retrieve_all_conversations()
 
             return 0
@@ -100,7 +104,22 @@ class HistoryCommand(BaseCLICommand):
         # Display the conversation
         self._show_history(history.entries)
 
-    def _retrieve_last_conversation(self):
+    def _retrieve_conversation_filtered(self, filter: str) -> None:
+        """Retrieve the user conversation with keyword filtering.
+
+        Args:
+            filter (str): Keyword to filter in the user history
+        """
+        self._text_renderer.render("Filtering conversation history.")
+        response = self._proxy.GetFilteredConversation(filter)
+
+        # Handle and display the response
+        history = HistoryEntry.from_structure(response)
+
+        # Display the conversation
+        self._show_history(history.entries)
+
+    def _retrieve_last_conversation(self) -> None:
         """Retrieve the last conversation in the conversation cache."""
         self._text_renderer.render("Getting last conversation from history.")
         response = self._proxy.GetLastConversation()
@@ -165,6 +184,9 @@ def register_subcommand(parser: SubParsersAction):
         action="store_true",
         help="Get the last conversation from history.",
     )
+    history_parser.add_argument(
+        "--filter", help="Search for a specific string of text in the history."
+    )
     history_parser.set_defaults(func=_command_factory)
 
 
@@ -177,4 +199,4 @@ def _command_factory(args: Namespace) -> HistoryCommand:
     Returns:
         HistoryCommand: Return an instance of class
     """
-    return HistoryCommand(args.clear, args.first, args.last)
+    return HistoryCommand(args.clear, args.first, args.last, args.filter)

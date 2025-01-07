@@ -32,6 +32,7 @@ class LocalHistory(BaseHistory):
 
         filepath = self._config.history.file
 
+        logger.info("Reading history at %s", filepath)
         try:
             data = filepath.read_text()
             return History.from_json(data)
@@ -63,6 +64,7 @@ class LocalHistory(BaseHistory):
 
         filepath = self._config.history.file
         final_history = self._add_new_entry(current_history, query, response)
+        logger.info("Writting user history at %s", filepath)
         try:
             filepath.write_text(final_history.to_json())
         except json.JSONDecodeError as e:
@@ -85,6 +87,7 @@ class LocalHistory(BaseHistory):
         # Write empty history
         current_history = History()
         filepath = self._config.history.file
+        logger.info("Clearing history at %s", filepath)
         try:
             filepath.write_text(current_history.to_json())
             logger.info("History cleared successfully")

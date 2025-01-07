@@ -10,7 +10,7 @@ from typing import Optional
 from command_line_assistant.constants import VERSION
 
 
-@dataclass
+@dataclass(frozen=True)
 class QueryData:
     """Schema to represent a query emited by the user.
 
@@ -23,7 +23,7 @@ class QueryData:
     role: str = "user"
 
 
-@dataclass
+@dataclass(frozen=True)
 class ResponseData:
     """Schema to represent the LLM response.
 
@@ -38,7 +38,7 @@ class ResponseData:
     role: str = "assistant"
 
 
-@dataclass
+@dataclass(frozen=True)
 class InteractionData:
     """Schema to represent the interaction data between user and LLM.
 
@@ -51,7 +51,7 @@ class InteractionData:
     response: ResponseData = field(default_factory=ResponseData)
 
 
-@dataclass
+@dataclass(frozen=True)
 class OSInfo:
     """Schema to represent the system information
 
@@ -66,7 +66,7 @@ class OSInfo:
     arch: str = platform.architecture()[0]
 
 
-@dataclass
+@dataclass(frozen=True)
 class EntryMetadata:
     """Schema to represent the entry metadata information
 
@@ -79,7 +79,7 @@ class EntryMetadata:
     os_info: OSInfo = field(default_factory=OSInfo)
 
 
-@dataclass
+@dataclass(frozen=True)
 class HistoryEntry:
     """Schema to represent an entry of the history
 

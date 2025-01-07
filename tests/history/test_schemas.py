@@ -92,9 +92,11 @@ def test_history_entry_initialization():
 
 def test_history_entry_to_dict():
     """Test HistoryEntry to_dict conversion"""
-    entry = HistoryEntry()
-    entry.interaction.query.text = "test query"
-    entry.interaction.response.text = "test response"
+    entry = HistoryEntry(
+        interaction=InteractionData(
+            QueryData("test query"), ResponseData("test response")
+        )
+    )
 
     entry_dict = entry.to_dict()
     assert isinstance(entry_dict, dict)
@@ -126,9 +128,11 @@ def test_history_json_serialization():
     """Test History to_json and from_json methods"""
     # Create a history with some test data
     history = History()
-    entry = HistoryEntry()
-    entry.interaction.query.text = "test query"
-    entry.interaction.response.text = "test response"
+    entry = HistoryEntry(
+        interaction=InteractionData(
+            QueryData("test query"), ResponseData("test response")
+        )
+    )
     history.history.append(entry)
 
     # Convert to JSON
@@ -161,9 +165,11 @@ def test_history_with_multiple_entries():
     ]
 
     for query_text, response_text in entries:
-        entry = HistoryEntry()
-        entry.interaction.query.text = query_text
-        entry.interaction.response.text = response_text
+        entry = HistoryEntry(
+            interaction=InteractionData(
+                QueryData(query_text), ResponseData(response_text)
+            )
+        )
         history.history.append(entry)
 
     # Verify entries
@@ -176,9 +182,12 @@ def test_history_with_multiple_entries():
 def test_history_json_roundtrip_with_special_characters():
     """Test History JSON serialization with special characters"""
     history = History()
-    entry = HistoryEntry()
-    entry.interaction.query.text = "test\nquery with 'special' \"characters\" & symbols"
-    entry.interaction.response.text = "response\twith\nspecial\rcharacters"
+    entry = HistoryEntry(
+        interaction=InteractionData(
+            QueryData("test\nquery with 'special' \"characters\" & symbols"),
+            ResponseData("response\twith\nspecial\rcharacters"),
+        )
+    )
     history.history.append(entry)
 
     # Roundtrip through JSON
