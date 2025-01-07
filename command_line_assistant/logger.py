@@ -33,11 +33,16 @@ LOGGING_CONFIG_DICTIONARY = {
             "formatter": "audit",
             "mode": "a",
         },
+        "audit_journald": {
+            "class": "logging.StreamHandler",
+            "formatter": "audit",
+            "stream": "ext://sys.stdout",
+        },
     },
     "loggers": {
         "root": {"handlers": ["console"], "level": "DEBUG"},
         "audit": {
-            "handlers": ["audit_file", "console"],
+            "handlers": ["audit_file", "audit_journald"],
             "level": "INFO",
             "propagate": False,
         },
@@ -110,6 +115,13 @@ class AuditFormatter(logging.Formatter):
 def _create_audit_formatter(config: Config) -> AuditFormatter:
     """Internal method to create a new audit formatter instance.
 
+    Note:
+        This appears to be not used, but the logging class will call this
+        function to initialize the formatter options for audit logger.
+
+        Do not remove this function, only if there is a better idea on how to
+        do it.
+
     Args:
         config (Config): The application configuration
 
@@ -118,7 +130,7 @@ def _create_audit_formatter(config: Config) -> AuditFormatter:
     """
 
     fmt = '{"timestamp": "%(asctime)s", "user": "%(user)s", "message": "%(message)s"%(query)s%(response)s}'
-    datefmt = "%Y-%m-%dT%H:%M:%S.%fZ"
+    datefmt = "%Y-%m-%dT%H:%M:%S"
     return AuditFormatter(config=config, fmt=fmt, datefmt=datefmt)
 
 
