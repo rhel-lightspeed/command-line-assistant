@@ -1,0 +1,302 @@
+
+## <summary>policy for clad</summary>
+
+########################################
+## <summary>
+##	Execute clad_exec_t in the clad domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`clad_domtrans',`
+	gen_require(`
+		type clad_t, clad_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, clad_exec_t, clad_t)
+')
+
+######################################
+## <summary>
+##	Execute clad in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_exec',`
+	gen_require(`
+		type clad_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, clad_exec_t)
+')
+
+########################################
+## <summary>
+##	Search clad conf directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_search_conf',`
+	gen_require(`
+		type clad_etc_rw_t;
+	')
+
+	allow $1 clad_etc_rw_t:dir search_dir_perms;
+	files_search_etc($1)
+')
+
+########################################
+## <summary>
+##	Read clad conf files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_read_conf_files',`
+	gen_require(`
+		type clad_etc_rw_t;
+	')
+
+	allow $1 clad_etc_rw_t:dir list_dir_perms;
+	read_files_pattern($1, clad_etc_rw_t, clad_etc_rw_t)
+	files_search_etc($1)
+')
+
+########################################
+## <summary>
+##	Manage clad conf files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_manage_conf_files',`
+	gen_require(`
+		type clad_etc_rw_t;
+	')
+
+	manage_files_pattern($1, clad_etc_rw_t, clad_etc_rw_t)
+	files_search_etc($1)
+')
+
+
+########################################
+## <summary>
+##	Do not audit attempts to read,
+##	clad tmp files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to not audit.
+##	</summary>
+## </param>
+#
+interface(`clad_dontaudit_read_tmp_files',`
+	gen_require(`
+		type clad_tmp_t;
+	')
+
+	dontaudit $1 clad_tmp_t:file read_file_perms;
+')
+
+########################################
+## <summary>
+##	Read clad tmp files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_read_tmp_files',`
+	gen_require(`
+		type clad_tmp_t;
+	')
+
+	files_search_tmp($1)
+	read_files_pattern($1, clad_tmp_t, clad_tmp_t)
+')
+
+########################################
+## <summary>
+##	Manage clad tmp files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_manage_tmp',`
+	gen_require(`
+		type clad_tmp_t;
+	')
+
+	files_search_tmp($1)
+	manage_dirs_pattern($1, clad_tmp_t, clad_tmp_t)
+	manage_files_pattern($1, clad_tmp_t, clad_tmp_t)
+	manage_lnk_files_pattern($1, clad_tmp_t, clad_tmp_t)
+')
+
+########################################
+## <summary>
+##	Search clad lib directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_search_lib',`
+	gen_require(`
+		type clad_var_lib_t;
+	')
+
+	allow $1 clad_var_lib_t:dir search_dir_perms;
+	files_search_var_lib($1)
+')
+
+########################################
+## <summary>
+##	Read clad lib files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_read_lib_files',`
+	gen_require(`
+		type clad_var_lib_t;
+	')
+
+	files_search_var_lib($1)
+	read_files_pattern($1, clad_var_lib_t, clad_var_lib_t)
+')
+
+########################################
+## <summary>
+##	Manage clad lib files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_manage_lib_files',`
+	gen_require(`
+		type clad_var_lib_t;
+	')
+
+	files_search_var_lib($1)
+	manage_files_pattern($1, clad_var_lib_t, clad_var_lib_t)
+')
+
+########################################
+## <summary>
+##	Manage clad lib directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_manage_lib_dirs',`
+	gen_require(`
+		type clad_var_lib_t;
+	')
+
+	files_search_var_lib($1)
+	manage_dirs_pattern($1, clad_var_lib_t, clad_var_lib_t)
+')
+
+
+########################################
+## <summary>
+##	Send and receive messages from
+##	clad over dbus.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_dbus_chat',`
+	gen_require(`
+		type clad_t;
+		class dbus send_msg;
+	')
+
+	allow $1 clad_t:dbus send_msg;
+	allow clad_t $1:dbus send_msg;
+')
+
+########################################
+## <summary>
+##	All of the rules required to administrate
+##	an clad environment
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`clad_admin',`
+	gen_require(`
+		type clad_t;
+		type clad_etc_rw_t;
+		type clad_tmp_t;
+		type clad_var_lib_t;
+	')
+
+	allow $1 clad_t:process { signal_perms };
+	ps_process_pattern($1, clad_t)
+
+    tunable_policy(`deny_ptrace',`',`
+        allow $1 clad_t:process ptrace;
+    ')
+
+	files_search_etc($1)
+	admin_pattern($1, clad_etc_rw_t)
+
+	files_search_tmp($1)
+	admin_pattern($1, clad_tmp_t)
+
+	files_search_var_lib($1)
+	admin_pattern($1, clad_var_lib_t)
+	optional_policy(`
+		systemd_passwd_agent_exec($1)
+		systemd_read_fifo_file_passwd_run($1)
+	')
+')

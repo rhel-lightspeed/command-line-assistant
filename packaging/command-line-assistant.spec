@@ -1,6 +1,20 @@
-%global python_package_src command_line_assistant
-%global binary_name c
-%global daemon_binary_name clad
+# RPM Specific
+%define python_package_src command_line_assistant
+%define binary_name c
+%define daemon_binary_name clad
+
+# SELinux specific
+%define relabel_files() \
+restorecon -R /usr/sbin/clad; \
+restorecon -R /etc/xdg/command-line-assistant/config.toml; \
+restorecon -R /etc/xdg/command-line-assistant; \
+restorecon -R /var/lib/command-line-assistant; \
+restorecon -R /var/log/audit/command-line-assistant.log; \
+
+%define selinux_policyver 41.27-1
+
+%define selinuxtype targeted
+%define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
 Version:        0.1.0
@@ -19,10 +33,15 @@ BuildRequires:  python3-wheel
 BuildRequires:  python3-pip
 BuildRequires:  systemd-units
 
+# Build dependencies for SELinux policy
+BuildRequires:  selinux-policy-devel
+
 Requires:       python3-dasbus
 Requires:       python3-requests
 Requires:       python3-sqlalchemy
 Requires:       systemd
+# Add selinux subpackge as dependency
+Requires:       %{name}-selinux
 
 # Not needed after RHEL 10 as it is native in Python 3.11+
 %if 0%{?rhel} && 0%{?rhel} < 10
@@ -36,11 +55,26 @@ Requires:       python3-tomli
 %description
 A simple wrapper to interact with RAG
 
+%package selinux
+Summary:	CLAD SELinux policy
+BuildArch:	noarch
+
+Requires:       selinux-policy-%{selinuxtype}
+Requires(post): selinux-policy-%{selinuxtype}
+
+%description selinux
+This package installs and sets up the  SELinux policy security module for clad.
+
 %prep
 %autosetup -n %{name}-%{version}
 
 %build
 %py3_build_wheel
+
+# Build selinux policy file
+pushd data/release/selinux
+%{__make} %{modulename}.pp.bz2
+popd
 
 %install
 %py3_install_wheel %{python_package_src}-%{version}-py3-none-any.whl
@@ -51,6 +85,7 @@ A simple wrapper to interact with RAG
 %{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
 %{__install} -d %{buildroot}/%{_mandir}/man1
 %{__install} -d %{buildroot}/%{_mandir}/man8
+%{__install} -d %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}
 
 # Move the daemon to /usr/sbin instead of /usr/bin
 %{__install} -m 0755 %{buildroot}/%{_bindir}/%{daemon_binary_name} %{buildroot}/%{_sbindir}/%{daemon_binary_name}
@@ -71,22 +106,35 @@ A simple wrapper to interact with RAG
 %{__install} -D -m 0644 data/release/man/%{binary_name}.1 %{buildroot}/%{_mandir}/man1/%{binary_name}.1
 %{__install} -D -m 0644 data/release/man/%{daemon_binary_name}.8 %{buildroot}/%{_mandir}/man8/%{daemon_binary_name}.8
 
-%post
-%systemd_post %{daemon_binary_name}.service
+# selinux
+%{__install} -m 0644 data/release/selinux/%{modulename}.pp.bz2 %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
 
 %preun
 %systemd_preun %{daemon_binary_name}.service
 
+%pre selinux
+%selinux_relabel_pre -s %{selinuxtype}
+
+%post
+%systemd_post %{daemon_binary_name}.service
+
+%post selinux
+%selinux_modules_install -s %{selinuxtype} %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
+
 %postun
 %systemd_postun_with_restart %{daemon_binary_name}.service
 
-%doc
-README.md
+%postun selinux
+if [ $1 -eq 0 ]; then
+    %selinux_modules_uninstall -s %{selinuxtype} %{modulename}
+fi
 
-%license
-LICENSE
+%posttrans selinux
+%selinux_relabel_post -s %{selinuxtype}
 
 %files
+%doc README.md
+%license LICENSE
 %{python3_sitelib}/%{python_package_src}/
 %{python3_sitelib}/%{python_package_src}-%{version}.dist-info/
 
@@ -108,6 +156,10 @@ LICENSE
 # Manpages
 %{_mandir}/man1/%{binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
+
+%files selinux
+%attr(0600,root,root) %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
+%ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
 * Wed Jan 22 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.0
