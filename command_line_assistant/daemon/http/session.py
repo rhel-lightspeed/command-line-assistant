@@ -11,8 +11,8 @@ from command_line_assistant.constants import VERSION
 from command_line_assistant.daemon.http.adapters import RetryAdapter, SSLAdapter
 from command_line_assistant.dbus.exceptions import RequestFailedError
 
-USER_AGENT = f"clad/{VERSION}"
 #: Define the custom user agent for clad
+USER_AGENT = f"clad/{VERSION}"
 
 logger = logging.getLogger(__name__)
 

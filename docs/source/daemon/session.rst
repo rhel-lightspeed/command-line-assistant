@@ -1,7 +1,7 @@
-Command Line Assistant Daemon
-=============================
+Session
+=======
 
-.. automodule:: command_line_assistant.daemon.clad
+.. automodule:: command_line_assistant.daemon.session
    :members:
    :undoc-members:
    :private-members:

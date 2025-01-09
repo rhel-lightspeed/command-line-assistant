@@ -7,6 +7,7 @@ from typing import Optional
 
 from command_line_assistant.config import Config
 
+#: Define the dictionary configuration for the logger instance
 LOGGING_CONFIG_DICTIONARY = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -48,7 +49,6 @@ LOGGING_CONFIG_DICTIONARY = {
         },
     },
 }
-#: Define the dictionary configuration for the logger instance
 
 
 class AuditFormatter(logging.Formatter):

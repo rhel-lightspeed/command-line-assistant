@@ -1,9 +1,15 @@
 from argparse import ArgumentParser, Namespace
+from io import StringIO
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
 
-from command_line_assistant.commands.query import QueryCommand, register_subcommand
+from command_line_assistant.commands.query import (
+    QueryCommand,
+    _command_factory,
+    register_subcommand,
+)
 from command_line_assistant.dbus.exceptions import (
     CorruptedHistoryError,
     MissingHistoryFileError,
@@ -98,12 +104,16 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
         ("   ",),
     ],
 )
-def test_query_command_invalid_inputs(mock_dbus_service, test_args):
+def test_query_command_invalid_inputs(mock_dbus_service, test_args, capsys):
     """Test QueryCommand with invalid inputs"""
     command = QueryCommand(test_args, None)
     command.run()
-    # Verify DBus calls still happen even with invalid input
-    mock_dbus_service.ProcessQuery.assert_called_once()
+
+    captured = capsys.readouterr()
+    assert (
+        "\x1b[31m🙁 No input provided. Please provide input via file, stdin, or direct\nquery.\x1b[0m"
+        in captured.out
+    )
 
 
 def test_register_subcommand():
@@ -122,31 +132,93 @@ def test_register_subcommand():
 
 
 @pytest.mark.parametrize(
-    ("query_string", "stdin"),
+    ("query_string", "stdin", "input"),
     (
         (
             "test query",
             None,
+            None,
         ),
-        (None, "stdin"),
-        ("test query", "test stdin"),
+        (
+            None,
+            "stdin",
+            None,
+        ),
+        (None, None, mock.Mock()),
+        ("test query", "test stdin", mock.Mock()),
     ),
 )
-def test_command_factory(query_string, stdin):
+def test_command_factory(query_string, stdin, input):
     """Test _command_factory function"""
-
-    from command_line_assistant.commands.query import _command_factory
-
-    args = (
-        Namespace(query_string=query_string, stdin=stdin)
-        if stdin
-        else Namespace(query_string=query_string)
-    )
+    options = {"query_string": query_string, "stdin": stdin, "input": input}
+    args = Namespace(**options)
     command = _command_factory(args)
 
     assert isinstance(command, QueryCommand)
     assert command._query == query_string
     assert command._stdin == stdin
+
+
+@pytest.mark.parametrize(
+    ("query_string", "stdin", "input", "expected"),
+    (
+        ("test query", None, None, "test query"),
+        (None, "stdin", None, "stdin"),
+        ("query", "stdin", None, "query stdin"),
+        (None, None, StringIO("file query"), "file query"),
+        ("query", None, StringIO("file query"), "query file query"),
+        (None, "stdin", StringIO("file query"), "stdin file query"),
+        # Stdin in this case is ignored.
+        ("test query", "test stdin", StringIO("file query"), "test query file query"),
+    ),
+)
+def test_get_input_source(query_string, stdin, input, expected):
+    """Test _command_factory function"""
+    options = {"query_string": query_string, "stdin": stdin, "input": input}
+    command = QueryCommand(**options)
+
+    output = command._get_input_source()
+
+    assert output == expected
+
+
+@pytest.mark.parametrize(
+    ("input_file",),
+    (
+        ("\x7fELF",),
+        ("%PDF",),
+        ("PK\x03\x04",),
+    ),
+)
+def test_get_input_source_binary_file(input_file):
+    options = {"query_string": None, "stdin": None, "input": StringIO(input_file)}
+    command = QueryCommand(**options)
+    with pytest.raises(ValueError, match="File appears to be binary"):
+        command._get_input_source()
+
+
+def test_get_inout_source_all_values_warning_message(capsys):
+    options = {"query_string": "query", "stdin": "stdin", "input": StringIO("file")}
+    command = QueryCommand(**options)
+
+    output = command._get_input_source()
+
+    assert output == "query file"
+    captured = capsys.readouterr()
+    assert (
+        "\x1b[33m🤔 Using positional query and file input. Stdin will be ignored.\x1b[0m\n"
+        in captured.err
+    )
+
+
+def test_get_input_source_value_error():
+    command = QueryCommand(None, None, None)
+
+    with pytest.raises(
+        ValueError,
+        match="No input provided. Please provide input via file, stdin, or direct query.",
+    ):
+        command._get_input_source()
 
 
 @pytest.mark.parametrize(

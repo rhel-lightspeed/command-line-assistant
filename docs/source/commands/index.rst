@@ -6,4 +6,3 @@ Commands
 
    query
    history
-   record

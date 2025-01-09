@@ -12,6 +12,10 @@ Asking a question:
 
     $ c "How do I check disk space?"
 
+    $ echo "Asking through pipe redirection!" | c
+
+    $ c --file log.txt "What is the error here?"
+
 Check all history entries:
     $ c history
 

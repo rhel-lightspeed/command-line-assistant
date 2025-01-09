@@ -10,7 +10,7 @@ from command_line_assistant.rendering.decorators.text import (
 )
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
-from command_line_assistant.rendering.stream import StdoutStream
+from command_line_assistant.rendering.stream import StderrStream, StdoutStream
 
 
 def create_error_renderer() -> TextRenderer:
@@ -25,6 +25,25 @@ def create_error_renderer() -> TextRenderer:
         [
             EmojiDecorator(emoji="U+1F641"),
             ColorDecorator(foreground="red"),
+            TextWrapDecorator(),
+        ]
+    )
+
+    return renderer
+
+
+def create_warning_renderer() -> TextRenderer:
+    """Create a standarized instance of text rendering for error output
+
+    Returns:
+        TextRenderer: Instance of a TextRenderer with correct decorators for
+        error output.
+    """
+    renderer = TextRenderer(StderrStream())
+    renderer.update(
+        [
+            EmojiDecorator(emoji="0x1f914"),
+            ColorDecorator(foreground="yellow"),
             TextWrapDecorator(),
         ]
     )

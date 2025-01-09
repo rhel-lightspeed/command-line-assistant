@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Jan 03, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Jan 09, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .sp
@@ -36,7 +36,7 @@ A script with multiple optional arguments and a required positional argument if 
 .INDENT 3.5
 .sp
 .EX
-c [\-h] [\-\-version] {query,history,record} ...
+c [\-h] [\-\-version] {query,history} ...
 .EE
 .UNINDENT
 .UNINDENT
@@ -54,7 +54,7 @@ Ask a question and get an answer from LLM.
 .INDENT 3.5
 .sp
 .EX
-c query [\-h] [query_string]
+c query [\-h] [\-i [INPUT]] [query_string]
 .EE
 .UNINDENT
 .UNINDENT
@@ -67,6 +67,8 @@ c query [\-h] [query_string]
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+.IP \(bu 2
+\fI\%\-i\fP \fBINPUT\fP, \fI\%\-\-input\fP \fBINPUT\fP \- Read file from user system. (default: \fBNone\fP)
 .UNINDENT
 .SH C HISTORY
 .sp
@@ -75,7 +77,7 @@ Manage conversation history
 .INDENT 3.5
 .sp
 .EX
-c history [\-h] [\-\-clear] [\-\-first] [\-\-last]
+c history [\-h] [\-\-clear] [\-\-first] [\-\-last] [\-\-filter FILTER]
 .EE
 .UNINDENT
 .UNINDENT
@@ -89,24 +91,8 @@ c history [\-h] [\-\-clear] [\-\-first] [\-\-last]
 \fI\%\-\-first\fP \- Get the first conversation from history.
 .IP \(bu 2
 \fI\%\-\-last\fP \- Get the last conversation from history.
-.UNINDENT
-.SH C RECORD
-.sp
-Start a recording session for script output.
-.INDENT 0.0
-.INDENT 3.5
-.sp
-.EX
-c record [\-h] [\-\-output\-file OUTPUT_FILE]
-.EE
-.UNINDENT
-.UNINDENT
-.SS c record options
-.INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
-.IP \(bu 2
-\fI\%\-\-output\-file\fP \fBOUTPUT_FILE\fP \- The place where to store the output file. (default: \fBNone\fP)
+\fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific string of text in the history. (default: \fBNone\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -114,6 +100,10 @@ c record [\-h] [\-\-output\-file OUTPUT_FILE]
 $ c query \(dqHow do I check disk space?\(dq
 .sp
 $ c \(dqHow do I check disk space?\(dq
+.sp
+$ echo \(dqAsking through pipe redirection!\(dq | c
+.sp
+$ c \-\-file log.txt \(dqWhat is the error here?\(dq
 .TP
 .B Check all history entries:
 $ c history

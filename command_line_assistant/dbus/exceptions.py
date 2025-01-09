@@ -9,8 +9,8 @@ from command_line_assistant.dbus.constants import (
     SERVICE_NAMESPACE,
 )
 
-dbus_error = get_error_decorator(ERROR_MAPPER)
 #: Special decorator for mapping exceptions to dbus style exceptions
+dbus_error = get_error_decorator(ERROR_MAPPER)
 
 
 @dbus_error("NotAuthorizedUser", namespace=SERVICE_NAMESPACE)

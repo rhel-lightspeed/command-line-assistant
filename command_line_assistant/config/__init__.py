@@ -22,11 +22,11 @@ except ImportError:
     import tomli as tomllib  # pyright: ignore[reportMissingImports]
 
 
+#: Define the config file path.
 CONFIG_FILE_DEFINITION: tuple[str, str] = (
     "command-line-assistant",
     "config.toml",
 )
-#: Define the config file path.
 
 logger = logging.getLogger(__name__)
 
