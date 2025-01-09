@@ -7,3 +7,4 @@ sphinx-argparse-cli>=1.17.0
 # We don't want to introduce pdm and the other tooling in the CI.
 dasbus
 requests
+PyGObject
