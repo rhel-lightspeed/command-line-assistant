@@ -2,7 +2,67 @@
 
 import dataclasses
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
+
+
+@dataclasses.dataclass
+class DatabaseSchema:
+    """This class represents the [history.database] section of our config.toml file.
+
+    Attributes:
+        connection (str): The connection string.
+    """
+
+    type: str = "sqlite"  # 'sqlite', 'mysql', 'postgresql', etc.
+    host: Optional[str] = None
+    database: Optional[str] = None
+    port: Optional[int] = None  # Optional for SQLite as it doesn't require host or port
+    user: Optional[str] = None  # Optional for SQLite
+    password: Optional[str] = None  # Optional for SQLite
+    connection_string: Optional[Union[str, Path]] = (
+        None  # Some databases like SQLite can use a file path
+    )
+
+    def __post_init__(self):
+        """Post initialization method to normalize values"""
+        # If the database type is not a supported one, we can just skip it.
+        allowed_databases = ("mysql", "sqlite", "postgresql")
+        if self.type not in allowed_databases:
+            raise ValueError(
+                f"The database type must be one of {','.join(allowed_databases)}, not {self.type}"
+            )
+
+        if self.connection_string:
+            self.connection_string = Path(self.connection_string).expanduser()
+
+        # Post-initialization to set default values for specific db types
+        if self.type == "sqlite" and not self.connection_string:
+            self.connection_string = f"sqlite://{self.database}"
+        elif self.type == "mysql" and not self.port:
+            self.port = 3306  # Default MySQL port
+        elif self.type == "postgresql" and not self.port:
+            self.port = 5432  # Default PostgreSQL port
+
+    def get_connection_url(self) -> str:
+        """
+        Constructs and returns the connection URL or string for the respective database.
+
+        Raises:
+            ValueError: In case the type is not recognized
+
+        Returns:
+            str: The URL formatted connection
+        """
+        connection_urls = {
+            "sqlite": f"sqlite:///{self.connection_string}",
+            "mysql": f"mysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}",
+            "postgresql": f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}",
+        }
+
+        if self.type not in connection_urls:
+            raise ValueError(f"Unsupported database type: {self.type}")
+
+        return connection_urls[self.type]
 
 
 @dataclasses.dataclass
@@ -83,13 +143,15 @@ class HistorySchema:
     """
 
     enabled: bool = True
-    file: Union[str, Path] = Path(  # type: ignore
-        "/var/lib/command-line-assistant/history.json"
-    )
+    database: DatabaseSchema = dataclasses.field(default_factory=DatabaseSchema)
 
     def __post_init__(self):
         """Post initialization method to normalize values"""
-        self.file: Path = Path(self.file).expanduser()
+
+        # # Database may be present in the config.toml. If it is not, we odn't do
+        # # anything and go with defaults.
+        if isinstance(self.database, dict):
+            self.database = DatabaseSchema(**self.database)
 
 
 @dataclasses.dataclass
@@ -108,8 +170,8 @@ class AuthSchema:
 
     def __post_init__(self) -> None:
         """Post initialization method to normalize values"""
-        self.cert_file = Path(self.cert_file)
-        self.key_file = Path(self.key_file)
+        self.cert_file = Path(self.cert_file).expanduser()
+        self.key_file = Path(self.key_file).expanduser()
 
 
 @dataclasses.dataclass
@@ -122,7 +184,7 @@ class BackendSchema:
     """
 
     endpoint: str = "http://0.0.0.0:8080"
-    auth: Union[dict, AuthSchema] = dataclasses.field(default_factory=AuthSchema)
+    auth: AuthSchema = dataclasses.field(default_factory=AuthSchema)
 
     def __post_init__(self):
         """Post initialization method to normalize values"""

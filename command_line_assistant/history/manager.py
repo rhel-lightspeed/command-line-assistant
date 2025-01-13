@@ -3,8 +3,7 @@
 from typing import Optional, Type
 
 from command_line_assistant.config import Config
-from command_line_assistant.history.base import BaseHistory
-from command_line_assistant.history.schemas import History
+from command_line_assistant.history.base import BaseHistoryPlugin
 
 
 class HistoryManager:
@@ -18,7 +17,7 @@ class HistoryManager:
     """
 
     def __init__(
-        self, config: Config, plugin: Optional[Type[BaseHistory]] = None
+        self, config: Config, plugin: Optional[Type[BaseHistoryPlugin]] = None
     ) -> None:
         """Initialize the history manager.
 
@@ -27,15 +26,15 @@ class HistoryManager:
             plugin (Optional[Type[BaseHistory]], optional): Optional history implementation class
         """
         self._config = config
-        self._plugin: Optional[Type[BaseHistory]] = None
-        self._instance: Optional[BaseHistory] = None
+        self._plugin: Optional[Type[BaseHistoryPlugin]] = None
+        self._instance: Optional[BaseHistoryPlugin] = None
 
         # Set initial plugin if provided
         if plugin:
             self.plugin = plugin
 
     @property
-    def plugin(self) -> Optional[Type[BaseHistory]]:
+    def plugin(self) -> Optional[Type[BaseHistoryPlugin]]:
         """Property for the internal plugin attribute
 
         Returns:
@@ -44,7 +43,7 @@ class HistoryManager:
         return self._plugin
 
     @plugin.setter
-    def plugin(self, plugin_cls: Type[BaseHistory]) -> None:
+    def plugin(self, plugin_cls: Type[BaseHistoryPlugin]) -> None:
         """Set and initialize a new plugin.
 
         Args:
@@ -53,7 +52,7 @@ class HistoryManager:
         Raises:
             TypeError: If plugin_cls is not a subclass of BaseHistory
         """
-        if not issubclass(plugin_cls, BaseHistory):
+        if not issubclass(plugin_cls, BaseHistoryPlugin):
             raise TypeError(
                 f"Plugin must be a subclass of BaseHistory, got {plugin_cls.__name__}"
             )
@@ -61,25 +60,24 @@ class HistoryManager:
         self._plugin = plugin_cls
         self._instance = plugin_cls(self._config)
 
-    def read(self) -> History:
+    def read(self) -> list[dict[str, str]]:
         """Read history entries using the current plugin.
 
         Raises:
             RuntimeError: If no plugin is set
 
         Returns:
-            History object containing entries and metadata
+            HistoryModel: Result from the database.
         """
         if not self._instance:
             raise RuntimeError("No history plugin set. Set plugin before operations.")
 
         return self._instance.read()
 
-    def write(self, current_history: History, query: str, response: str) -> None:
+    def write(self, query: str, response: str) -> None:
         """Write a new history entry using the current plugin.
 
         Args:
-            current_history (History): The current user history
             query (str): The user's query
             response (str): The LLM's response
 
@@ -89,7 +87,7 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError("No history plugin set. Set plugin before operations.")
 
-        self._instance.write(current_history, query, response)
+        self._instance.write(query, response)
 
     def clear(self) -> None:
         """Clear all history entries.

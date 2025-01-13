@@ -13,7 +13,6 @@ except ImportError:
 @pytest.fixture
 def get_config_template(tmp_path) -> str:
     output_file = tmp_path / "output.tmp"
-    history_file = tmp_path / "history.json"
 
     return f"""\
 [output]
@@ -26,7 +25,6 @@ prompt_separator = "$"
 
 [history]
 enabled = true
-file = "{history_file}"
 # max number of queries in history (including responses)
 
 [backend]

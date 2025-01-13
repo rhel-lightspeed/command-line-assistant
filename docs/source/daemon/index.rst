@@ -6,4 +6,5 @@ Daemon
 
    clad
    session
+   database/index
    http/index

@@ -13,7 +13,7 @@ from command_line_assistant.config import (
     LoggingSchema,
     OutputSchema,
 )
-from command_line_assistant.config.schemas import AuthSchema
+from command_line_assistant.config.schemas import AuthSchema, DatabaseSchema
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
 from tests.helpers import MockStream
 
@@ -42,7 +42,7 @@ def mock_config(tmp_path):
     """Fixture to create a mock configuration"""
     cert_file = tmp_path / "cert.pem"
     key_file = tmp_path / "key.pem"
-    history_file = tmp_path / "command-line-assistant" / "history.json"
+    history_db = tmp_path / "history.db"
 
     cert_file.write_text("cert")
     key_file.write_text("key")
@@ -56,7 +56,9 @@ def mock_config(tmp_path):
             endpoint="http://test.endpoint/v1/query",
             auth=AuthSchema(cert_file=cert_file, key_file=key_file, verify_ssl=False),
         ),
-        history=HistorySchema(enabled=True, file=history_file),
+        history=HistorySchema(
+            enabled=True, database=DatabaseSchema(connection_string=history_db)
+        ),
         logging=LoggingSchema(level="debug"),
     )
 
@@ -77,38 +79,3 @@ def mock_proxy():
 @pytest.fixture
 def mock_stream():
     return MockStream()
-
-
-@pytest.fixture
-def sample_history_data():
-    """Create sample history data for testing."""
-    return {
-        "history": [
-            {
-                "id": "test-id",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "interaction": {
-                    "query": {"text": "test query", "role": "user"},
-                    "response": {
-                        "text": "test response",
-                        "tokens": 2,
-                        "role": "assistant",
-                    },
-                },
-                "metadata": {
-                    "session_id": "test-session",
-                    "os_info": {
-                        "distribution": "RHEL",
-                        "version": "test",
-                        "arch": "x86_64",
-                    },
-                },
-            }
-        ],
-        "metadata": {
-            "last_updated": "2024-01-01T00:00:00Z",
-            "version": "0.1.0",
-            "entry_count": 1,
-            "size_bytes": 0,
-        },
-    }

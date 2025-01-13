@@ -15,6 +15,7 @@ dependencies = [
     "requests",
     "dasbus",
     "PyGObject",
+    "sqlalchemy>=2.0.37",
 ]
 requires-python = ">=3.9" # RHEL 9 and 10
 readme = "README.md"

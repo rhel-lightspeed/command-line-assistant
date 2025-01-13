@@ -1,98 +1,142 @@
 """Plugin for handling local history managemnet."""
 
-import json
 import logging
+import platform
+import uuid
+from datetime import datetime
 
+from sqlalchemy import desc
+
+from command_line_assistant.config import Config
+from command_line_assistant.daemon.database.manager import DatabaseManager
+from command_line_assistant.daemon.database.models.history import (
+    HistoryModel,
+    InteractionModel,
+)
 from command_line_assistant.dbus.exceptions import (
     CorruptedHistoryError,
     MissingHistoryFileError,
 )
-from command_line_assistant.history.base import BaseHistory
-from command_line_assistant.history.schemas import History
+from command_line_assistant.history.base import BaseHistoryPlugin
 
 logger = logging.getLogger(__name__)
 
 
-class LocalHistory(BaseHistory):
+class LocalHistory(BaseHistoryPlugin):
     """Class meant to manage the conversation history locally."""
 
-    def read(self) -> History:
-        """Reads the history from a file and returns it as a list of dictionaries.
-
-        Raises:
-            CorruptedHistoryError: Raised when the file is corrupted or the json can't be serialized.
-            MissingHistoryFileError: Raised when the history file could not be found.
-
-        Returns:
-            History: An instance of a `py:History` class that holds the history data.
-        """
-        history = History()
-        if not self._check_if_history_is_enabled():
-            return history
-
-        filepath = self._config.history.file
-
-        logger.info("Reading history at %s", filepath)
-        try:
-            data = filepath.read_text()
-            return History.from_json(data)
-        except json.JSONDecodeError as e:
-            logger.error("Failed to read history file %s: %s", filepath, e)
-            raise CorruptedHistoryError(
-                f"The history file {filepath} seems to be corrupted. Can't load the file."
-            ) from e
-        except FileNotFoundError as e:
-            logger.error("History file does not exist %s: %s", filepath, e)
-            raise MissingHistoryFileError(
-                f"The history file {filepath} is missing."
-            ) from e
-
-    def write(self, current_history: History, query: str, response: str) -> None:
-        """Write history to a file
+    def __init__(self, config: Config) -> None:
+        """Default constructor for class
 
         Args:
-            current_history (History): An instance of the current history to append new data
+            config (Config): Configuration class
+        """
+        super().__init__(config)
+        self._db: DatabaseManager = self._initialize_database()
+
+    def _initialize_database(self) -> DatabaseManager:
+        """Initialize the database connection and create tables if needed.
+
+        Returns:
+            Database: A new instance of the database.
+
+        Raises:
+            MissingHistoryFileError: If the database cannot be initialized properly.
+        """
+        try:
+            db = DatabaseManager(self._config)
+            db.connect()
+            return db
+        except Exception as e:
+            logger.error("Failed to initialize database: %s", e)
+            raise MissingHistoryFileError(f"Could not initialize database: {e}") from e
+
+    def read(self) -> list[dict[str, str]]:
+        """Reads the history from the database.
+
+        Returns:
+            History: An instance of a History class that holds the history data.
+
+        Raises:
+            CorruptedHistoryError: Raised when there's an error reading from the database.
+            MissingHistoryFileError: Raised when the database file is missing.
+        """
+        if not self._check_if_history_is_enabled():
+            return []
+
+        try:
+            with self._db.session() as session:
+                # Query history entries with relationships
+                entries = (
+                    session.query(HistoryModel)
+                    .join(InteractionModel)
+                    .filter(HistoryModel.deleted_at.is_(None))
+                    .order_by(desc(HistoryModel.timestamp))
+                    .all()
+                )
+
+                return [
+                    {
+                        "query": entry.interaction.query_text,
+                        "response": entry.interaction.response_text,
+                        "timestamp": str(entry.timestamp),
+                    }
+                    for entry in entries
+                ]
+        except Exception as e:
+            logger.error("Failed to read from database: %s", e)
+            raise CorruptedHistoryError(f"Failed to read from database: {e}") from e
+
+    def write(self, query: str, response: str) -> None:
+        """Write history to the database.
+
+        Args:
             query (str): The user question
             response (str): The LLM response
 
         Raises:
-            CorruptedHistoryError: Raised when the file is corrupted or the json can't be serialized.
-            MissingHistoryFileError: Raised when the history file could not be found.
+            CorruptedHistoryError: Raised when there's an error writing to the database.
+            MissingHistoryFileError: Raised when the database file is missing.
         """
         if not self._check_if_history_is_enabled():
             return
 
-        filepath = self._config.history.file
-        final_history = self._add_new_entry(current_history, query, response)
-        logger.info("Writting user history at %s", filepath)
         try:
-            filepath.write_text(final_history.to_json())
-        except json.JSONDecodeError as e:
-            logger.error("Failed to write history file %s: %s", filepath, e)
-            raise CorruptedHistoryError(
-                f"Can't write data to the history file {filepath}."
-            ) from e
-        except FileNotFoundError as e:
-            logger.error("History file does not exist %s: %s", filepath, e)
-            raise MissingHistoryFileError(
-                f"The history file {filepath} is missing."
-            ) from e
+            with self._db.session() as session:
+                # Create Interaction record
+                interaction = InteractionModel(
+                    query_text=query,
+                    response_text=response,
+                    response_tokens=len(response),
+                    session_id=uuid.uuid4(),
+                    os_distribution="RHEL",  # Default to RHEL for now
+                    os_version=platform.release(),
+                    os_arch=platform.machine(),
+                )
+                session.add(interaction)
+
+                # Create History record
+                history = HistoryModel(
+                    interaction=interaction,
+                )
+                session.add(history)
+        except Exception as e:
+            logger.error("Failed to write to database: %s", e)
+            raise CorruptedHistoryError(f"Failed to write to database: {e}") from e
 
     def clear(self) -> None:
-        """Clear the local history by adding a blank version of history.
+        """Clear the database by dropping and recreating tables.
 
         Raises:
-            MissingHistoryFileError: Raised when the history file could not be found.
+            MissingHistoryFileError: Raised when the database file is missing.
         """
-        # Write empty history
-        current_history = History()
-        filepath = self._config.history.file
-        logger.info("Clearing history at %s", filepath)
         try:
-            filepath.write_text(current_history.to_json())
-            logger.info("History cleared successfully")
-        except FileNotFoundError as e:
-            logger.error("History file does not exist %s: %s", filepath, e)
-            raise MissingHistoryFileError(
-                f"The history file {filepath} is missing."
-            ) from e
+            with self._db.session() as session:
+                # Soft delete by setting deleted_at
+                session.query(HistoryModel).update(
+                    {"deleted_at": datetime.utcnow()}, synchronize_session=False
+                )
+            logger.info("Database cleared successfully")
+        except Exception as e:
+            logger.error("Failed to clear database: %s", e)
+            raise MissingHistoryFileError(f"Failed to clear database: {e}") from e

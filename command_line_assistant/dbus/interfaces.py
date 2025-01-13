@@ -11,6 +11,7 @@ from command_line_assistant.daemon.http.query import submit
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER, QUERY_IDENTIFIER
 from command_line_assistant.dbus.structures import (
     HistoryEntry,
+    HistoryItem,
     Message,
 )
 from command_line_assistant.history.manager import HistoryManager
@@ -42,8 +43,7 @@ class QueryInterface(InterfaceTemplate):
 
         # Deal with history management
         manager = HistoryManager(self.implementation.config, LocalHistory)
-        current_history = manager.read()
-        manager.write(current_history, query, llm_response)
+        manager.write(query, llm_response)
 
         audit_logger.info(
             "Query executed successfully.",
@@ -53,7 +53,7 @@ class QueryInterface(InterfaceTemplate):
                 "response": llm_response,
             },
         )
-        # Return the data - okay
+        # Return the data
         return Message.to_structure(message)
 
     @emits_properties_changed
@@ -70,6 +70,25 @@ class QueryInterface(InterfaceTemplate):
 class HistoryInterface(InterfaceTemplate):
     """The DBus interface of a history"""
 
+    def _parse_history_entries(self, entries: list[dict[str, str]]) -> HistoryEntry:
+        """Parse the history entries in a common format for all methods
+
+        Args:
+            entries (list[dict[str, str]]): List of entries in a dictionary format with only the necessary information.
+
+        Returns:
+            HistoryEntry: An instance of HistoryEntry with all necessary information.
+        """
+        history_entry = HistoryEntry()
+        for entry in entries:
+            history_item = HistoryItem()
+            history_item.query = entry["query"]
+            history_item.response = entry["response"]
+            history_item.timestamp = entry["timestamp"]
+            history_entry.entries.append(history_item)
+
+        return history_entry
+
     def GetHistory(self) -> Structure:
         """Get all conversations from history.
 
@@ -77,16 +96,11 @@ class HistoryInterface(InterfaceTemplate):
             Structure: The history entries in a dbus structure format.
         """
         manager = HistoryManager(self.implementation.config, LocalHistory)
-        history = manager.read()
-
+        history_entries = manager.read()
         history_entry = HistoryEntry()
-        if history.history:
-            _ = [
-                history_entry.set_from_dict(entry.to_dict())
-                for entry in history.history
-            ]
-        else:
-            history_entry.entries = []
+
+        if history_entries:
+            history_entry = self._parse_history_entries(history_entries)
 
         return HistoryEntry.to_structure(history_entry)
 
@@ -98,11 +112,11 @@ class HistoryInterface(InterfaceTemplate):
             Structure: A single history entry in a dbus structure format.
         """
         manager = HistoryManager(self.implementation.config, LocalHistory)
-        history = manager.read()
+        history_entries = manager.read()
         history_entry = HistoryEntry()
-        if history.history:
-            last_entry = history.history[0]
-            history_entry.set_from_dict(last_entry.to_dict())
+
+        if history_entries:
+            history_entry = self._parse_history_entries(history_entries[:1])
 
         return HistoryEntry.to_structure(history_entry)
 
@@ -113,12 +127,11 @@ class HistoryInterface(InterfaceTemplate):
             Structure: A single history entyr in a dbus structure format.
         """
         manager = HistoryManager(self.implementation.config, LocalHistory)
-        history = manager.read()
+        history_entries = manager.read()
         history_entry = HistoryEntry()
 
-        if history.history:
-            last_entry = history.history[-1]
-            history_entry.set_from_dict(last_entry.to_dict())
+        if history_entries:
+            history_entry = self._parse_history_entries(history_entries[-1:])
 
         return HistoryEntry.to_structure(history_entry)
 
@@ -132,28 +145,20 @@ class HistoryInterface(InterfaceTemplate):
             Structure: A single history entyr in a dbus structure format.
         """
         manager = HistoryManager(self.implementation.config, LocalHistory)
-        history = manager.read()
+        history_entries = manager.read()
         history_entry = HistoryEntry()
-        found_entries = []
 
-        if history.history:
+        if history_entries:
             logger.info("Filtering the user history with keyword '%s'", filter)
-            # We ignore the type in the condition as pyright thinks that "Str" is not "str".
-            # Pyright is correct about this, but "Str" is a special type for dbus. It will be "str" in the end.
-            found_entries = [
+            # Filter entries where the query or response contains the filter string
+            filtered_entries = [
                 entry
-                for entry in history.history
-                if (
-                    filter in entry.interaction.query.text  # type: ignore
-                    or filter in entry.interaction.response.text  # type: ignore
-                )
+                for entry in history_entries
+                if (filter in entry["query"] or filter in entry["response"])
             ]
 
-        logger.info("Found %s entries in the history", len(found_entries))
-        # Normalize the entries to send over dbus
-        _ = [
-            history_entry.set_from_dict(entry.to_dict()) for entry in set(found_entries)
-        ]
+            history_entry = self._parse_history_entries(filtered_entries)
+
         return HistoryEntry.to_structure(history_entry)
 
     def ClearHistory(self) -> None:

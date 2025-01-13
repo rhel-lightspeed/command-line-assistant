@@ -8,7 +8,10 @@ prompt_separator = "$"
 
 [history]
 enabled = true
-file = "/var/lib/command-line-assistant/history.json"
+
+[history.database]
+type = "sqlite"
+connection_string = "/var/lib/command-line-assistant/history.db"
 
 [backend]
 endpoint = "http://localhost:8080"

@@ -1,147 +1,205 @@
-import json
-import logging
-from unittest.mock import patch
+import uuid
+from datetime import datetime
+from unittest.mock import Mock, create_autospec, patch
 
 import pytest
+from sqlalchemy.orm import Session
 
+from command_line_assistant.daemon.database.manager import DatabaseManager
+from command_line_assistant.daemon.database.models.history import (
+    HistoryModel,
+    InteractionModel,
+)
 from command_line_assistant.dbus.exceptions import (
     CorruptedHistoryError,
     MissingHistoryFileError,
 )
 from command_line_assistant.history.plugins.local import LocalHistory
-from command_line_assistant.history.schemas import (
-    History,
-    HistoryMetadata,
-)
 
 
 @pytest.fixture
-def local_history(mock_config):
-    """Create a LocalHistory instance for testing."""
-    return LocalHistory(mock_config)
+def mock_db_session() -> Mock:
+    """Fixture for database session."""
+    return create_autospec(Session, instance=True)
 
 
-def test_read_when_history_disabled(local_history):
-    """Test reading history when history is disabled."""
-    local_history._config.history.enabled = False
-
-    history = local_history.read()
-
-    assert isinstance(history, History)
-    assert len(history.history) == 0
-    assert isinstance(history.metadata, HistoryMetadata)
+@pytest.fixture
+def mock_db_manager(mock_db_session: Mock) -> Mock:
+    """Fixture for DatabaseManager with mocked session."""
+    db_manager = create_autospec(DatabaseManager, instance=True)
+    db_manager.session.return_value.__enter__.return_value = mock_db_session
+    db_manager.session.return_value.__exit__.return_value = None
+    return db_manager
 
 
-def test_read_existing_history(local_history, sample_history_data):
-    """Test reading existing history file."""
-    with patch("pathlib.Path.read_text") as mock_read:
-        mock_read.return_value = json.dumps(sample_history_data)
-
-        history = local_history.read()
-
-        assert isinstance(history, History)
-        assert len(history.history) == 1
-        assert history.history[0].interaction.query.text == "test query"
-        assert history.history[0].interaction.response.text == "test response"
-        assert history.metadata.entry_count == 1
+@pytest.fixture
+def local_history(mock_config: Mock, mock_db_manager: Mock) -> LocalHistory:
+    """Fixture for LocalHistory instance with mocked dependencies."""
+    with patch(
+        "command_line_assistant.history.plugins.local.DatabaseManager",
+        return_value=mock_db_manager,
+    ):
+        history = LocalHistory(mock_config)
+        return history
 
 
-def test_read_invalid_json(local_history, caplog):
-    """Test reading invalid JSON history file."""
-    with patch("pathlib.Path.read_text") as mock_read:
-        mock_read.return_value = "invalid json"
+class TestLocalHistoryInitialization:
+    """Test cases for LocalHistory initialization."""
 
-        with (
-            caplog.at_level(logging.ERROR),
-            pytest.raises(CorruptedHistoryError, match="seems to be corrupted."),
-        ):
+    def test_initialization_success(self, mock_config: Mock):
+        """Should initialize successfully."""
+        with patch(
+            "command_line_assistant.history.plugins.local.DatabaseManager"
+        ) as mock_db:
+            mock_db.return_value = create_autospec(DatabaseManager, instance=True)
+            history = LocalHistory(mock_config)
+            assert isinstance(history._db, DatabaseManager)
+
+    def test_initialization_failure(self, mock_config: Mock):
+        """Should raise MissingHistoryFileError on initialization failure."""
+        with patch(
+            "command_line_assistant.history.plugins.local.DatabaseManager"
+        ) as mock_db:
+            mock_db.side_effect = Exception("DB Init Error")
+            with pytest.raises(
+                MissingHistoryFileError, match="Could not initialize database"
+            ):
+                LocalHistory(mock_config)
+
+
+class TestLocalHistoryRead:
+    """Test cases for reading history."""
+
+    def test_read_disabled_history(
+        self, local_history: LocalHistory, mock_config: Mock
+    ):
+        """Should return empty list when history is disabled."""
+        mock_config.history.enabled = False
+        assert local_history.read() == []
+
+    def test_read_success(self, local_history: LocalHistory, mock_db_session: Mock):
+        """Should successfully read and format history entries."""
+        # Create mock history entries
+        mock_interaction = Mock(spec=InteractionModel)
+        mock_interaction.query_text = "test query"
+        mock_interaction.response_text = "test response"
+
+        mock_history = Mock(spec=HistoryModel)
+        mock_history.interaction = mock_interaction
+        mock_history.timestamp = datetime.utcnow()
+
+        mock_db_session.query.return_value.join.return_value.filter.return_value.order_by.return_value.all.return_value = [
+            mock_history
+        ]
+
+        result = local_history.read()
+
+        assert len(result) == 1
+        assert result[0]["query"] == "test query"
+        assert result[0]["response"] == "test response"
+        assert "timestamp" in result[0]
+
+    def test_read_failure(self, local_history: LocalHistory, mock_db_session: Mock):
+        """Should raise CorruptedHistoryError on read failure."""
+        mock_db_session.query.side_effect = Exception("DB Read Error")
+
+        with pytest.raises(CorruptedHistoryError, match="Failed to read from database"):
             local_history.read()
 
 
-def test_write_new_entry(local_history):
-    """Test writing a new history entry."""
-    current_history = History()
-    query = "test query"
-    response = "test response"
+class TestLocalHistoryWrite:
+    """Test cases for writing history."""
 
-    with patch("pathlib.Path.write_text") as mock_write:
-        local_history.write(current_history, query, response)
-
-        # Verify write was called
-        mock_write.assert_called_once()
-
-        # Verify the written content
-        written_data = json.loads(mock_write.call_args[0][0])
-        assert len(written_data["history"]) == 1
-        assert written_data["history"][0]["interaction"]["query"]["text"] == query
-        assert written_data["history"][0]["interaction"]["response"]["text"] == response
-
-
-def test_write_when_history_disabled(local_history):
-    """Test writing history when history is disabled."""
-    local_history._config.history.enabled = False
-    current_history = History()
-
-    with patch("pathlib.Path.write_text") as mock_write:
-        local_history.write(current_history, "query", "response")
-        mock_write.assert_not_called()
-
-
-def test_write_with_error(local_history, caplog):
-    """Test writing history when an error occurs."""
-    current_history = History()
-
-    with patch("pathlib.Path.write_text") as mock_write:
-        mock_write.side_effect = json.JSONDecodeError("Test error", "doc", 0)
-
-        with (
-            caplog.at_level(logging.ERROR),
-            pytest.raises(
-                CorruptedHistoryError, match="Can't write data to the history file"
-            ),
-        ):
-            local_history.write(current_history, "query", "response")
-
-        assert "Failed to write history file" in caplog.text
-
-
-def test_clear_history(local_history):
-    """Test clearing history."""
-    with patch("pathlib.Path.write_text") as mock_write:
-        local_history.clear()
-
-        mock_write.assert_called_once()
-        written_data = json.loads(mock_write.call_args[0][0])
-        assert len(written_data["history"]) == 0
-        assert written_data["metadata"]["entry_count"] == 0
-
-
-def test_clear_history_with_error(local_history, caplog):
-    """Test clearing history when an error occurs."""
-    with (
-        caplog.at_level(logging.ERROR),
-        pytest.raises(MissingHistoryFileError, match="The history file"),
+    def test_write_disabled_history(
+        self, local_history: LocalHistory, mock_config: Mock
     ):
+        """Should not write when history is disabled."""
+        mock_config.history.enabled = False
+        local_history.write("query", "response")
+        assert local_history._db.session.call_count == 0  # type: ignore
+
+    @pytest.mark.parametrize(
+        "query,response",
+        [
+            ("test query", "test response"),
+            ("", "empty query test"),
+            ("empty response test", ""),
+        ],
+    )
+    def test_write_success(
+        self,
+        local_history: LocalHistory,
+        mock_db_session: Mock,
+        query: str,
+        response: str,
+    ):
+        """Should successfully write history entries."""
+        with patch(
+            "uuid.uuid4", return_value=uuid.UUID("12345678-1234-5678-1234-567812345678")
+        ):
+            local_history.write(query, response)
+
+            # Verify interaction was created with correct attributes
+            mock_db_session.add.assert_called()
+            calls = mock_db_session.add.call_args_list
+
+            # First call should be InteractionModel
+            interaction = calls[0][0][0]
+            assert isinstance(interaction, InteractionModel)
+            assert interaction.query_text == query  # type: ignore
+            assert interaction.response_text == response  # type: ignore
+            assert interaction.session_id is not None
+
+            # Second call should be HistoryModel
+            history = calls[1][0][0]
+            assert isinstance(history, HistoryModel)
+            assert history.interaction == interaction
+
+    def test_write_failure(self, local_history: LocalHistory, mock_db_session: Mock):
+        """Should raise CorruptedHistoryError on write failure."""
+        mock_db_session.add.side_effect = Exception("DB Write Error")
+
+        with pytest.raises(CorruptedHistoryError, match="Failed to write to database"):
+            local_history.write("query", "response")
+
+
+class TestLocalHistoryClear:
+    """Test cases for clearing history."""
+
+    def test_clear_success(self, local_history: LocalHistory, mock_db_session: Mock):
+        """Should successfully clear history."""
         local_history.clear()
 
+        # Verify soft delete was performed
+        mock_db_session.query.return_value.update.assert_called_once()
+        update_args = mock_db_session.query.return_value.update.call_args[0][0]
+        assert "deleted_at" in update_args
+        assert isinstance(update_args["deleted_at"], datetime)
 
-def test_check_if_history_is_enabled(local_history):
-    """Test history enabled check."""
-    assert local_history._check_if_history_is_enabled() is True
+    def test_clear_failure(self, local_history: LocalHistory, mock_db_session: Mock):
+        """Should raise MissingHistoryFileError on clear failure."""
+        mock_db_session.query.return_value.update.side_effect = Exception(
+            "DB Clear Error"
+        )
 
-    local_history._config.history.enabled = False
-    assert local_history._check_if_history_is_enabled() is False
+        with pytest.raises(MissingHistoryFileError, match="Failed to clear database"):
+            local_history.clear()
 
 
-def test_add_new_entry(local_history):
-    """Test adding a new entry to history."""
-    current_history = History()
-    query = "test query"
-    response = "test response"
+def test_integration_workflow(local_history: LocalHistory, mock_db_session: Mock):
+    """Integration test for full local history workflow."""
+    # Setup mock responses
+    mock_db_session.query.return_value.join.return_value.filter.return_value.order_by.return_value.all.return_value = []
 
-    updated_history = local_history._add_new_entry(current_history, query, response)
+    # Test read (empty)
+    assert local_history.read() == []
 
-    assert len(updated_history.history) == 1
-    assert updated_history.history[0].interaction.query.text == query
-    assert updated_history.history[0].interaction.response.text == response
-    assert updated_history.metadata.entry_count == 1
+    # Test write
+    local_history.write("test query", "test response")
+    assert (
+        mock_db_session.add.call_count == 2
+    )  # One for InteractionModel, one for HistoryModel
+
+    # Test clear
+    local_history.clear()
+    mock_db_session.query.return_value.update.assert_called_once()

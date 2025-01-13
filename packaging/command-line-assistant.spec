@@ -21,6 +21,12 @@ BuildRequires:  systemd-units
 
 Requires:       python3-dasbus
 Requires:       python3-requests
+# In RHEL 9 we only have version 1.4+
+%if 0%{?rhel} && 0%{?rhel} < 10
+Requires:       python3-sqlalchemy >= 1.4.45
+%else
+Requires:       python3-sqlalchemy
+%endif
 Requires:       systemd
 
 # Not needed after RHEL 10 as it is native in Python 3.11+

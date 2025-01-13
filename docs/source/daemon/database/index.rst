@@ -1,9 +1,8 @@
-History
-=======
+Database
+========
 
 .. toctree::
    :maxdepth: 2
 
-   base
    manager
-   plugins/index
+   models/index
