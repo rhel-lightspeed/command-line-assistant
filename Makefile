@@ -1,7 +1,6 @@
 .PHONY:
 	install-tools \
 	install \
-	install-dev \
 	unit-test \
 	help \
 	clean \
@@ -31,14 +30,12 @@ XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
 default: help
 
 install-tools: ## Install required utilities/tools
-	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip install pdm; }
-	pdm --version
+	@command -v poetry > /dev/null || { echo >&2 "poetry is not installed. Installing..."; pipx install poetry; }
+	@poetry --version
 
 install: install-tools ## Sync all required dependencies for Command Line Assistant to work
-	pdm sync
-
-install-dev: install-tools ## Sync all development dependencies
-	pdm sync --dev
+	@poetry install
+	@poetry install --all-extras
 
 unit-test: ## Unit test cla
 	@echo "Running tests..."
@@ -73,10 +70,8 @@ clean: ## Clean project files
 	@rm -rf htmlcov \
 	   .pytest_cache \
 	   command_line_assistant.egg-info \
-	   .pdm-build \
 	   .ruff_cache \
 	   .coverage \
-	   .pdm-python \
 	   dist \
 	   .tox \
 	   junit.xml \

@@ -53,14 +53,14 @@ requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-reque
 
 The commands below will create a python3 virtual environment with all the
 necessary dependencies installed. This is done via
-[pdm](https://pdm-project.org/en/latest/). If you don't have `pdm` installed,
-the command below will take care of it for you.
+[poetry](https://python-poetry.org/docs/). If you don't have `poetry`
+installed, the command below will take care of it for you.
 
 Required packages:
 - Python 3.9 or greater
 - pip
 
-Before installing the dependencies with `pdm`, make sure to follow the
+Before installing the dependencies with `poetry`, make sure to follow the
 installation instructions from
 [PyGObject](https://pygobject.gnome.org/getting_started.html#fedora-logo-fedora).
 This is required for running `clad`, and installing the rest of the
