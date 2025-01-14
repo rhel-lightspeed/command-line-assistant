@@ -5,7 +5,7 @@ import platform
 import uuid
 from datetime import datetime
 
-from sqlalchemy import desc
+from sqlalchemy import asc
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.manager import DatabaseManager
@@ -71,7 +71,7 @@ class LocalHistory(BaseHistoryPlugin):
                     session.query(HistoryModel)
                     .join(InteractionModel)
                     .filter(HistoryModel.deleted_at.is_(None))
-                    .order_by(desc(HistoryModel.timestamp))
+                    .order_by(asc(HistoryModel.timestamp))
                     .all()
                 )
 

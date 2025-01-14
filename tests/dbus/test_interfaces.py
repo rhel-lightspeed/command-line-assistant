@@ -97,6 +97,8 @@ def test_history_interface_get_first_conversation(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
         manager.write("test query", "test response")
+        manager.write("test query2", "test response2")
+        manager.write("test query3", "test response3")
         response = history_interface.GetFirstConversation()
 
         reconstructed = HistoryEntry.from_structure(response)
@@ -111,12 +113,14 @@ def test_history_interface_get_last_conversation(history_interface, mock_history
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
         manager.write("test query", "test response")
+        manager.write("test query2", "test response2")
+        manager.write("test query3", "test response3")
         response = history_interface.GetLastConversation()
 
         reconstructed = HistoryEntry.from_structure(response)
         assert len(reconstructed.entries) == 1
-        assert reconstructed.entries[0].query == "test query"
-        assert reconstructed.entries[0].response == "test response"
+        assert reconstructed.entries[0].query == "test query3"
+        assert reconstructed.entries[0].response == "test response3"
 
 
 def test_history_interface_get_filtered_conversation(
@@ -127,6 +131,7 @@ def test_history_interface_get_filtered_conversation(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
         manager.write("test query", "test response")
+        manager.write("not a query", "not a response")
         response = history_interface.GetFilteredConversation(filter="test")
 
         reconstructed = HistoryEntry.from_structure(response)
