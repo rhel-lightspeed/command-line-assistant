@@ -21,12 +21,7 @@ BuildRequires:  systemd-units
 
 Requires:       python3-dasbus
 Requires:       python3-requests
-# In RHEL 9 we only have version 1.4+
-%if 0%{?rhel} && 0%{?rhel} < 10
-Requires:       python3-sqlalchemy >= 1.4.45
-%else
 Requires:       python3-sqlalchemy
-%endif
 Requires:       systemd
 
 # Not needed after RHEL 10 as it is native in Python 3.11+
@@ -34,6 +29,9 @@ Requires:       systemd
 BuildRequires:  python3-tomli
 Requires:       python3-tomli
 %endif
+
+# Ref: https://docs.fedoraproject.org/en-US/packaging-guidelines/Python_201x/#_automatically_generated_dependencies
+%{?python_disable_dependency_generator}
 
 %description
 A simple wrapper to interact with RAG

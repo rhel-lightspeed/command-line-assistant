@@ -13,8 +13,8 @@ jobs:
     project: command-line-assistant
     targets:
       - epel-9-x86_64
-      - epel-10-x86_64
       - epel-9-aarch64
+      - epel-10-x86_64
       - epel-10-aarch64
     actions:
       # do not get the version from a tag (git describe) but from the spec file
@@ -29,8 +29,8 @@ jobs:
     project: command-line-assistant
     targets:
       - epel-9-x86_64
-      - epel-10-x86_64
       - epel-9-aarch64
+      - epel-10-x86_64
       - epel-10-aarch64
     actions:
       # bump spec so we get release starting with 2 and hence all the default branch builds will
@@ -49,8 +49,8 @@ jobs:
     project: command-line-assistant
     targets:
       - epel-9-x86_64
-      - epel-10-x86_64
       - epel-9-aarch64
+      - epel-10-x86_64
       - epel-10-aarch64
     actions:
       # bump spec so we get release starting with 2 and hence all the default branch builds will
