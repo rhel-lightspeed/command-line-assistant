@@ -116,3 +116,53 @@ LICENSE
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
 
 %changelog
+* Wed Jan 22 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.0
+- Refactor the CLI to be separate commands
+- Add an experimental rendering module for client
+- Add Command Line Assistant Daemon
+- Update specfile to include config from release dir
+- Split the query and history dbus implementations
+- Switch to system bus instead of session bus
+- Add schema for input/output queries and history
+- The connect_signals was triggered the API request twice
+- Add local history management and improve the command
+- Query against rlsrag
+- Improve error handling
+- Update systemd units to be socket activated
+- Add 100% docstring coverage
+- Fix query read from stdin
+- Remove colorama dep
+- Apply NO_COLOR to colored output
+- Generate manpages for CLA and CLAD
+- Prevent binary stdin
+- Add audit logging capability to CLAD
+- Add exception handling for SSL certificates
+- Normalize the folder name to command-line-assistant
+- Small code refactor for outputting text
+- Update legal message
+- Remove record command
+- Fix config.toml for release and devel
+- Add audit logging to stdout
+- Add filter history option
+- Implement a basic user session management
+- Add input field for query by
+- Migrate JSON history cache to database solution
+- Fix ordering from history results
+- Add user_id to history tables.
+- Update manpages for RH1
+
+
+* Mon Nov 25 2024 Rodolfo Olivieri <rolivier@redhat.com> 0.1.0
+- Initial release of Command Line Assistant
+- Rework config file handler and history
+- Remove leftover yaml import from utils
+- Fix config and history wrong paths
+- Add option to disable SSL verification on backend
+- Drop builds for EPEL 8
+- Remove leftover yaml config file
+- Refactor to use dataclasses instead of namedtuple
+- Improve logging
+- Transform dict to schema config
+- Append stdin to the user query
+- Convert the config class to be a dataclass
+- Remove use of slots in dataclasses
