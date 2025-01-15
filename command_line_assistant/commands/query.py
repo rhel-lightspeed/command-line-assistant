@@ -46,18 +46,18 @@ class QueryCommand(BaseCLICommand):
         self,
         query_string: Optional[str] = None,
         stdin: Optional[str] = None,
-        input: Optional[TextIOWrapper] = None,
+        attachment: Optional[TextIOWrapper] = None,
     ) -> None:
         """Constructor of the class.
 
         Args:
             query_string (Optional[str], optional): The query provided by the user.
             stdin (Optional[str], optional): The user redirect input from stdin
-            input (Optional[TextIOWrapper], optional): The file input from the user
+            attachment (Optional[TextIOWrapper], optional): The file attachment from the user
         """
         self._query = query_string.strip() if query_string else None
         self._stdin = stdin.strip() if stdin else None
-        self._input = input
+        self._attachment = attachment
 
         self._spinner_renderer: SpinnerRenderer = create_spinner_renderer(
             message="Requesting knowledge from AI",
@@ -98,8 +98,8 @@ class QueryCommand(BaseCLICommand):
             str: The query string from the selected input source(s)
         """
         file_content = None
-        if self._input:
-            file_content = self._input.read().strip()
+        if self._attachment:
+            file_content = self._attachment.read().strip()
             if is_content_in_binary_format(file_content):
                 raise ValueError("File appears to be binary")
 
@@ -183,18 +183,18 @@ def register_subcommand(parser: SubParsersAction) -> None:
     """
     query_parser = parser.add_parser(
         "query",
-        help="Ask a question and get an answer from LLM.",
+        help="Command to ask a question to the LLM.",
     )
     # Positional argument, required only if no optional arguments are provided
     query_parser.add_argument(
-        "query_string", nargs="?", help="Query string to be processed."
+        "query_string", nargs="?", help="The question that will be sent to the LLM"
     )
     query_parser.add_argument(
-        "-i",
-        "--input",
+        "-a",
+        "--attachment",
         nargs="?",
         type=argparse.FileType("r"),
-        help="Read file from user system.",
+        help="File attachment to be read and sent alongside the query",
     )
 
     query_parser.set_defaults(func=_command_factory)
@@ -209,7 +209,11 @@ def _command_factory(args: Namespace) -> QueryCommand:
     Returns:
         QueryCommand: Return an instance of class
     """
-    options = {"query_string": args.query_string, "stdin": None, "input": args.input}
+    options = {
+        "query_string": args.query_string,
+        "stdin": None,
+        "attachment": args.attachment,
+    }
 
     # We may not always have the stdin argument in the namespace.
     if "stdin" in args:

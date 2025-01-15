@@ -29,7 +29,7 @@ extensions = [
     "sphinx.ext.viewcode",  # View source code as html
     "sphinx.ext.todo",  # Add todo notes to the docs
     "sphinx.ext.duration",  # Inspect which module is slowing the docs build
-    "sphinx_argparse_cli",  # Auto generate argparse docs for manpage
+    "sphinx_argparse_cli",  # Auto generate argparse docs for manpage,
 ]
 
 intersphinx_mapping = {

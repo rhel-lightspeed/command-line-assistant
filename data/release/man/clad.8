@@ -27,24 +27,55 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "CLAD" "8" "Jan 09, 2025" "0.1.0" "Command Line Assistant"
+.TH "CLAD" "8" "Jan 15, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 clad \- Command Line Assistant Daemon
 .SH SYNOPSIS
 .sp
-\fBclad\fP
+In order to run Command Line Assistant Daemon (clad), one need to first enable
+the systemd service with the following:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ systemctl enable clad
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+All queries submitted through \fBc\fP will automatically activate the service.
+.sp
+To check status and logs, run the following:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ systemctl status clad
+.EE
+.UNINDENT
+.UNINDENT
 .SH DESCRIPTION
 .sp
-The Command Line Assistant daemon (clad) provides the backend service for processing queries through D\-Bus.
+Command Line Assistant Daemon (clad) is the core of the Command Line Assistant
+tooling. It manages the communication with WatsonX API trought an external
+backend, user history management and much more.
 .SH FILES
 .INDENT 0.0
 .TP
 .B \fI/etc/xdg/command\-line\-assistant/config.toml\fP
 System configuration file
 .TP
-.B \fI/var/lib/command\-line\-assistant/history.json\fP
-History storage file
+.B \fI/var/lib/command\-line\-assistant/history.db\fP
+SQlite3 history database
 .UNINDENT
+.SH REFERENCE
+.INDENT 0.0
+.IP 1. 3
+Command Line Assistant Daemon source code: \X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'
+.UNINDENT
+.SH BUGS
+.sp
+Please send bug reports to our bug tracker, see \X'tty: link https://issues.redhat.com/browse/RSPEED'\fI\%https://issues.redhat.com/browse/RSPEED\fP\X'tty: link'
 .SH SEE ALSO
 .sp
 \fBc(1)\fP

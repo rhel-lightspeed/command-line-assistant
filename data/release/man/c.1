@@ -27,11 +27,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Jan 09, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Jan 15, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
+.SH SYNOPSIS
 .sp
-A script with multiple optional arguments and a required positional argument if no optional arguments are provided.
+The Command Line Assistant powered by RHEL Lightspeed is a optional generative AI assistant available within the RHEL command line interface.
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -40,39 +41,39 @@ c [\-h] [\-\-version] {query,history} ...
 .EE
 .UNINDENT
 .UNINDENT
-.SH C OPTIONS
+.SS c options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fI\%\-\-version\fP \- Show command line assistant version and exit.
+\fI\%\-\-version\fP \- Show program version
 .UNINDENT
-.SH C QUERY
+.SS c query
 .sp
-Ask a question and get an answer from LLM.
+Command to ask a question to the LLM.
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-c query [\-h] [\-i [INPUT]] [query_string]
+c query [\-h] [\-a [ATTACHMENT]] [query_string]
 .EE
 .UNINDENT
 .UNINDENT
 .SS c query positional arguments
 .INDENT 0.0
 .IP \(bu 2
-\fI\%query_string\fP \- Query string to be processed. (default: \fBNone\fP)
+\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
 .UNINDENT
 .SS c query options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fI\%\-i\fP \fBINPUT\fP, \fI\%\-\-input\fP \fBINPUT\fP \- Read file from user system. (default: \fBNone\fP)
+\fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
 .UNINDENT
-.SH C HISTORY
+.SS c history
 .sp
-Manage conversation history
+Manage user conversation history
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -86,37 +87,241 @@ c history [\-h] [\-\-clear] [\-\-first] [\-\-last] [\-\-filter FILTER]
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fI\%\-\-clear\fP \- Clear the history.
+\fI\%\-\-clear\fP \- Clear the entire history.
 .IP \(bu 2
 \fI\%\-\-first\fP \- Get the first conversation from history.
 .IP \(bu 2
 \fI\%\-\-last\fP \- Get the last conversation from history.
 .IP \(bu 2
-\fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific string of text in the history. (default: \fBNone\fP)
+\fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. (default: \fBNone\fP)
 .UNINDENT
+.SH DESCRIPTION
+.sp
+The Command Line Assistant powered by RHEL Lightspeed is a optional generative
+AI assistant available within the RHEL command line interface. The Command Line
+Assistant can help with several tasks such as:
 .INDENT 0.0
-.TP
-.B Asking a question:
-$ c query \(dqHow do I check disk space?\(dq
+.INDENT 3.5
 .sp
-$ c \(dqHow do I check disk space?\(dq
-.sp
-$ echo \(dqAsking through pipe redirection!\(dq | c
-.sp
-$ c \-\-file log.txt \(dqWhat is the error here?\(dq
-.TP
-.B Check all history entries:
-$ c history
-.TP
-.B Check the first entry:
-$ c history \-\-first
-.TP
-.B Check the last entry:
-$ c history \-\-last
-.TP
-.B Clear all the history entries:
-$ c history \-\-clear
+.EX
+1. answering RHEL related questions
+2. assisting with troubleshooting
+3. assisting with deciphering log entries
+3. and many other tasks.
+.EE
 .UNINDENT
+.UNINDENT
+.sp
+The Command Line Assistant provides a natural language interface, and can
+incorporate information from resources such as the RHEL documentation.
+.SH EXAMPLES
+.sp
+Example 1. Asking a simple question
+.INDENT 0.0
+.INDENT 3.5
+Asking questions with \fBc\fP is relatively simple. One can start using the
+program by simply doing:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c \(dqWhat is RHEL?\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Alternatively, you can strictly specify that you want a query with:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c query \(dqWhat is RHEL?\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+In case \fBquery\fP is not placed, the program will assume that anything that
+comes after is a potential query. That includes the options for \fBquery\fP
+as well.
+.UNINDENT
+.UNINDENT
+.sp
+Example 2. Redirecting output to \fBc\fP
+.INDENT 0.0
+.INDENT 3.5
+If you have any program in your system that is erroring out, or a log file
+that contain something that you want to understand, you can redirect that
+output to \fBc\fP and ask the tool to give you an answer on how to solve it:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ cat log_with_error.log | c
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+If you want to redirect directly from a commmand, that is also possible
+with:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ my\-command | c
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Sometimes, only providing the error output may not be enough. For that, you
+can combine your redirect output with a question like this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ $ cat log_with_error.log | c \(dqhow do I solve this?\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Example 3. Attaching a file with your question
+.INDENT 0.0
+.INDENT 3.5
+Alternatively to redirecting the output, you can attach a file to \fBc\fP with
+the following:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c \-\-attachment log_with_error.log
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Or, with it\(aqs short version:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c \-a log_with_error.log
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+You can also combine the attachemtn with a question:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c \-a log_with_error.log \(dqhow do I solve this?\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+And lastly, you can use redirect output as well:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+However, if you specify a redirect output and a query at the same you have
+an attachment, only the attachment plus the query will be used. The
+redirect output will be ignored:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# The redirection here will be ignored as the query has precedence over redirection in this scenario.
+echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Example 4. History management
+.INDENT 0.0
+.INDENT 3.5
+With Command Line Assistant, you can also check your conversation history.
+To do so, one can issue the following command to retrieve all user
+history:: Check all history entries:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c history
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+If you don\(aqt want all history, you can filter either for the first, or last
+result with:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c history \-\-first
+$ c history \-\-last
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+In the case that a more granular filtering is needed, you can filter with
+keywords your history, like this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# This will retrieve all questions/responses that contain the work \(dqselinux\(dq
+$ c history \-\-filter \(dqselinux\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+And lastly, to start a clean history, you can clear all of it with:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c history \-\-clear
+.EE
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH NOTES
+.sp
+In the above examples, we mention that one particular use case where redirected
+output will be ignored. That happens because we have a set of rules defined in
+order to maintain a correct order of querying. The rules can be seen here:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+1. Positional query only \-> use positional query
+2. Stdin query only \-> use stdin query
+3. File query only \-> use file query
+4. Stdin + positional query \-> combine as \(dq{positional_query} {stdin}\(dq
+5. Stdin + file query \-> combine as \(dq{stdin} {file_query}\(dq
+6. Positional + file query \-> combine as \(dq{positional_query} {file_query}\(dq
+7. All three sources \-> use only positional and file as \(dq{positional_query} {file_query}\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.SH REFERENCE
+.INDENT 0.0
+.IP 1. 3
+Command Line Assistant source code: \X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'
+.UNINDENT
+.SH BUGS
+.sp
+Please send bug reports to our bug tracker, see \X'tty: link https://issues.redhat.com/browse/RSPEED'\fI\%https://issues.redhat.com/browse/RSPEED\fP\X'tty: link'
+.SH SEE ALSO
 .sp
 \fBclad(8)\fP
 .SH AUTHOR

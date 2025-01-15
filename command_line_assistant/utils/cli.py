@@ -68,18 +68,16 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     """Create the argument parser for command line assistant."""
     parser = ArgumentParser(
         prog="c",
-        description="A script with multiple optional arguments and a required positional argument if no optional arguments are provided.",
+        description="The Command Line Assistant powered by RHEL Lightspeed is a optional generative AI assistant available within the RHEL command line interface.",
     )
     parser.add_argument(
         "--version",
         action="version",
         version=VERSION,
         default=SUPPRESS,
-        help="Show command line assistant version and exit.",
+        help="Show program version",
     )
-    commands_parser = parser.add_subparsers(
-        dest="command", help="command line assistant helpers"
-    )
+    commands_parser = parser.add_subparsers(dest="command")
     return parser, commands_parser
 
 

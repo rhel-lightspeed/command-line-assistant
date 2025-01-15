@@ -167,12 +167,12 @@ def register_subcommand(parser: SubParsersAction):
     """
     history_parser = parser.add_parser(
         "history",
-        help="Manage conversation history",
+        help="Manage user conversation history",
     )
     history_parser.add_argument(
         "--clear",
         action="store_true",
-        help="Clear the history.",
+        help="Clear the entire history.",
     )
     history_parser.add_argument(
         "--first",
@@ -185,7 +185,7 @@ def register_subcommand(parser: SubParsersAction):
         help="Get the last conversation from history.",
     )
     history_parser.add_argument(
-        "--filter", help="Search for a specific string of text in the history."
+        "--filter", help="Search for a specific keyword of text in the history."
     )
     history_parser.set_defaults(func=_command_factory)
 

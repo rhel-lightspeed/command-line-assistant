@@ -132,7 +132,7 @@ def test_register_subcommand():
 
 
 @pytest.mark.parametrize(
-    ("query_string", "stdin", "input"),
+    ("query_string", "stdin", "attachment"),
     (
         (
             "test query",
@@ -148,9 +148,9 @@ def test_register_subcommand():
         ("test query", "test stdin", mock.Mock()),
     ),
 )
-def test_command_factory(query_string, stdin, input):
+def test_command_factory(query_string, stdin, attachment):
     """Test _command_factory function"""
-    options = {"query_string": query_string, "stdin": stdin, "input": input}
+    options = {"query_string": query_string, "stdin": stdin, "attachment": attachment}
     args = Namespace(**options)
     command = _command_factory(args)
 
@@ -160,7 +160,7 @@ def test_command_factory(query_string, stdin, input):
 
 
 @pytest.mark.parametrize(
-    ("query_string", "stdin", "input", "expected"),
+    ("query_string", "stdin", "attachment", "expected"),
     (
         ("test query", None, None, "test query"),
         (None, "stdin", None, "stdin"),
@@ -172,9 +172,9 @@ def test_command_factory(query_string, stdin, input):
         ("test query", "test stdin", StringIO("file query"), "test query file query"),
     ),
 )
-def test_get_input_source(query_string, stdin, input, expected):
+def test_get_input_source(query_string, stdin, attachment, expected):
     """Test _command_factory function"""
-    options = {"query_string": query_string, "stdin": stdin, "input": input}
+    options = {"query_string": query_string, "stdin": stdin, "attachment": attachment}
     command = QueryCommand(**options)
 
     output = command._get_input_source()
@@ -191,14 +191,18 @@ def test_get_input_source(query_string, stdin, input, expected):
     ),
 )
 def test_get_input_source_binary_file(input_file):
-    options = {"query_string": None, "stdin": None, "input": StringIO(input_file)}
+    options = {"query_string": None, "stdin": None, "attachment": StringIO(input_file)}
     command = QueryCommand(**options)
     with pytest.raises(ValueError, match="File appears to be binary"):
         command._get_input_source()
 
 
 def test_get_inout_source_all_values_warning_message(capsys):
-    options = {"query_string": "query", "stdin": "stdin", "input": StringIO("file")}
+    options = {
+        "query_string": "query",
+        "stdin": "stdin",
+        "attachment": StringIO("file"),
+    }
     command = QueryCommand(**options)
 
     output = command._get_input_source()
