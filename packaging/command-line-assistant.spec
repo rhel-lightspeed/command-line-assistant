@@ -67,9 +67,6 @@ A simple wrapper to interact with RAG
 # Config file
 %{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
 
-# History file
-%{__install} -D -m 0644 data/release/xdg/history.json %{buildroot}/%{_sharedstatedir}/%{name}/history.json
-
 # Manpages
 %{__install} -D -m 0644 data/release/man/%{binary_name}.1 %{buildroot}/%{_mandir}/man1/%{binary_name}.1
 %{__install} -D -m 0644 data/release/man/%{daemon_binary_name}.8 %{buildroot}/%{_mandir}/man8/%{daemon_binary_name}.8
@@ -107,9 +104,6 @@ LICENSE
 
 # Config file
 %config %{_sysconfdir}/xdg/%{name}/config.toml
-
-# History file
-%{_sharedstatedir}/%{name}/history.json
 
 # Manpages
 %{_mandir}/man1/%{binary_name}.1.gz
