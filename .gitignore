@@ -37,4 +37,5 @@ docs/source/_autosummary
 # selinux stuff
 data/release/selinux/clad.pp
 data/release/selinux/clad.pp.bz2
+data/release/selinux/clad.cil
 data/release/selinux/tmp

@@ -25,4 +25,10 @@ selinux_makefile = /usr/share/selinux/devel/Makefile
 	make -f $(selinux_makefile) $@
 
 clean-local:
-	rm -f *~  *.tc *.pp *.pp.bz2
+	rm -rf *~  *.tc *.pp *.pp.bz2 tmp *.cil
+
+test:
+	sudo semodule -i clad.pp
+
+%.cil: %.pp
+	cat clad.pp | /usr/libexec/selinux/hll/pp > clad.cil

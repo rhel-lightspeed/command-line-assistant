@@ -9,7 +9,8 @@ restorecon -R /usr/sbin/clad; \
 restorecon -R /etc/xdg/command-line-assistant/config.toml; \
 restorecon -R /etc/xdg/command-line-assistant; \
 restorecon -R /var/lib/command-line-assistant; \
-restorecon -R /var/log/audit/command-line-assistant.log; \
+restorecon -R /var/log/command-line-assistant; \
+restorecon -R /var/log/command-line-assistant/audit.log; \
 
 %define selinux_policyver 41.27-1
 
@@ -83,6 +84,7 @@ popd
 %{__install} -d %{buildroot}/%{_sbindir}
 %{__install} -d %{buildroot}/%{_sysconfdir}/xdg/%{name}
 %{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
+%{__install} -d %{buildroot}/%{_localstatedir}/log/%{name}
 %{__install} -d %{buildroot}/%{_mandir}/man1
 %{__install} -d %{buildroot}/%{_mandir}/man8
 %{__install} -d %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}
@@ -98,6 +100,9 @@ popd
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.query.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.query.service
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.history.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
+
+# Workaround to create /var/lib/command-line-assistant
+#%{__install} -D -m 0644 %{buildroot}/%{_sharedstatedir}/%{name}/history.db
 
 # Config file
 %{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
@@ -157,12 +162,17 @@ fi
 %{_mandir}/man1/%{binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
 
+# Needed directories
+%dir %{_sharedstatedir}/%{name}
+%dir %{_localstatedir}/log/%{name}
+
 %files selinux
 %attr(0600,root,root) %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
 * Wed Jan 22 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.0
+- Update packaging to include selinux custom policy
 - Fix returncode when running commands
 - Refactor the CLI to be separate commands
 - Add an experimental rendering module for client
@@ -197,7 +207,6 @@ fi
 - Fix ordering from history results
 - Add user_id to history tables.
 - Update manpages for RH1
-
 
 * Mon Nov 25 2024 Rodolfo Olivieri <rolivier@redhat.com> 0.1.0
 - Initial release of Command Line Assistant

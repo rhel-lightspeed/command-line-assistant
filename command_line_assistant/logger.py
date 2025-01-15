@@ -31,7 +31,7 @@ LOGGING_CONFIG_DICTIONARY = {
         },
         "audit_file": {
             "class": "logging.FileHandler",
-            "filename": "/tmp/command-line-assistant.log",
+            "filename": "/var/log/command-line-assistant/audit.log",
             "formatter": "audit",
             "mode": "a",
         },

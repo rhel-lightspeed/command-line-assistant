@@ -1,4 +1,4 @@
-policy_module(clad, 1.0.0)
+policy_module(clad, 0.1.0)
 
 ########################################
 #
@@ -7,14 +7,14 @@ policy_module(clad, 1.0.0)
 
 type clad_t;
 type clad_exec_t;
+init_daemon_domain(clad_t, clad_exec_t)
+
 domain_type(clad_t)
 domain_entry_file(clad_t, clad_exec_t)
 role system_r types clad_t;
 
-permissive clad_t;
-
 type clad_etc_rw_t;
-files_type(clad_etc_rw_t)
+files_config_file(clad_etc_rw_t)
 
 type clad_tmp_t;
 files_tmp_file(clad_tmp_t)
@@ -22,54 +22,72 @@ files_tmp_file(clad_tmp_t)
 type clad_var_lib_t;
 files_type(clad_var_lib_t)
 
+type clad_log_t;
+logging_log_file(clad_log_t)
+
 ########################################
 #
 # clad local policy
 #
 
-## <desc>
-##	<p>
-##
-##	</p>
-## </desc>
-gen_tunable(clad_write_conf, false)
+allow clad_t self:fifo_file rw_file_perms;
+allow clad_t self:unix_stream_socket create_stream_socket_perms;
 
-optional_policy(`
-	dbus_system_domain(clad_t, clad_exec_t)
-')
+# Network access
+allow clad_t self:tcp_socket { accept bind connect create getattr getopt listen read setopt shutdown write };
 
-tunable_policy(`clad_write_conf',`
-	rw_files_pattern(clad_t, clad_etc_rw_t, clad_tmp_t, clad_var_lib_t)
-')
+# Network interfaces and nodes
+corenet_tcp_sendrecv_generic_if(clad_t)
+corenet_tcp_sendrecv_generic_node(clad_t)
+corenet_tcp_bind_generic_node(clad_t)
 
+# Allow outbound HTTP connections (including proxy)
+corenet_tcp_connect_http_port(clad_t)
+corenet_tcp_connect_http_cache_port(clad_t)
+corenet_tcp_connect_squid_port(clad_t)
+
+# Allow outbound HTTPS connections
+corenet_tcp_connect_all_ports(clad_t)
+
+# D-Bus permissions
+dbus_system_bus_client(clad_t)
+dbus_connect_system_bus(clad_t)
+allow clad_t self:dbus send_msg;
+
+# File access permissions
+# Config directory
 manage_dirs_pattern(clad_t, clad_etc_rw_t, clad_etc_rw_t)
 manage_files_pattern(clad_t, clad_etc_rw_t, clad_etc_rw_t)
 manage_lnk_files_pattern(clad_t, clad_etc_rw_t, clad_etc_rw_t)
-files_etc_filetrans(clad_t, clad_etc_rw_t, { dir file lnk_file })
 
+# Temp directory
 manage_dirs_pattern(clad_t, clad_tmp_t, clad_tmp_t)
 manage_files_pattern(clad_t, clad_tmp_t, clad_tmp_t)
-manage_lnk_files_pattern(clad_t, clad_tmp_t, clad_tmp_t)
-files_tmp_filetrans(clad_t, clad_tmp_t, { dir file lnk_file })
+files_tmp_filetrans(clad_t, clad_tmp_t, { dir file })
 
+# Var lib directory
 manage_dirs_pattern(clad_t, clad_var_lib_t, clad_var_lib_t)
 manage_files_pattern(clad_t, clad_var_lib_t, clad_var_lib_t)
-manage_lnk_files_pattern(clad_t, clad_var_lib_t, clad_var_lib_t)
-files_var_lib_filetrans(clad_t, clad_var_lib_t, { dir file lnk_file })
+files_var_lib_filetrans(clad_t, clad_var_lib_t, { dir file })
 
-sysnet_dns_name_resolve(clad_t)
-corenet_all_recvfrom_unlabeled(clad_t)
+# Log file permissions
+manage_dirs_pattern(clad_t, clad_log_t, clad_log_t)
+manage_files_pattern(clad_t, clad_log_t, clad_log_t)
+logging_log_filetrans(clad_t, clad_log_t, { dir file })
 
-allow clad_t self:tcp_socket create_stream_socket_perms;
-corenet_tcp_sendrecv_generic_if(clad_t)
-corenet_tcp_sendrecv_generic_node(clad_t)
-corenet_tcp_sendrecv_all_ports(clad_t)
-corenet_tcp_connect_http_port(clad_t)
+# System access
+auth_use_nsswitch(clad_t)
+logging_send_syslog_msg(clad_t)
+miscfiles_read_localization(clad_t)
 
+# Allow reading system proxy settings
+files_read_etc_files(clad_t)
+auth_read_passwd(clad_t)
+
+# Allow python execution
+can_exec(clad_t, bin_t)
+corecmd_exec_bin(clad_t)
 domain_use_interactive_fds(clad_t)
 
-files_read_etc_files(clad_t)
-
-logging_send_syslog_msg(clad_t)
-
-miscfiles_read_localization(clad_t)
+# Allow systemd to manage log files
+allow init_t clad_log_t:file { unlink };

@@ -1,4 +1,3 @@
-
 ## <summary>policy for clad</summary>
 
 ########################################
@@ -96,7 +95,6 @@ interface(`clad_manage_conf_files',`
 	manage_files_pattern($1, clad_etc_rw_t, clad_etc_rw_t)
 	files_search_etc($1)
 ')
-
 
 ########################################
 ## <summary>
@@ -233,7 +231,6 @@ interface(`clad_manage_lib_dirs',`
 	manage_dirs_pattern($1, clad_var_lib_t, clad_var_lib_t)
 ')
 
-
 ########################################
 ## <summary>
 ##	Send and receive messages from
@@ -253,6 +250,46 @@ interface(`clad_dbus_chat',`
 
 	allow $1 clad_t:dbus send_msg;
 	allow clad_t $1:dbus send_msg;
+')
+
+########################################
+## <summary>
+##	Allow domain to connect to HTTP ports (including proxy).
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_connect_http',`
+	gen_require(`
+		type clad_t;
+	')
+
+	allow $1 clad_t:tcp_socket { create connect };
+	corenet_tcp_connect_http_port($1)
+	corenet_tcp_connect_squid_port($1)
+	corenet_tcp_connect_http_cache_port($1)
+')
+
+########################################
+## <summary>
+##	Allow domain to connect to HTTPS ports.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_connect_https',`
+	gen_require(`
+		type clad_t;
+	')
+
+	allow $1 clad_t:tcp_socket { create connect };
+	corenet_tcp_connect_https_port($1)
 ')
 
 ########################################
@@ -278,6 +315,7 @@ interface(`clad_admin',`
 		type clad_etc_rw_t;
 		type clad_tmp_t;
 		type clad_var_lib_t;
+		type clad_log_t;
 	')
 
 	allow $1 clad_t:process { signal_perms };
@@ -299,4 +337,27 @@ interface(`clad_admin',`
 		systemd_passwd_agent_exec($1)
 		systemd_read_fifo_file_passwd_run($1)
 	')
+
+	logging_search_logs($1)
+	admin_pattern($1, clad_log_t)
+')
+
+########################################
+## <summary>
+##	Manage clad log files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`clad_manage_log',`
+	gen_require(`
+		type clad_log_t;
+	')
+
+	logging_search_logs($1)
+	manage_dirs_pattern($1, clad_log_t, clad_log_t)
+	manage_files_pattern($1, clad_log_t, clad_log_t)
 ')
