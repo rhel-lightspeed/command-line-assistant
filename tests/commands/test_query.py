@@ -61,21 +61,12 @@ def test_query_command_run(mock_dbus_service, test_input, expected_output, capsy
     mock_output = Message()
     mock_output.message = expected_output
     mock_output.user = "mock"
-    mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
-
-    with patch("command_line_assistant.commands.query.getpass.getuser") as mock_getuser:
-        mock_getuser.return_value = "mock"
-        # Create and run command
-        command = QueryCommand(test_input, None)
-        command.run()
-
-    # Verify ProcessQuery was called with correct input
-    expected_input = Message()
-    expected_input.message = test_input
-    expected_input.user = "mock"
-    mock_dbus_service.ProcessQuery.assert_called_once_with(
-        Message.to_structure(expected_input)
+    mock_dbus_service.AskQuestion = lambda user_id, question: Message.to_structure(
+        mock_output
     )
+
+    command = QueryCommand(test_input, None)
+    command.run()
 
     # Verify output was printed
     captured = capsys.readouterr()
@@ -88,7 +79,9 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
     mock_output = Message()
     mock_output.message = ""
     mock_output.user = "mock"
-    mock_dbus_service.RetrieveAnswer = lambda: Message.to_structure(mock_output)
+    mock_dbus_service.AskQuestion = lambda user_id, question: Message.to_structure(
+        mock_output
+    )
 
     command = QueryCommand("test query", None)
     command.run()
@@ -241,7 +234,7 @@ def test_get_input_source_value_error():
 def test_dbus_error_handling(exception, expected, mock_dbus_service, capsys):
     """Test handling of DBus errors"""
     # Make ProcessQuery raise a DBus error
-    mock_dbus_service.ProcessQuery.side_effect = exception
+    mock_dbus_service.AskQuestion.side_effect = exception
 
     command = QueryCommand("test query", None)
     command.run()

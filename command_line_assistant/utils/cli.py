@@ -3,6 +3,9 @@ Utilitary module to interact with the CLI. This olds the basic implementation
 that is reused across commands and other interactions.
 """
 
+import dataclasses
+import getpass
+import os
 import select
 import sys
 from abc import ABC, abstractmethod
@@ -18,8 +21,30 @@ PARENT_ARGS: list[str] = ["--version", "-v", "-h", "--help"]
 ARGS_WITH_VALUES: list[str] = ["--clear"]
 
 
+@dataclasses.dataclass
+class CommandContext:
+    """A context for all commands with useful information.
+
+    Note:
+        This is meant to be initialized exclusively by the client.
+
+    Attributes:
+        username (str): The username of the current user.
+        effective_user_id (int): The effective user id.
+    """
+
+    username: str = getpass.getuser()
+    effective_user_id: int = os.getegid()
+
+
 class BaseCLICommand(ABC):
     """Absctract class to define a CLI Command."""
+
+    def __init__(self) -> None:
+        """Constructor for the base class."""
+        self._context: CommandContext = CommandContext()
+
+        super().__init__()
 
     @abstractmethod
     def run(self) -> int:

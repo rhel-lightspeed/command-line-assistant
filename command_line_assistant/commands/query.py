@@ -1,7 +1,6 @@
 """Module to handle the query command."""
 
 import argparse
-import getpass
 from argparse import Namespace
 from io import TextIOWrapper
 from typing import Optional
@@ -77,6 +76,9 @@ class QueryCommand(BaseCLICommand):
         )
         self._error_renderer: TextRenderer = create_error_renderer()
         self._warning_renderer: TextRenderer = create_warning_renderer()
+
+        self._proxy = QUERY_IDENTIFIER.get_proxy()
+
         super().__init__()
 
     def _get_input_source(self) -> str:
@@ -142,24 +144,21 @@ class QueryCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution
         """
-        proxy = QUERY_IDENTIFIER.get_proxy()
 
         try:
-            query = self._get_input_source()
+            question = self._get_input_source()
         except ValueError as e:
             self._error_renderer.render(str(e))
             return 1
 
-        input_query = Message()
-        input_query.message = query
-        # Get the current user
-        input_query.user = getpass.getuser()
         output = "Nothing to see here..."
 
         try:
             with self._spinner_renderer:
-                proxy.ProcessQuery(input_query.to_structure(input_query))
-                output = Message.from_structure(proxy.RetrieveAnswer()).message
+                response = self._proxy.AskQuestion(
+                    self._context.effective_user_id, question
+                )
+                output = Message.from_structure(response).message
         except (
             RequestFailedError,
             MissingHistoryFileError,

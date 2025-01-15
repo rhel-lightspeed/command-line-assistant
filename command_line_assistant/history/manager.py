@@ -3,6 +3,7 @@
 from typing import Optional, Type
 
 from command_line_assistant.config import Config
+from command_line_assistant.daemon.session import UserSessionManager
 from command_line_assistant.history.base import BaseHistoryPlugin
 
 
@@ -10,24 +11,30 @@ class HistoryManager:
     """Manages history operations by delegating to a specific history implementation.
 
     Example:
-        >>> manager = HistoryManager(config, plugin=LocalHistory)
+        >>> effective_user_id = 1000
+        >>> manager = HistoryManager(config, effective_user_id, plugin=LocalHistory)
         >>> entries = manager.read()
         >>> manager.write("How do I check disk space?", "Use df -h command...")
         >>> manager.clear()
     """
 
     def __init__(
-        self, config: Config, plugin: Optional[Type[BaseHistoryPlugin]] = None
+        self,
+        config: Config,
+        effective_user_id: int,
+        plugin: Optional[Type[BaseHistoryPlugin]] = None,
     ) -> None:
         """Initialize the history manager.
 
         Args:
             config (Config): Instance of configuration class
+            effective_user_id (int): The effective user id who asked for the history.
             plugin (Optional[Type[BaseHistory]], optional): Optional history implementation class
         """
         self._config = config
         self._plugin: Optional[Type[BaseHistoryPlugin]] = None
         self._instance: Optional[BaseHistoryPlugin] = None
+        self._session_manager = UserSessionManager(effective_user_id)
 
         # Set initial plugin if provided
         if plugin:
@@ -72,7 +79,7 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError("No history plugin set. Set plugin before operations.")
 
-        return self._instance.read()
+        return self._instance.read(self._session_manager.user_id)
 
     def write(self, query: str, response: str) -> None:
         """Write a new history entry using the current plugin.
@@ -87,7 +94,7 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError("No history plugin set. Set plugin before operations.")
 
-        self._instance.write(query, response)
+        self._instance.write(self._session_manager.user_id, query, response)
 
     def clear(self) -> None:
         """Clear all history entries.
@@ -98,4 +105,4 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError("No history plugin set. Set plugin before operations.")
 
-        self._instance.clear()
+        self._instance.clear(self._session_manager.user_id)

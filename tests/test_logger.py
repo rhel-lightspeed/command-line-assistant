@@ -7,6 +7,7 @@ import pytest
 from command_line_assistant.logger import (
     AuditFormatter,
     _create_audit_formatter,
+    _should_log_for_user,
     setup_logging,
 )
 
@@ -79,7 +80,6 @@ def test_setup_logging(mock_dict_config, mock_config):
 def test_audit_formatter_user_specific_logging(mock_config):
     """Test user-specific logging configuration."""
     # Configure mock for user-specific settings
-    mock_config.logging.users = {"testuser": {"question": True, "responses": False}}
     formatter = AuditFormatter(config=mock_config)
 
     record = logging.LogRecord(
@@ -91,7 +91,7 @@ def test_audit_formatter_user_specific_logging(mock_config):
         args=(),
         exc_info=None,
     )
-    record.user = "testuser"
+    record.user = "1000"
     record.query = "test query"
     record.response = "test response"
 
@@ -108,3 +108,23 @@ def test_setup_logging_invalid_level(mock_config):
     mock_config.logging.level = "INVALID_LEVEL"
     with pytest.raises(ValueError):
         setup_logging(mock_config)
+
+
+@pytest.mark.parametrize(
+    ("users", "effective_user_id", "log_type", "expected"),
+    (
+        ({"1000": {"response": True, "question": False}}, 1000, "response", True),
+        ({"1000": {"response": False, "question": False}}, 1000, "response", False),
+        ({"1000": {"response": False, "question": True}}, 1000, "question", True),
+        ({"1000": {"response": False, "question": False}}, 1000, "question", False),
+        # User is defined in the config, but nothing is specified
+        ({"1000": {}}, 1000, "question", False),
+        ({"1000": {}}, 1000, "response", False),
+        ({"1000": {}, "1001": {"response": True}}, 1001, "response", True),
+        ({"1000": {}, "1001": {"question": True}}, 1001, "question", True),
+        ({"1000": {}, "1001": {}}, 1001, "question", False),
+    ),
+)
+def test_should_log_for_user(users, effective_user_id, log_type, expected, mock_config):
+    mock_config.logging.users = users
+    assert _should_log_for_user(effective_user_id, mock_config, log_type) == expected

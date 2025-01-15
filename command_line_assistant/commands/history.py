@@ -69,6 +69,7 @@ class HistoryCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution.
         """
+
         try:
             if self._clear:
                 self._clear_history()
@@ -89,7 +90,7 @@ class HistoryCommand(BaseCLICommand):
     def _retrieve_all_conversations(self) -> None:
         """Retrieve and display all conversations from history."""
         self._text_renderer.render("Getting all conversations from history.")
-        response = self._proxy.GetHistory()
+        response = self._proxy.GetHistory(self._context.effective_user_id)
         history = HistoryEntry.from_structure(response)
 
         # Display the conversation
@@ -98,7 +99,7 @@ class HistoryCommand(BaseCLICommand):
     def _retrieve_first_conversation(self) -> None:
         """Retrieve the first conversation in the conversation cache."""
         self._text_renderer.render("Getting first conversation from history.")
-        response = self._proxy.GetFirstConversation()
+        response = self._proxy.GetFirstConversation(self._context.effective_user_id)
         history = HistoryEntry.from_structure(response)
 
         # Display the conversation
@@ -111,7 +112,9 @@ class HistoryCommand(BaseCLICommand):
             filter (str): Keyword to filter in the user history
         """
         self._text_renderer.render("Filtering conversation history.")
-        response = self._proxy.GetFilteredConversation(filter)
+        response = self._proxy.GetFilteredConversation(
+            self._context.effective_user_id, filter
+        )
 
         # Handle and display the response
         history = HistoryEntry.from_structure(response)
@@ -122,7 +125,7 @@ class HistoryCommand(BaseCLICommand):
     def _retrieve_last_conversation(self) -> None:
         """Retrieve the last conversation in the conversation cache."""
         self._text_renderer.render("Getting last conversation from history.")
-        response = self._proxy.GetLastConversation()
+        response = self._proxy.GetLastConversation(self._context.effective_user_id)
 
         # Handle and display the response
         history = HistoryEntry.from_structure(response)
@@ -133,7 +136,7 @@ class HistoryCommand(BaseCLICommand):
     def _clear_history(self) -> None:
         """Clear the user history"""
         self._text_renderer.render("Cleaning the history.")
-        self._proxy.ClearHistory()
+        self._proxy.ClearHistory(self._context.effective_user_id)
 
     def _show_history(self, entries: list[HistoryItem]) -> None:
         """Internal method to show the history in a standarized way

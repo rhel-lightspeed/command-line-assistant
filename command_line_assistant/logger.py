@@ -6,6 +6,7 @@ import logging.config
 from typing import Optional
 
 from command_line_assistant.config import Config
+from command_line_assistant.daemon.session import UserSessionManager
 
 #: Define the dictionary configuration for the logger instance
 LOGGING_CONFIG_DICTIONARY = {
@@ -51,6 +52,30 @@ LOGGING_CONFIG_DICTIONARY = {
 }
 
 
+def _should_log_for_user(effective_user_id: int, config: Config, log_type: str) -> bool:
+    """Check if logging should be enabled for a specific user and log type.
+
+    Args:
+        effective_user_id (int): The effective user id to check if logging is enabled.
+        log_type (str): The type of log ('responses' or 'question')
+
+    Returns:
+        bool: Whether logging should be enabled for this user and log type
+    """
+    logging_users = copy.deepcopy(config.logging.users)
+    for user in config.logging.users.keys():
+        user_id = str(UserSessionManager(user).user_id)
+        logging_users[user_id] = logging_users.pop(user)
+
+    user_id = str(UserSessionManager(effective_user_id).user_id)
+    # If user has specific settings, use those
+    if user_id in logging_users:
+        return logging_users[user_id].get(log_type, False)
+
+    # Otherwise fall back to global settings
+    return getattr(config.logging, log_type, False)
+
+
 class AuditFormatter(logging.Formatter):
     """Custom formatter that handles user-specific logging configuration."""
 
@@ -94,16 +119,16 @@ class AuditFormatter(logging.Formatter):
             "user": getattr(record, "user", "unknown"),
             "message": record.getMessage(),
         }
-
-        is_query_enabled = hasattr(
-            record, "query"
-        ) and self._config.logging.should_log_for_user(data["user"], "question")
+        effective_user_id = data["user"]
+        is_query_enabled = hasattr(record, "query") and _should_log_for_user(
+            effective_user_id, self._config, "question"
+        )
         # Add query if enabled for user
         data["query"] = record.query if is_query_enabled else None  # type: ignore
 
-        is_response_enabled = hasattr(
-            record, "response"
-        ) and self._config.logging.should_log_for_user(data["user"], "responses")
+        is_response_enabled = hasattr(record, "response") and _should_log_for_user(
+            effective_user_id, self._config, "responses"
+        )
         # Add response if enabled for user
         data["response"] = record.response if is_response_enabled else None  # type: ignore
 

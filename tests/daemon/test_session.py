@@ -7,17 +7,17 @@ from command_line_assistant.daemon.session import UserSessionManager
 
 
 def test_initialize_user_session_manager():
-    session = UserSessionManager("1000")
-    assert session._effective_user == "1000"
+    session = UserSessionManager(1000)
+    assert session._effective_user_id == 1000
     assert not session._machine_uuid
-    assert not session._session_uuid
+    assert not session._user_id
 
 
 def test_read_machine_id(tmp_path):
     machine_id = tmp_path / "machine-id"
     machine_id.write_text("09e28913cb074ed995a239c93b07fd8a")
     with patch("command_line_assistant.daemon.session.MACHINE_ID_PATH", machine_id):
-        session = UserSessionManager("1000")
+        session = UserSessionManager(1000)
         assert session.machine_id == uuid.UUID("09e28913cb074ed995a239c93b07fd8a")
 
 
@@ -25,8 +25,8 @@ def test_generate_session_id(tmp_path):
     machine_id = tmp_path / "machine-id"
     machine_id.write_text("09e28913cb074ed995a239c93b07fd8a")
     with patch("command_line_assistant.daemon.session.MACHINE_ID_PATH", machine_id):
-        session = UserSessionManager("1000")
-        assert session.session_id == uuid.UUID("4d465f1c-0507-5dfa-9ea0-e2de1a9e90a5")
+        session = UserSessionManager(1000)
+        assert session.user_id == uuid.UUID("4d465f1c-0507-5dfa-9ea0-e2de1a9e90a5")
 
 
 def test_generate_session_id_twice(tmp_path):
@@ -34,11 +34,11 @@ def test_generate_session_id_twice(tmp_path):
     machine_id = tmp_path / "machine-id"
     machine_id.write_text("09e28913cb074ed995a239c93b07fd8a")
     with patch("command_line_assistant.daemon.session.MACHINE_ID_PATH", machine_id):
-        session = UserSessionManager("1000")
-        assert session.session_id == uuid.UUID("4d465f1c-0507-5dfa-9ea0-e2de1a9e90a5")
+        session = UserSessionManager(1000)
+        assert session.user_id == uuid.UUID("4d465f1c-0507-5dfa-9ea0-e2de1a9e90a5")
 
-        session = UserSessionManager("1000")
-        assert session.session_id == uuid.UUID("4d465f1c-0507-5dfa-9ea0-e2de1a9e90a5")
+        session = UserSessionManager(1000)
+        assert session.user_id == uuid.UUID("4d465f1c-0507-5dfa-9ea0-e2de1a9e90a5")
 
 
 @pytest.mark.parametrize(
@@ -72,7 +72,7 @@ def test_generate_session_id_different_users(
         "command_line_assistant.daemon.session.MACHINE_ID_PATH", machine_id_file
     ):
         session = UserSessionManager(effective_user_id)
-        assert session.session_id == uuid.UUID(expected)
+        assert session.user_id == uuid.UUID(expected)
 
 
 def test_empty_machine_id_file(tmp_path):
@@ -81,7 +81,7 @@ def test_empty_machine_id_file(tmp_path):
     with patch(
         "command_line_assistant.daemon.session.MACHINE_ID_PATH", machine_id_file
     ):
-        session = UserSessionManager("1000")
+        session = UserSessionManager(1000)
         with pytest.raises(ValueError, match="Machine ID at .* is empty"):
             assert session.machine_id
 
@@ -91,6 +91,6 @@ def test_machine_id_file_not_found(tmp_path):
     with patch(
         "command_line_assistant.daemon.session.MACHINE_ID_PATH", machine_id_file
     ):
-        session = UserSessionManager("1000")
+        session = UserSessionManager(1000)
         with pytest.raises(FileNotFoundError, match="Machine ID file not found at .*"):
             assert session.machine_id

@@ -1,6 +1,8 @@
 """Module to hold the config schema and it's sub schemas."""
 
+import copy
 import dataclasses
+import pwd
 from pathlib import Path
 from typing import Optional, Union
 
@@ -96,22 +98,17 @@ class LoggingSchema:
 
         self.level = self.level.upper()
 
-    def should_log_for_user(self, username: str, log_type: str) -> bool:
-        """Check if logging should be enabled for a specific user and log type.
-
-        Args:
-            username (str): The username to check
-            log_type (str): The type of log ('responses' or 'question')
-
-        Returns:
-            bool: Whether logging should be enabled for this user and log type
-        """
-        # If user has specific settings, use those
-        if username in self.users:
-            return self.users[username].get(log_type, False)
-
-        # Otherwise fall back to global settings
-        return getattr(self, log_type, False)
+        if self.users:
+            # Turn any username to their effective_user_id
+            defined_users = copy.deepcopy(self.users)
+            for user in defined_users.keys():
+                try:
+                    effective_user_id = str(pwd.getpwnam(user).pw_uid)
+                    self.users[effective_user_id] = self.users.pop(user)
+                except KeyError as e:
+                    raise ValueError(
+                        f"{user} is not present on the system. Remove it from the configuration."
+                    ) from e
 
 
 @dataclasses.dataclass

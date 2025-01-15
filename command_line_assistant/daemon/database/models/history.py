@@ -16,6 +16,7 @@ class HistoryModel(BaseModel):
     __tablename__ = "history"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow())
     deleted_at = Column(DateTime, nullable=True)
 
@@ -37,7 +38,6 @@ class InteractionModel(BaseModel):
     response_text = Column(String)
     response_role = Column(String, default="assistant")
     response_tokens = Column(Integer, default=0)
-    session_id = Column(UUID(as_uuid=True), nullable=False, default=uuid.uuid4)
     os_distribution = Column(String, default="RHEL")
     os_version = Column(String, nullable=False)
     os_arch = Column(String, nullable=False)

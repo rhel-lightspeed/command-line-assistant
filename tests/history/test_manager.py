@@ -12,25 +12,25 @@ class MockHistoryPlugin(BaseHistoryPlugin):
         self.write_called = False
         self.clear_called = False
 
-    def read(self):
+    def read(self, user_id):
         self.read_called = True
         return []
 
-    def write(self, query: str, response: str) -> None:
+    def write(self, user_id, query: str, response: str) -> None:
         self.write_called = True
 
-    def clear(self) -> None:
+    def clear(self, user_id) -> None:
         self.clear_called = True
 
 
 @pytest.fixture
 def history_manager(mock_config):
-    return HistoryManager(mock_config, plugin=LocalHistory)
+    return HistoryManager(mock_config, 1000, plugin=LocalHistory)
 
 
 def test_history_manager_initialization(mock_config):
     """Test that HistoryManager initializes correctly"""
-    manager = HistoryManager(mock_config)
+    manager = HistoryManager(mock_config, 1000)
     assert manager._config == mock_config
     assert manager._plugin is None
     assert manager._instance is None
@@ -38,7 +38,7 @@ def test_history_manager_initialization(mock_config):
 
 def test_history_manager_plugin_setter(mock_config):
     """Test setting a valid plugin"""
-    manager = HistoryManager(mock_config)
+    manager = HistoryManager(mock_config, 1000)
     manager.plugin = MockHistoryPlugin
     assert manager._plugin == MockHistoryPlugin
     assert isinstance(manager._instance, MockHistoryPlugin)
@@ -46,7 +46,7 @@ def test_history_manager_plugin_setter(mock_config):
 
 def test_history_manager_invalid_plugin(mock_config):
     """Test setting an invalid plugin"""
-    manager = HistoryManager(mock_config)
+    manager = HistoryManager(mock_config, 1000)
 
     class InvalidPlugin(BaseHistoryPlugin):
         pass
@@ -57,21 +57,21 @@ def test_history_manager_invalid_plugin(mock_config):
 
 def test_history_manager_read_without_plugin(mock_config):
     """Test reading history without setting a plugin first"""
-    manager = HistoryManager(mock_config)
+    manager = HistoryManager(mock_config, 1000)
     with pytest.raises(RuntimeError):
         manager.read()
 
 
 def test_history_manager_write_without_plugin(mock_config):
     """Test writing history without setting a plugin first"""
-    manager = HistoryManager(mock_config)
+    manager = HistoryManager(mock_config, 1000)
     with pytest.raises(RuntimeError):
         manager.write("test query", "test response")
 
 
 def test_history_manager_clear_without_plugin(mock_config):
     """Test clearing history without setting a plugin first"""
-    manager = HistoryManager(mock_config)
+    manager = HistoryManager(mock_config, 1000)
     with pytest.raises(RuntimeError):
         manager.clear()
 

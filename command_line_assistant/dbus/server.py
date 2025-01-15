@@ -2,7 +2,6 @@
 
 import logging
 
-from dasbus.constants import DBUS_NAME_FLAG_REPLACE_EXISTING
 from dasbus.loop import EventLoop
 
 from command_line_assistant.config import Config
@@ -11,7 +10,9 @@ from command_line_assistant.dbus.constants import (
     QUERY_IDENTIFIER,
     SYSTEM_BUS,
 )
-from command_line_assistant.dbus.context import HistoryContext, QueryContext
+from command_line_assistant.dbus.context import (
+    DaemonContext,
+)
 from command_line_assistant.dbus.interfaces import HistoryInterface, QueryInterface
 
 logger = logging.getLogger(__name__)
@@ -26,19 +27,15 @@ def serve(config: Config):
     logger.info("Starting clad!")
     try:
         SYSTEM_BUS.publish_object(
-            QUERY_IDENTIFIER.object_path, QueryInterface(QueryContext(config))
+            QUERY_IDENTIFIER.object_path, QueryInterface(DaemonContext(config))
         )
         SYSTEM_BUS.publish_object(
-            HISTORY_IDENTIFIER.object_path, HistoryInterface(HistoryContext(config))
+            HISTORY_IDENTIFIER.object_path, HistoryInterface(DaemonContext(config))
         )
 
-        # The flag DBUS_NAME_FLAG_REPLACE_EXISTING is needed during development
-        # so ew can replace the existing bus.
-        # TODO(r0x0d): See what to do with it later.
         SYSTEM_BUS.register_service(QUERY_IDENTIFIER.service_name)
-        SYSTEM_BUS.register_service(
-            HISTORY_IDENTIFIER.service_name, flags=DBUS_NAME_FLAG_REPLACE_EXISTING
-        )
+        SYSTEM_BUS.register_service(HISTORY_IDENTIFIER.service_name)
+
         loop = EventLoop()
         loop.run()
     finally:

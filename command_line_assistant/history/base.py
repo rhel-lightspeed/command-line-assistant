@@ -1,6 +1,7 @@
 """Base module to track all the abstract classes for the history module."""
 
 import logging
+import uuid
 from abc import ABC, abstractmethod
 
 from command_line_assistant.config import Config
@@ -20,7 +21,7 @@ class BaseHistoryPlugin(ABC):
         self._config = config
 
     @abstractmethod
-    def read(self) -> list[dict[str, str]]:
+    def read(self, user_id: uuid.UUID) -> list[dict[str, str]]:
         """Abstract method to represent a read operation
 
         Returns:
@@ -28,7 +29,7 @@ class BaseHistoryPlugin(ABC):
         """
 
     @abstractmethod
-    def write(self, query: str, response: str) -> None:
+    def write(self, user_id: uuid.UUID, query: str, response: str) -> None:
         """Abstract method to represent a write operation
 
         Args:
@@ -37,7 +38,7 @@ class BaseHistoryPlugin(ABC):
         """
 
     @abstractmethod
-    def clear(self) -> None:
+    def clear(self, user_id: uuid.UUID) -> None:
         """Abstract method to represent a clear operation"""
 
     def _check_if_history_is_enabled(self) -> bool:

@@ -51,7 +51,7 @@ class LocalHistory(BaseHistoryPlugin):
             logger.error("Failed to initialize database: %s", e)
             raise MissingHistoryFileError(f"Could not initialize database: {e}") from e
 
-    def read(self) -> list[dict[str, str]]:
+    def read(self, user_id: uuid.UUID) -> list[dict[str, str]]:
         """Reads the history from the database.
 
         Returns:
@@ -72,6 +72,7 @@ class LocalHistory(BaseHistoryPlugin):
                     .join(InteractionModel)
                     .filter(HistoryModel.deleted_at.is_(None))
                     .order_by(asc(HistoryModel.timestamp))
+                    .where(HistoryModel.user_id == user_id)
                     .all()
                 )
 
@@ -87,7 +88,7 @@ class LocalHistory(BaseHistoryPlugin):
             logger.error("Failed to read from database: %s", e)
             raise CorruptedHistoryError(f"Failed to read from database: {e}") from e
 
-    def write(self, query: str, response: str) -> None:
+    def write(self, user_id: uuid.UUID, query: str, response: str) -> None:
         """Write history to the database.
 
         Args:
@@ -108,7 +109,6 @@ class LocalHistory(BaseHistoryPlugin):
                     query_text=query,
                     response_text=response,
                     response_tokens=len(response),
-                    session_id=uuid.uuid4(),
                     os_distribution="RHEL",  # Default to RHEL for now
                     os_version=platform.release(),
                     os_arch=platform.machine(),
@@ -116,15 +116,13 @@ class LocalHistory(BaseHistoryPlugin):
                 session.add(interaction)
 
                 # Create History record
-                history = HistoryModel(
-                    interaction=interaction,
-                )
+                history = HistoryModel(interaction=interaction, user_id=user_id)
                 session.add(history)
         except Exception as e:
             logger.error("Failed to write to database: %s", e)
             raise CorruptedHistoryError(f"Failed to write to database: {e}") from e
 
-    def clear(self) -> None:
+    def clear(self, user_id: uuid.UUID) -> None:
         """Clear the database by dropping and recreating tables.
 
         Raises:
@@ -133,9 +131,9 @@ class LocalHistory(BaseHistoryPlugin):
         try:
             with self._db.session() as session:
                 # Soft delete by setting deleted_at
-                session.query(HistoryModel).update(
-                    {"deleted_at": datetime.utcnow()}, synchronize_session=False
-                )
+                session.query(HistoryModel).where(
+                    HistoryModel.user_id == user_id
+                ).update({"deleted_at": datetime.utcnow()})
             logger.info("Database cleared successfully")
         except Exception as e:
             logger.error("Failed to clear database: %s", e)

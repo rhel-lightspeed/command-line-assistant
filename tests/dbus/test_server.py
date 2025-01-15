@@ -1,7 +1,5 @@
 from unittest import mock
 
-from dasbus.constants import DBUS_NAME_FLAG_REPLACE_EXISTING
-
 from command_line_assistant.config import Config
 from command_line_assistant.dbus import server
 
@@ -29,10 +27,6 @@ def test_serve_registers_services(monkeypatch):
 
     assert system_bus_mock.publish_object.call_count == 2
     assert system_bus_mock.register_service.call_count == 2
-    assert (
-        system_bus_mock.register_service.call_args_list[1][1]["flags"]
-        == DBUS_NAME_FLAG_REPLACE_EXISTING
-    )
 
 
 def test_serve_cleanup_on_exception(monkeypatch):

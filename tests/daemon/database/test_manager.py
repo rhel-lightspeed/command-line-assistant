@@ -94,7 +94,7 @@ def test_add_success(database_manager):
         os_arch="x86_64",
     )
 
-    history = HistoryModel(interaction=interaction)
+    history = HistoryModel(interaction=interaction, user_id=uuid.uuid4())
 
     database_manager.add(history)
     result = database_manager.get(InteractionModel, uid)
@@ -122,7 +122,7 @@ def test_query_success(database_manager):
         os_arch="x86_64",
     )
     uid = uuid.uuid4()
-    history = HistoryModel(id=uid, interaction=interaction)
+    history = HistoryModel(id=uid, user_id=uuid.uuid4(), interaction=interaction)
 
     database_manager.add(history)
 
@@ -157,6 +157,7 @@ def test_get_success(database_manager):
     uid = uuid.uuid4()
     history = HistoryModel(
         id=uid,
+        user_id=uuid.uuid4(),
         interaction=interaction,
     )
     database_manager.add(history)
