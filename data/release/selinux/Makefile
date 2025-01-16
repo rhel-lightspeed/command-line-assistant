@@ -28,6 +28,7 @@ clean-local:
 	rm -rf *~  *.tc *.pp *.pp.bz2 tmp *.cil
 
 test:
+	# https://access.redhat.com/articles/6999267
 	sudo semodule -i clad.pp
 
 %.cil: %.pp

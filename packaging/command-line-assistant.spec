@@ -101,9 +101,6 @@ popd
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.query.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.query.service
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.history.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 
-# Workaround to create /var/lib/command-line-assistant
-#%{__install} -D -m 0644 %{buildroot}/%{_sharedstatedir}/%{name}/history.db
-
 # Config file
 %{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
 

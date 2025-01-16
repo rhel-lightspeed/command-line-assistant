@@ -82,6 +82,7 @@ clean: ## Clean project files
 	   junit.xml \
 	   coverage.xml
 	$(MAKE) -C docs clean
+	$(MAKE) -C data/release/selinux
 
 link-systemd-units: ## Link the systemd units to ~/.config/systemd/user
 	@echo "Linking the systemd units from $(CLAD_SYSTEMD_DEVEL_PATH) to $(SYSTEMD_USER_UNITS)/clad.service"
