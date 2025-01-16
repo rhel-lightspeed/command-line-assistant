@@ -8,7 +8,6 @@ from requests import RequestException
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.http.session import get_session
 from command_line_assistant.dbus.exceptions import RequestFailedError
-from command_line_assistant.handlers import handle_caret
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +25,6 @@ def submit(query: str, config: Config) -> str:
     Returns:
         str: The response from the backend.
     """
-    query = handle_caret(query, config)
-
     query_endpoint = f"{config.backend.endpoint}/infer"
     payload = {"question": query}
 
