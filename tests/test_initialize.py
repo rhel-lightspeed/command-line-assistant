@@ -49,7 +49,7 @@ def test_initialize_with_query_command(argv, stdin):
         mock_parse.return_value.func = mock_command
         result = initialize()
 
-        assert result == 0
+        assert result == 1
         mock_command.assert_called_once()
 
 
@@ -67,7 +67,7 @@ def test_initialize_with_history_command():
         mock_parse.return_value.func = mock_command
         result = initialize()
 
-        assert result == 0
+        assert result == 1
         mock_command.assert_called_once()
 
 
@@ -136,5 +136,5 @@ def test_initialize_command_selection(argv, expected_command):
 
         result = initialize()
 
-        assert result == 0
+        assert result == 1
         mock_command.assert_called_once()

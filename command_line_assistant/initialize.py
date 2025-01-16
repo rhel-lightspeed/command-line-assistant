@@ -59,5 +59,4 @@ def initialize() -> int:
         return 1
 
     service = args.func(args)
-    service.run()
-    return 0
+    return service.run()

@@ -111,6 +111,7 @@ LICENSE
 
 %changelog
 * Wed Jan 22 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.0
+- Fix returncode when running commands
 - Refactor the CLI to be separate commands
 - Add an experimental rendering module for client
 - Add Command Line Assistant Daemon
