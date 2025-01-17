@@ -14,8 +14,7 @@ type = "sqlite"
 connection_string = "~/.local/share/command-line-assistant/history.db"
 
 [backend]
-#endpoint = "http://localhost:8080"
-endpoint = "https://rlsapi-rhel-lightspeed--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com"
+endpoint = "http://localhost:8080"
 
 [backend.auth]
 cert_file = "data/development/certificate/fake-certificate.pem"
@@ -25,7 +24,7 @@ verify_ssl = false
 [logging]
 level = "DEBUG"
 responses = false # Global setting - don't log responses by default
-question = false # Global setting - don't log questions by default
+question = false  # Global setting - don't log questions by default
 
 # User-specific settings
 #users.rolivier = { responses = true, question = true }

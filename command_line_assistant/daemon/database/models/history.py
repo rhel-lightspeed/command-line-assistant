@@ -4,10 +4,9 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from command_line_assistant.daemon.database.models.base import BaseModel
+from command_line_assistant.daemon.database.models.base import GUID, BaseModel
 
 
 class HistoryModel(BaseModel):
@@ -15,15 +14,13 @@ class HistoryModel(BaseModel):
 
     __tablename__ = "history"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), nullable=False)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID(), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow())
     deleted_at = Column(DateTime, nullable=True)
 
     # Relationships
-    interaction_id = Column(
-        UUID(as_uuid=True), ForeignKey("interaction.id"), nullable=False
-    )
+    interaction_id = Column(GUID(), ForeignKey("interaction.id"), nullable=False)
     interaction = relationship("InteractionModel", backref="history")
 
 
@@ -32,7 +29,7 @@ class InteractionModel(BaseModel):
 
     __tablename__ = "interaction"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     query_text = Column(String)
     query_role = Column(String, default="user")
     response_text = Column(String)
