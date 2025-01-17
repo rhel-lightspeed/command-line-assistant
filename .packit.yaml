@@ -17,7 +17,9 @@ jobs:
       - epel-10-x86_64
       - epel-10-aarch64
       - fedora-40-x86_64
+      - fedora-40-aarch64
       - fedora-41-x86_64
+      - fedora-41-aarch64
     actions:
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
@@ -34,6 +36,10 @@ jobs:
       - epel-9-aarch64
       - epel-10-x86_64
       - epel-10-aarch64
+      - fedora-40-x86_64
+      - fedora-40-aarch64
+      - fedora-41-x86_64
+      - fedora-41-aarch64
     actions:
       # bump spec so we get release starting with 2 and hence all the default branch builds will
       # have higher NVR than all the PR builds
@@ -54,6 +60,10 @@ jobs:
       - epel-9-aarch64
       - epel-10-x86_64
       - epel-10-aarch64
+      - fedora-40-x86_64
+      - fedora-40-aarch64
+      - fedora-41-x86_64
+      - fedora-41-aarch64
     actions:
       # bump spec so we get release starting with 2 and hence all the default branch builds will
       # have higher NVR than all the PR builds
