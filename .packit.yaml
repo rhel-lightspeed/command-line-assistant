@@ -16,6 +16,8 @@ jobs:
       - epel-9-aarch64
       - epel-10-x86_64
       - epel-10-aarch64
+      - fedora-40-x86_64
+      - fedora-41-x86_64
     actions:
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
