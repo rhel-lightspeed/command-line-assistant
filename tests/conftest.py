@@ -70,7 +70,8 @@ def mock_config(tmp_path):
                 ),
             ),
             history=HistorySchema(
-                enabled=True, database=DatabaseSchema(connection_string=history_db)
+                enabled=True,
+                database=DatabaseSchema(type="sqlite", connection_string=history_db),
             ),
             logging=LoggingSchema(
                 level="debug",

@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from command_line_assistant.daemon.database.models.base import GUID, BaseModel
@@ -30,11 +30,11 @@ class InteractionModel(BaseModel):
     __tablename__ = "interaction"
 
     id = Column(GUID(), primary_key=True, default=uuid.uuid4)
-    query_text = Column(String)
-    query_role = Column(String, default="user")
-    response_text = Column(String)
-    response_role = Column(String, default="assistant")
+    query_text = Column(Text)
+    query_role = Column(String(4), default="user")
+    response_text = Column(Text)
+    response_role = Column(String(9), default="assistant")
     response_tokens = Column(Integer, default=0)
-    os_distribution = Column(String, default="RHEL")
-    os_version = Column(String, nullable=False)
-    os_arch = Column(String, nullable=False)
+    os_distribution = Column(String(4), default="RHEL")
+    os_version = Column(String(100), nullable=False)
+    os_arch = Column(String(7), nullable=False)

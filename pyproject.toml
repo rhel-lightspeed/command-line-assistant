@@ -29,7 +29,11 @@ scripts = { c = "command_line_assistant.initialize:initialize", clad = "command_
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[dependency-groups]
+[project.optional-dependencies]
+db = [
+    "psycopg2>=2.9.10",
+    "mysqlclient>=2.2.7",
+]
 dev = [
     "pytest==8.3.4",
     "pytest-cov==6.0.0",

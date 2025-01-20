@@ -11,6 +11,14 @@ from typing import Optional, Union
 class DatabaseSchema:
     """This class represents the [history.database] section of our config.toml file.
 
+    Notes:
+        If you are running MySQL or MariaDB in a container and want to test it
+        out, don't set the host to "localhost", but set it to "127.0.0.1". The
+        "localhost" will use the mysql socket connector, and "127.0.0.1" will
+        use TCP connector.
+
+        Reference: https://stackoverflow.com/a/4448568
+
     Attributes:
         connection (str): The connection string.
     """

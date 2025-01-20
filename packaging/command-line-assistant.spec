@@ -169,6 +169,7 @@ fi
 
 %changelog
 * Wed Jan 22 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.0
+- Add String size limit to SQLAlchemy models
 - Add workaround for SQLite UUID types
 - Update packaging to include selinux custom policy
 - Fix returncode when running commands
