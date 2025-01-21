@@ -1,12 +1,12 @@
 # ------------------ experimental
 # Experimental settings for output. Not yet working.
-#[output]
+[output]
 # otherwise recording via script session will be enforced
-#enforce_script = false
+enforce_script = false
 # file with output(s) of regular commands (e.g. ls, echo, etc.)
-#file = "/tmp/command-line-assistant/output.txt"
+file = "/tmp/command-line-assistant/output.txt"
 # Keep non-empty if your file contains only output of commands (not prompt itself)
-#prompt_separator = "$"
+prompt_separator = "$"
 # ------------------ experimental
 
 # History management configuration
