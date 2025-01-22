@@ -168,7 +168,10 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
-* Wed Jan 22 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.0
+* Wed Jan 22 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.1
+- Change import location for SQLAlchemy
+
+* Tue Jan 21 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.0
 - Add String size limit to SQLAlchemy models
 - Add workaround for SQLite UUID types
 - Update packaging to include selinux custom policy

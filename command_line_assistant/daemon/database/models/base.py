@@ -3,8 +3,8 @@
 import uuid
 from typing import Any
 
-from sqlalchemy import Dialect
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.types import CHAR, TypeDecorator
