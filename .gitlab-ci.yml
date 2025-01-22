@@ -1,4 +1,8 @@
 # Only used to run sonarqube analysis currently.
+default:
+  tags:
+    - shared-podman
+
 image:
   name: images.paas.redhat.com/alm/sonar-scanner-alpine
   entrypoint: [""]
