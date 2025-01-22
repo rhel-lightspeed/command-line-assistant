@@ -18,7 +18,7 @@ restorecon -R /var/log/command-line-assistant/audit.log; \
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.2.0
+Version:        0.2.1
 Release:        1%{?dist}
 Summary:        A simple wrapper to interact with RAG
 

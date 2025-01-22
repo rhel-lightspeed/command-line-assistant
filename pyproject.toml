@@ -1,6 +1,6 @@
 [project]
 name = "command-line-assistant"
-version = "0.2.0"
+version = "0.2.1"
 description = "A simple wrapper to interact with RAG"
 authors = [
     { name = "RHEL Lightspeed Team", email = "rhel-sst-lightspeed@redhat.com" },
@@ -30,10 +30,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
-db = [
-    "psycopg2>=2.9.10",
-    "mysqlclient>=2.2.7",
-]
+db = ["psycopg2>=2.9.10", "mysqlclient>=2.2.7"]
 dev = [
     "pytest==8.3.4",
     "pytest-cov==6.0.0",
