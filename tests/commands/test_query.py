@@ -105,7 +105,7 @@ def test_query_command_invalid_inputs(mock_dbus_service, test_args, capsys):
     captured = capsys.readouterr()
     assert (
         "\x1b[31m🙁 No input provided. Please provide input via file, stdin, or direct\nquery.\x1b[0m"
-        in captured.out
+        in captured.err
     )
 
 
@@ -245,4 +245,4 @@ def test_dbus_error_handling(exception, expected, mock_dbus_service, capsys):
 
     # Verify error message in stdout
     captured = capsys.readouterr()
-    assert expected in captured.out.strip()
+    assert expected in captured.err.strip()

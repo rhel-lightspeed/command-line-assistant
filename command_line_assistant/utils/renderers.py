@@ -20,13 +20,12 @@ def create_error_renderer() -> TextRenderer:
         TextRenderer: Instance of a TextRenderer with correct decorators for
         error output.
     """
-    renderer = TextRenderer()
-    renderer.update(
+    renderer = create_text_renderer(
         [
             EmojiDecorator(emoji="U+1F641"),
             ColorDecorator(foreground="red"),
-            TextWrapDecorator(),
-        ]
+        ],
+        StderrStream(),
     )
 
     return renderer
@@ -39,13 +38,12 @@ def create_warning_renderer() -> TextRenderer:
         TextRenderer: Instance of a TextRenderer with correct decorators for
         error output.
     """
-    renderer = TextRenderer(StderrStream())
-    renderer.update(
+    renderer = create_text_renderer(
         [
             EmojiDecorator(emoji="0x1f914"),
             ColorDecorator(foreground="yellow"),
-            TextWrapDecorator(),
-        ]
+        ],
+        StderrStream(),
     )
 
     return renderer

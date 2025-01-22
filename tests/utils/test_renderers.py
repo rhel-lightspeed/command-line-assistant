@@ -11,8 +11,7 @@ def test_create_error_renderer(capsys: pytest.CaptureFixture[str]):
     renderer.render("errored out")
 
     captured = capsys.readouterr()
-    print(captured)
-    assert "\x1b[31m🙁 errored out\x1b[0m\n" in captured.out
+    assert "\x1b[31m🙁 errored out\x1b[0m\n" in captured.err
 
 
 def test_create_spinner_renderer(capsys, mock_stream):

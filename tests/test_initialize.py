@@ -105,7 +105,7 @@ def test_initialize_bad_stdin(capsys):
     captured = capsys.readouterr()
     assert (
         "The stdin provided could not be decoded. Please, make sure it is in\ntextual format."
-        in captured.out
+        in captured.err
     )
 
 
