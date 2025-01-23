@@ -50,7 +50,7 @@ class BaseStream:
 
     def execute(self, text: str) -> None:
         """
-        Write the text to the output stream and flush it immediatly.
+        Write the text to the output stream and flush it immediately.
 
         Args:
             text (str): The text to be written

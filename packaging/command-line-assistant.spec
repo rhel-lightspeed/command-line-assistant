@@ -41,7 +41,7 @@ Requires:       python3-dasbus
 Requires:       python3-requests
 Requires:       python3-sqlalchemy
 Requires:       systemd
-# Add selinux subpackge as dependency
+# Add selinux subpackage as dependency
 Requires:       %{name}-selinux
 
 # Not needed after RHEL 10 as it is native in Python 3.11+

@@ -1,4 +1,4 @@
-"""Utility module that provides standarized functions for rendering"""
+"""Utility module that provides standardized functions for rendering"""
 
 from typing import Optional
 
@@ -14,7 +14,7 @@ from command_line_assistant.rendering.stream import StderrStream, StdoutStream
 
 
 def create_error_renderer() -> TextRenderer:
-    """Create a standarized instance of text rendering for error output
+    """Create a standardized instance of text rendering for error output
 
     Returns:
         TextRenderer: Instance of a TextRenderer with correct decorators for
@@ -32,7 +32,7 @@ def create_error_renderer() -> TextRenderer:
 
 
 def create_warning_renderer() -> TextRenderer:
-    """Create a standarized instance of text rendering for error output
+    """Create a standardized instance of text rendering for error output
 
     Returns:
         TextRenderer: Instance of a TextRenderer with correct decorators for

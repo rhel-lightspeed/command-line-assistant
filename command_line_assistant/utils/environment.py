@@ -43,7 +43,7 @@ def get_xdg_config_path() -> Path:
         .. note::
             Usually, XDG_CONFIG_DIRS is represented as multi-path separated by a
             ":" where all the configurations files could live. This is not
-            particularily useful to us, so we read the environment (if present),
+            particularly useful to us, so we read the environment (if present),
             parse that, and extract only the wanted path (/etc/xdg).
 
     Ref: https://specifications.freedesktop.org/basedir-spec/latest/
@@ -57,12 +57,12 @@ def get_xdg_config_path() -> Path:
 
     # If the total length of XDG_CONFIG_DIRS is just 1, we don't need to
     # proceed on the rest of the conditions. This probably means that the
-    # XDG_CONFIG_DIRS was overrided and pointed to a specific location.
+    # XDG_CONFIG_DIRS was overridden and pointed to a specific location.
     # We hope to find the config file there.
     if len(xdg_config_dirs) == 1:
         return Path(xdg_config_dirs[0])
 
-    # Try to find the first occurence of the wanted_xdg_dir in the path, in
+    # Try to find the first occurrence of the wanted_xdg_dir in the path, in
     # case it is not present, return the default value.
     xdg_dir_found = next(
         (dir for dir in xdg_config_dirs if dir == WANTED_XDG_PATH), WANTED_XDG_PATH

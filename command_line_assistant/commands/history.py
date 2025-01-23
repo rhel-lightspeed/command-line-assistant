@@ -139,7 +139,7 @@ class HistoryCommand(BaseCLICommand):
         self._proxy.ClearHistory(self._context.effective_user_id)
 
     def _show_history(self, entries: list[HistoryItem]) -> None:
-        """Internal method to show the history in a standarized way
+        """Internal method to show the history in a standardized way
 
         Args:
             entries (list[HistoryItem]): The list of entries in the history

@@ -51,7 +51,7 @@ Example 2. Redirecting output to `c`
 
         $ cat log_with_error.log | c
 
-    If you want to redirect directly from a commmand, that is also possible
+    If you want to redirect directly from a command, that is also possible
     with::
 
         $ my-command | c

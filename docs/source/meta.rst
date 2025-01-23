@@ -47,7 +47,7 @@ It can be a little tricky due to use the correct name for the object. See the fo
 
    1. :mod:`handlers`,       // works in docstrings, doesn't work in rst
    2. :class:`LocalHistory`, // works in docstrings, doesn't work in rst
-   3. :mod:`.handlers`,      // looks fo all objects which end with the suffix `.handlers`.
+   3. :mod:`.handlers`,      // looks for all objects which end with the suffix `.handlers`.
                              // As it finds two: command_line_assistant.handlers and command_line_assistant.tests.handlers
                              // it takes the shortest of them
    4. :mod:`command_line_assistant.handlers`,  // fully-qualified name

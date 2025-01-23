@@ -65,7 +65,7 @@ def main() -> int:
     if not missing_documents:
         print(
             "Hoorray! It seems that all your source files have a "
-            "correspnding document for sphinx!",
+            "corresponding document for sphinx!",
         )
         return 0
 

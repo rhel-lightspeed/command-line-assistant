@@ -17,7 +17,7 @@ from command_line_assistant.config import schemas
     ),
 )
 def test_initialize_schemas(schema):
-    # Making sure that we don't error out while initializing the schema with default vlaues.
+    # Making sure that we don't error out while initializing the schema with default values.
     assert isinstance(schema(), schema)
 
 

@@ -22,7 +22,7 @@ Description
 -----------
 
 Command Line Assistant Daemon (clad) is the core of the Command Line Assistant
-tooling. It manages the communication with WatsonX API trought an external
+tooling. It manages the communication with WatsonX API through an external
 backend, user history management and much more.
 
 Files

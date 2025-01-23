@@ -86,3 +86,7 @@ skip_empty = true
 [tool.coverage.run]
 branch = true
 source = ["command_line_assistant"]
+
+[tool.codespell]
+skip = 'data/release/man/*,data/release/selinux/Makefile'
+count = true

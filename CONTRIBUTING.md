@@ -49,7 +49,7 @@ requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-reque
 
 ## Getting started with development
 
-### Seting up the environment
+### Setting up the environment
 
 The commands below will create a python3 virtual environment with all the
 necessary dependencies installed. This is done via
