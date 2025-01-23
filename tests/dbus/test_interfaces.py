@@ -7,7 +7,7 @@ from command_line_assistant.dbus.interfaces import (
     HistoryInterface,
     QueryInterface,
 )
-from command_line_assistant.dbus.structures import HistoryEntry, Message
+from command_line_assistant.dbus.structures import HistoryEntry, Message, MessageInput
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
 
@@ -40,11 +40,28 @@ def test_query_interface_ask_question(query_interface, mock_config):
     with patch(
         "command_line_assistant.dbus.interfaces.submit", return_value=expected_response
     ) as mock_submit:
-        response = query_interface.AskQuestion(
-            "b7e95c2c-d2a8-11ef-a6bf-52b437312584", "test?"
+        message_input = MessageInput()
+        message_input.from_dict(
+            data={
+                "question": "test",
+                "stdin": "",
+                "attachment_contents": "",
+                "attachment_mimetype": "",
+                "user": 1000,
+            }
         )
+        response = query_interface.AskQuestion(MessageInput.to_structure(message_input))
 
-        mock_submit.assert_called_once_with("test?", mock_config)
+        mock_submit.assert_called_once_with(
+            {
+                "question": "test",
+                "context": {
+                    "stdin": "",
+                    "attachments": {"contents": "", "mimetype": ""},
+                },
+            },
+            mock_config,
+        )
 
         reconstructed = Message.from_structure(response)
         assert reconstructed.message == expected_response

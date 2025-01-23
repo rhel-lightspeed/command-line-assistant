@@ -36,27 +36,25 @@ def initialize() -> int:
         int: Status code of the execution
     """
     parser = register_subcommands()
+    error_renderer = create_error_renderer()
 
-    stdin = None
     try:
         stdin = read_stdin()
-    except UnicodeDecodeError:
-        # Usually happens when the user try to cat a binary file and redirect that to us.
-        error_renderer = create_error_renderer()
-        error_renderer.render(
-            "The stdin provided could not be decoded. Please, make sure it is in textual format."
-        )
+
+        args = add_default_command(stdin, sys.argv)
+
+        # Small workaround to include the stdin in the namespace object in case it exists.
+        namespace = Namespace(stdin=stdin) if stdin else Namespace()
+        args = parser.parse_args(args, namespace=namespace)
+
+        if not hasattr(args, "func"):
+            parser.print_help()
+            return 1
+
+        service = args.func(args)
+        return service.run()
+    except ValueError as e:
+        error_renderer.render(str(e))
         return 1
 
-    args = add_default_command(stdin, sys.argv)
-
-    # Small workaround to include the stdin in the namespace object in case it exists.
-    namespace = Namespace(stdin=stdin) if stdin else Namespace()
-    args = parser.parse_args(args, namespace=namespace)
-
-    if not hasattr(args, "func"):
-        parser.print_help()
-        return 1
-
-    service = args.func(args)
-    return service.run()
+    return 0

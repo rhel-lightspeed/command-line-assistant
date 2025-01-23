@@ -1,5 +1,4 @@
 from argparse import ArgumentParser, Namespace
-from io import StringIO
 from unittest import mock
 from unittest.mock import patch
 
@@ -61,9 +60,7 @@ def test_query_command_run(mock_dbus_service, test_input, expected_output, capsy
     mock_output = Message()
     mock_output.message = expected_output
     mock_output.user = "mock"
-    mock_dbus_service.AskQuestion = lambda user_id, question: Message.to_structure(
-        mock_output
-    )
+    mock_dbus_service.AskQuestion = lambda mock_input: Message.to_structure(mock_output)
 
     command = QueryCommand(test_input, None)
     command.run()
@@ -79,9 +76,7 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
     mock_output = Message()
     mock_output.message = ""
     mock_output.user = "mock"
-    mock_dbus_service.AskQuestion = lambda user_id, question: Message.to_structure(
-        mock_output
-    )
+    mock_dbus_service.AskQuestion = lambda mock_input: Message.to_structure(mock_output)
 
     command = QueryCommand("test query", None)
     command.run()
@@ -129,16 +124,16 @@ def test_register_subcommand():
     (
         (
             "test query",
-            None,
-            None,
+            "",
+            "",
         ),
         (
-            None,
+            "",
             "stdin",
-            None,
+            "",
         ),
-        (None, None, mock.Mock()),
-        ("test query", "test stdin", mock.Mock()),
+        ("", "", mock.MagicMock()),
+        ("test query", "test stdin", mock.MagicMock()),
     ),
 )
 def test_command_factory(query_string, stdin, attachment):
@@ -158,16 +153,27 @@ def test_command_factory(query_string, stdin, attachment):
         ("test query", None, None, "test query"),
         (None, "stdin", None, "stdin"),
         ("query", "stdin", None, "query stdin"),
-        (None, None, StringIO("file query"), "file query"),
-        ("query", None, StringIO("file query"), "query file query"),
-        (None, "stdin", StringIO("file query"), "stdin file query"),
+        (None, None, "file query", "file query"),
+        ("query", None, "file query", "query file query"),
+        (None, "stdin", "file query", "stdin file query"),
         # Stdin in this case is ignored.
-        ("test query", "test stdin", StringIO("file query"), "test query file query"),
+        ("test query", "test stdin", "file query", "test query file query"),
     ),
 )
-def test_get_input_source(query_string, stdin, attachment, expected):
+def test_get_input_source(query_string, stdin, attachment, expected, tmp_path):
     """Test _command_factory function"""
-    options = {"query_string": query_string, "stdin": stdin, "attachment": attachment}
+    file_attachment = None
+
+    if attachment:
+        file_attachment = tmp_path / "test.txt"
+        file_attachment.write_text(attachment)
+        file_attachment = open(file_attachment, "r")
+
+    options = {
+        "query_string": query_string,
+        "stdin": stdin,
+        "attachment": file_attachment,
+    }
     command = QueryCommand(**options)
 
     output = command._get_input_source()
@@ -175,26 +181,14 @@ def test_get_input_source(query_string, stdin, attachment, expected):
     assert output == expected
 
 
-@pytest.mark.parametrize(
-    ("input_file",),
-    (
-        ("\x7fELF",),
-        ("%PDF",),
-        ("PK\x03\x04",),
-    ),
-)
-def test_get_input_source_binary_file(input_file):
-    options = {"query_string": None, "stdin": None, "attachment": StringIO(input_file)}
-    command = QueryCommand(**options)
-    with pytest.raises(ValueError, match="File appears to be binary"):
-        command._get_input_source()
-
-
-def test_get_inout_source_all_values_warning_message(capsys):
+def test_get_inout_source_all_values_warning_message(capsys, tmp_path):
+    file_attachment = tmp_path / "test.txt"
+    file_attachment.write_text("file")
+    file_attachment = open(file_attachment, "r")
     options = {
         "query_string": "query",
         "stdin": "stdin",
-        "attachment": StringIO("file"),
+        "attachment": file_attachment,
     }
     command = QueryCommand(**options)
 

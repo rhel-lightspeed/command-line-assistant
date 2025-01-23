@@ -12,6 +12,7 @@ from command_line_assistant.dbus.structures import (
     HistoryEntry,
     HistoryItem,
     Message,
+    MessageInput,
 )
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
@@ -24,30 +25,39 @@ logger = logging.getLogger(__name__)
 class QueryInterface(InterfaceTemplate):
     """The DBus interface of a query."""
 
-    def AskQuestion(self, effective_user_id: Int, question: Str) -> Structure:
+    def AskQuestion(self, message_input: Structure) -> Structure:
         """This method is mainly called by the client to retrieve it's answer.
 
         Returns:
             Structure: The message output in format of a d-bus structure.
         """
+        content = MessageInput.from_structure(message_input)
         # Submit query to backend
-        llm_response = submit(question, self.implementation.config)
+        data = {
+            "question": content.question,
+            "context": {
+                "stdin": content.stdin,
+                "attachments": {
+                    "contents": content.attachment_contents,
+                    "mimetype": content.attachment_mimetype,
+                },
+            },
+        }
+        llm_response = submit(data, self.implementation.config)
 
         # Create message object
         message = Message()
         message.message = llm_response
 
         # Deal with history management
-        manager = HistoryManager(
-            self.implementation.config, effective_user_id, LocalHistory
-        )
-        manager.write(question, llm_response)
+        manager = HistoryManager(self.implementation.config, content.user, LocalHistory)
+        manager.write(content.question, llm_response)
 
         audit_logger.info(
             "Query executed successfully.",
             extra={
-                "user": effective_user_id,
-                "query": question,
+                "user": content.user,
+                "query": content.question,
                 "response": llm_response,
             },
         )

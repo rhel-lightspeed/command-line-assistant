@@ -65,7 +65,7 @@ def add_default_command(stdin: Optional[str], argv: list[str]):
         return args
 
     subcommand = _subcommand_used(argv)
-    if subcommand is None:
+    if not subcommand:
         args.insert(0, "query")
 
     return args
@@ -122,7 +122,11 @@ def read_stdin() -> Optional[str]:
     # Check if there's input available on stdin
     if select.select([sys.stdin], [], [], 0.0)[0]:
         # If there is input, read it
-        input_data = sys.stdin.read().strip()
+        try:
+            input_data = sys.stdin.read().strip()
+        except UnicodeDecodeError as e:
+            raise ValueError("Binary input are not supported.") from e
+
         return input_data
 
     # If no input, return None or handle as you prefer

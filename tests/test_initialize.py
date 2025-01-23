@@ -97,16 +97,11 @@ def test_initialize_with_help(capsys):
 
 def test_initialize_bad_stdin(capsys):
     with patch("command_line_assistant.initialize.read_stdin") as mock_stdin:
-        mock_stdin.side_effect = UnicodeDecodeError(
-            "utf-8", b"", 0, 1, "invalid start byte"
-        )
+        mock_stdin.side_effect = ValueError("Binary input are not supported.")
         initialize()
 
     captured = capsys.readouterr()
-    assert (
-        "The stdin provided could not be decoded. Please, make sure it is in\ntextual format."
-        in captured.err
-    )
+    assert "\x1b[31m🙁 Binary input are not supported.\x1b[0m\n" in captured.err
 
 
 @pytest.mark.parametrize(
