@@ -7,6 +7,7 @@ import pytest
 from command_line_assistant.commands.query import (
     QueryCommand,
     _command_factory,
+    _parse_attachment_file,
     register_subcommand,
 )
 from command_line_assistant.dbus.exceptions import (
@@ -240,3 +241,33 @@ def test_dbus_error_handling(exception, expected, mock_dbus_service, capsys):
     # Verify error message in stdout
     captured = capsys.readouterr()
     assert expected in captured.err.strip()
+
+
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    (
+        ("test", "test"),
+        ("test ", "test"),
+    ),
+)
+def test_parse_attachment_file(content, expected, tmp_path):
+    file_attachment = tmp_path / "file.txt"
+    file_attachment.write_text(content)
+    file_attachment = open(file_attachment, mode="r")
+
+    assert _parse_attachment_file(file_attachment) == expected
+
+
+def test_parse_attachment_file_missing():
+    assert not _parse_attachment_file(None)
+
+
+def test_parse_attachment_file_exception(tmp_path):
+    file_attachment = tmp_path / "file.txt"
+    file_attachment.write_bytes(b"'\x80abc'")
+    file_attachment = open(file_attachment, mode="r")
+
+    with pytest.raises(
+        ValueError, match="File appears to be binary or contains invalid text encoding"
+    ):
+        assert _parse_attachment_file(file_attachment)

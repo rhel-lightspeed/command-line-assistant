@@ -56,5 +56,3 @@ def initialize() -> int:
     except ValueError as e:
         error_renderer.render(str(e))
         return 1
-
-    return 0
