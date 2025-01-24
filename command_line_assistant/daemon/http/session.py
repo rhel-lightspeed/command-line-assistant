@@ -34,6 +34,9 @@ def get_session(config: Config) -> Session:
     """
     session = Session()
 
+    # Include the proxies defined by the user. By default, nothing is loaded.
+    session.proxies.update(config.backend.proxies)
+
     # Set up the necessary headers for every session.
     session.headers["User-Agent"] = USER_AGENT
     session.headers["Content-Type"] = "application/json"

@@ -60,7 +60,7 @@ def mock_config(tmp_path):
                 prompt_separator="$",
             ),
             backend=BackendSchema(
-                endpoint="http://test.endpoint/v1/query",
+                endpoint="http://localhost",
                 auth=AuthSchema(
                     cert_file=cert_file, key_file=key_file, verify_ssl=False
                 ),
