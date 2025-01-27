@@ -6,14 +6,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from command_line_assistant import config, logger
-from command_line_assistant.config import (
-    BackendSchema,
-    Config,
-    HistorySchema,
-    LoggingSchema,
-    OutputSchema,
-)
-from command_line_assistant.config.schemas import AuthSchema, DatabaseSchema
+from command_line_assistant.config.schemas.backend import AuthSchema, BackendSchema
+from command_line_assistant.config.schemas.history import DatabaseSchema, HistorySchema
+from command_line_assistant.config.schemas.logging import LoggingSchema
+from command_line_assistant.config.schemas.output import OutputSchema
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
 from tests.helpers import MockStream
@@ -57,7 +53,7 @@ def mock_config(tmp_path):
     cert_file.write_text("cert")
     key_file.write_text("key")
     with patch("pwd.getpwnam", return_value=MockPwnam()):
-        return Config(
+        return config.Config(
             output=OutputSchema(
                 enforce_script=False,
                 file=Path("/tmp/test_output.txt"),
