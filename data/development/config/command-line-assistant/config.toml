@@ -15,6 +15,7 @@ connection_string = "~/.local/share/command-line-assistant/history.db"
 
 [backend]
 endpoint = "http://localhost:8000"
+# proxies = { http = "http://localhost:8002", https = "https://localhost:8002" }
 
 [backend.auth]
 cert_file = "data/development/certificate/fake-certificate.pem"

@@ -30,11 +30,14 @@ class BackendSchema:
 
     Attributes:
         endpoint (str): The endpoint to communicate with.
+        proxies (dict[str, str]): Dictionary of proxies to route the request
         auth (Union[dict, AuthSchema]): The authentication information
     """
 
     endpoint: str = "http://0.0.0.0:8080"
     auth: AuthSchema = dataclasses.field(default_factory=AuthSchema)
+
+    proxies: dict[str, str] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
         """Post initialization method to normalize values"""

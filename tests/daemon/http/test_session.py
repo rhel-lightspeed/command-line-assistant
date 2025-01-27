@@ -97,3 +97,25 @@ def test_session_with_missing_ssl_certificate(tmp_path, mock_config):
 
     with pytest.raises(RequestFailedError, match="Couldn't find certificate files at"):
         get_session(mock_config)
+
+
+@pytest.mark.parametrize(
+    ("proxies",),
+    (
+        ({"http": "http://may-the-force-be-with-you"},),
+        ({},),
+        ({"https": "https://may-the-force-be-with-you"},),
+        (
+            {
+                "http": "http://may-the-force-be-with-you",
+                "https": "https://double-proxy!",
+            },
+        ),
+    ),
+)
+def test_session_with_proxies(proxies, mock_config):
+    mock_config.backend.proxies = proxies
+
+    session = get_session(mock_config)
+
+    assert session.proxies == proxies
