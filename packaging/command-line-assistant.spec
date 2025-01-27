@@ -153,7 +153,7 @@ fi
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 
 # Config file
-%config %{_sysconfdir}/xdg/%{name}/config.toml
+%config(noreplace) %{_sysconfdir}/xdg/%{name}/config.toml
 
 # Manpages
 %{_mandir}/man1/%{binary_name}.1.gz
