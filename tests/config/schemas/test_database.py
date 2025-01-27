@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from command_line_assistant.config.schemas.history import DatabaseSchema, HistorySchema
+from command_line_assistant.config.schemas.database import DatabaseSchema
 
 
 def test_database_schema_invalid_type():
@@ -43,8 +43,3 @@ def test_database_schema_default_initialization(type, port, connection_string):
 def test_database_schema_initialization_no_port(type, expected):
     result = DatabaseSchema(type=type)
     assert result.port == expected
-
-
-def test_history_schema():
-    result = HistorySchema()
-    assert result.database

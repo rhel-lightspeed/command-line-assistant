@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 
 from command_line_assistant.config.schemas.backend import BackendSchema
+from command_line_assistant.config.schemas.database import DatabaseSchema
 from command_line_assistant.config.schemas.history import HistorySchema
 from command_line_assistant.config.schemas.logging import LoggingSchema
 from command_line_assistant.config.schemas.output import OutputSchema
@@ -40,12 +41,14 @@ class Config:
 
     Attributes:
         output (OutputSchema): Match the `py:OutputSchema` class and their fields
+        database (DatabaseSchema): Match the `py:DatabaseSchema` class and their fields
         history (HistorySchema): Match the `py:HistorySchema` class and their fields
         backend (BackendSchema): Match the `py:BackendSchema` class and their fields
         logging (LoggingSchema): Match the `py:LoggingSchema` class and their fields
     """
 
     output: OutputSchema = dataclasses.field(default_factory=OutputSchema)
+    database: DatabaseSchema = dataclasses.field(default_factory=DatabaseSchema)
     history: HistorySchema = dataclasses.field(default_factory=HistorySchema)
     backend: BackendSchema = dataclasses.field(default_factory=BackendSchema)
     logging: LoggingSchema = dataclasses.field(default_factory=LoggingSchema)
@@ -74,6 +77,7 @@ def load_config_file() -> Config:
 
     return Config(
         output=OutputSchema(**config_dict["output"]),
+        database=DatabaseSchema(**config_dict["database"]),
         history=HistorySchema(**config_dict["history"]),
         backend=BackendSchema(**config_dict["backend"]),
         logging=LoggingSchema(**config_dict["logging"]),

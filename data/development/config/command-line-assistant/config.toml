@@ -6,12 +6,12 @@ file = "/tmp/command-line-assistant_output.txt"
 # Keep non-empty if your file contains only output of commands (not prompt itself)
 prompt_separator = "$"
 
-[history]
-enabled = true
-
-[history.database]
+[database]
 type = "sqlite"
 connection_string = "~/.local/share/command-line-assistant/history.db"
+
+[history]
+enabled = true
 
 [backend]
 endpoint = "http://localhost:8000"

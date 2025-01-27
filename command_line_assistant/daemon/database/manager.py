@@ -59,11 +59,11 @@ class DatabaseManager:
             ConnectionError: When invalid database settings are provided
         """
         try:
-            connection_url = self._config.history.database.get_connection_url()
+            connection_url = self._config.database.get_connection_url()
 
             # SQLite-specific settings
             connect_args = {}
-            if self._config.history.database.type == "sqlite":
+            if self._config.database.type == "sqlite":
                 connect_args["check_same_thread"] = False
                 return create_engine(
                     connection_url,

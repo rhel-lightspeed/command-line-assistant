@@ -37,7 +37,7 @@ def test_database_manager_initialization_failure(mock_config):
     def failure():
         raise Exception("Connection failed")
 
-    mock_config.history.database.get_connection_url = failure
+    mock_config.database.get_connection_url = failure
 
     with pytest.raises(ConnectionError) as exc_info:
         DatabaseManager(mock_config)
