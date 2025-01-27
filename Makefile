@@ -10,6 +10,7 @@
 	run-clad status-clad \
 	reload-clad \
 	manpages \
+	docs \
 
 # Project directory path - /home/<user>/.../command-line-assistant
 PROJECT_DIR := $(shell pwd)
@@ -113,3 +114,6 @@ man: ## Build manpages
 	# Build the manpages and change the builddir to match data/release
 	# Also change the doctrees cache to still use the original build directory.
 	$(MAKE) BUILDDIR=../data/release SPHINXOPTS=-d=build -C docs man
+
+html-docs: ## Build html docs
+	$(MAKE) -C docs html

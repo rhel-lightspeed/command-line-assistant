@@ -5,7 +5,7 @@ import pytest
 
 from command_line_assistant import handlers
 from command_line_assistant.config import Config
-from command_line_assistant.config.schemas import OutputSchema
+from command_line_assistant.config.schemas.output import OutputSchema
 
 
 def test_handle_caret_early_skip():

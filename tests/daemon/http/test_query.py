@@ -2,7 +2,7 @@ import pytest
 import responses
 
 from command_line_assistant.config import Config
-from command_line_assistant.config.schemas import AuthSchema, BackendSchema
+from command_line_assistant.config.schemas.backend import AuthSchema, BackendSchema
 from command_line_assistant.daemon.http import query
 from command_line_assistant.dbus.exceptions import RequestFailedError
 

@@ -6,12 +6,10 @@ import dataclasses
 import logging
 from pathlib import Path
 
-from command_line_assistant.config.schemas import (
-    BackendSchema,
-    HistorySchema,
-    LoggingSchema,
-    OutputSchema,
-)
+from command_line_assistant.config.schemas.backend import BackendSchema
+from command_line_assistant.config.schemas.history import HistorySchema
+from command_line_assistant.config.schemas.logging import LoggingSchema
+from command_line_assistant.config.schemas.output import OutputSchema
 from command_line_assistant.utils.environment import get_xdg_config_path
 
 # tomllib is available in the stdlib after Python3.11. Before that, we import

@@ -2,18 +2,21 @@ from pathlib import Path
 
 import pytest
 
-from command_line_assistant.config import schemas
+from command_line_assistant.config.schemas.backend import AuthSchema, BackendSchema
+from command_line_assistant.config.schemas.history import DatabaseSchema, HistorySchema
+from command_line_assistant.config.schemas.logging import LoggingSchema
+from command_line_assistant.config.schemas.output import OutputSchema
 
 
 @pytest.mark.parametrize(
     ("schema",),
     (
-        (schemas.LoggingSchema,),
-        (schemas.OutputSchema,),
-        (schemas.BackendSchema,),
-        (schemas.HistorySchema,),
-        (schemas.AuthSchema,),
-        (schemas.DatabaseSchema,),
+        (LoggingSchema,),
+        (OutputSchema,),
+        (BackendSchema,),
+        (HistorySchema,),
+        (AuthSchema,),
+        (DatabaseSchema,),
     ),
 )
 def test_initialize_schemas(schema):
@@ -27,7 +30,7 @@ def test_logging_schema_invalid_level():
     with pytest.raises(
         ValueError, match="The requested level 'NOT_FOUND' is not allowed."
     ):
-        schemas.LoggingSchema(level=level)
+        LoggingSchema(level=level)
 
 
 def test_database_schema_invalid_type():
@@ -35,7 +38,7 @@ def test_database_schema_invalid_type():
     with pytest.raises(
         ValueError, match="The database type must be one of .*, not NOT_FOUND_DB"
     ):
-        schemas.DatabaseSchema(type=type)
+        DatabaseSchema(type=type)
 
 
 @pytest.mark.parametrize(
@@ -47,7 +50,7 @@ def test_database_schema_invalid_type():
     ),
 )
 def test_database_schema_default_initialization(type, port, connection_string):
-    result = schemas.DatabaseSchema(
+    result = DatabaseSchema(
         type=type, port=port, connection_string=connection_string, database="test"
     )
 
