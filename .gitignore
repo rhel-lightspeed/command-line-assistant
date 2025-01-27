@@ -13,14 +13,10 @@ command_line_assistant_history.json
 
 # ignore venv
 [.]venv/
-.pdm-python
 
 # ignore test results
 .coverage
 htmlcov/
-
-# ignore builds
-.pdm-build
 
 # ignore tests specifics
 .tox
