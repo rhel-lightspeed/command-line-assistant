@@ -18,7 +18,7 @@ restorecon -R /var/log/command-line-assistant/audit.log; \
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.2.1
+Version:        0.2.2
 Release:        1%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
@@ -168,6 +168,9 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Mon Jan 27 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.2
+- Add noreplace to config file in specfile
+
 * Wed Jan 22 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.1
 - Change import location for SQLAlchemy
 
