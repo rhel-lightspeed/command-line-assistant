@@ -1,24 +1,27 @@
 import pytest
 
-from command_line_assistant.utils.files import is_content_in_binary_format
+from command_line_assistant.utils.files import guess_mimetype
+
+
+def test_guess_mimetype():
+    assert guess_mimetype(None) == "unknown/unknown"
 
 
 @pytest.mark.parametrize(
-    ("content", "expected"),
+    ("file", "mimetype"),
     (
-        ("some random string", False),
-        ("\0", True),
-        (b"\x7fELF test elf file", True),
-        (b"%PDF test pdf file", True),
-        (b"PK\x03\x04 test zip", True),
+        ("file.txt", "text/plain"),
+        ("file.csv", "text/csv"),
+        ("file.json", "application/json"),
+        ("file.jpg", "image/jpeg"),
+        ("file.mp3", "audio/mpeg"),
+        ("file.mp4", "video/mp4"),
+        ("file.pdf", "application/pdf"),
+        ("file.zip", "application/zip"),
+        ("file", "unknown/unknown"),
     ),
 )
-def test_is_content_in_binary_format(content, expected):
-    assert is_content_in_binary_format(content) == expected
-
-
-def test_is_content_in_binary_format_decode_error():
-    with pytest.raises(
-        ValueError, match="File appears to be binary or contains invalid text encoding"
-    ):
-        is_content_in_binary_format(b"\x80")
+def test_guess_mimetype_file_extension(file, mimetype, tmp_path):
+    file_path = tmp_path / file
+    file_path.touch()
+    assert guess_mimetype(file_path.open()) == mimetype

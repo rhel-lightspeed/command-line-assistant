@@ -1,43 +1,30 @@
 """Utilitary module to handle file operations"""
 
-from typing import Union
-
-#: Common binary signatures
-BINARY_SIGNATURES = [
-    b"\x7fELF",  # ELF files
-    b"%PDF",  # PDF files
-    b"PK\x03\x04",  # ZIP files
-]
+import mimetypes
+from io import TextIOWrapper
+from pathlib import Path
+from typing import Optional
 
 
-def is_content_in_binary_format(content: Union[str, bytes]) -> bool:
-    """Check if a given content is in binary format.
+def guess_mimetype(attachment: Optional[TextIOWrapper]) -> str:
+    """Guess the mimetype of a given attachment.
 
     Args:
-        content (str): The content to be checked for binary presence.
-
-    Raises:
-        ValueError: If the content is binary or contains invalid text encoding.
+        attachment (Optional[TextIOWrapper]): The attachment to be checked for mimetype.
 
     Returns:
-        bool: True if the content is binary, False otherwise.
+        str: The guessed mimetype or "unknown/unknown" if not found.
     """
-    try:
-        # Try to decode as utf-8
-        if isinstance(content, bytes):
-            content = content.decode("utf-8")
+    unknown_mimetype = "unknown/unknown"
 
-        # Check for null bytes which often indicate binary data
-        if "\0" in content:
-            return True
+    if not attachment:
+        return unknown_mimetype
 
-        # Additional check for common binary file signatures
-        content_bytes = content.encode("utf-8") if isinstance(content, str) else content
-        if any(content_bytes.startswith(sig) for sig in BINARY_SIGNATURES):
-            return True
-    except UnicodeDecodeError as e:
-        raise ValueError(
-            "File appears to be binary or contains invalid text encoding"
-        ) from e
+    path = Path(attachment.name)
+    result = mimetypes.guess_type(path)
 
-    return False
+    mimetype = result[0]
+    if not mimetype:
+        return unknown_mimetype
+
+    return mimetype

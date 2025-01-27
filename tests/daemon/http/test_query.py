@@ -7,8 +7,19 @@ from command_line_assistant.daemon.http import query
 from command_line_assistant.dbus.exceptions import RequestFailedError
 
 
+@pytest.fixture
+def default_payload():
+    return {
+        "question": "test",
+        "context": {
+            "stdin": "",
+            "attachment": {"contents": "", "mimetype": "unknown/unknown"},
+        },
+    }
+
+
 @responses.activate
-def test_handle_query():
+def test_handle_query(default_payload):
     responses.post(
         url="http://localhost/infer",
         json={
@@ -22,13 +33,13 @@ def test_handle_query():
         )
     )
 
-    result = query.submit(query="test", config=config)
+    result = query.submit(default_payload, config=config)
 
     assert result == "test"
 
 
 @responses.activate
-def test_handle_query_raising_status():
+def test_handle_query_raising_status(default_payload):
     responses.post(
         url="http://localhost/infer",
         status=404,
@@ -42,11 +53,11 @@ def test_handle_query_raising_status():
         RequestFailedError,
         match="There was a problem communicating with the server. Please, try again in a few minutes.",
     ):
-        query.submit(query="test", config=config)
+        query.submit(default_payload, config=config)
 
 
 @responses.activate
-def test_disable_ssl_verification(caplog):
+def test_disable_ssl_verification(caplog, default_payload):
     responses.post(
         url="https://localhost/infer", json={"data": {"text": "yeah, test!"}}
     )
@@ -57,9 +68,10 @@ def test_disable_ssl_verification(caplog):
         )
     )
 
-    result = query.submit(query="test", config=config)
+    result = query.submit(default_payload, config=config)
 
     assert result == "yeah, test!"
     assert (
-        "Disabling SSL verification as per user requested." in caplog.records[2].message
+        "Disabling SSL verification as per user requested."
+        in caplog.records[-1].message
     )

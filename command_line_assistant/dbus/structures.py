@@ -1,7 +1,123 @@
 """D-Bus structures that defines and powers our commands."""
 
 from dasbus.structure import DBusData
-from dasbus.typing import List, Str
+from dasbus.typing import Int, List, Str
+
+
+class MessageInput(DBusData):
+    """Represents the input message to be sent to the backend"""
+
+    def __init__(self) -> None:
+        """Constructor of the class."""
+        self._question: Str = ""
+        self._stdin: Str = ""
+        self._attachment_contents: Str = ""
+        self._attachment_mimetype: Str = ""
+
+        self._user: Int = 0
+        super().__init__()
+
+    @property
+    def question(self) -> Str:
+        """Property for internal message attribute.
+
+        Returns:
+            Str: Value of message
+        """
+        return self._question
+
+    @question.setter
+    def question(self, value: Str) -> None:
+        """Set a new question
+
+        Args:
+            value (Str): Question to be set to the internal property
+        """
+        self._question = value
+
+    @property
+    def stdin(self) -> Str:
+        """Property for internal stdin attribute.
+
+        Returns:
+            Str: Value of stdin
+        """
+        return self._stdin
+
+    @stdin.setter
+    def stdin(self, value: Str) -> None:
+        """Set a new stdin
+
+        Args:
+            value (Str): Value to be set to the internal property
+        """
+        self._stdin = value
+
+    @property
+    def attachment_contents(self) -> Str:
+        """Property for internal attachment_contents attribute.
+
+        Returns:
+            Str: Value of attachment_contents
+        """
+        return self._attachment_contents
+
+    @attachment_contents.setter
+    def attachment_contents(self, value: Str) -> None:
+        """Set a new attachment_contents
+
+        Args:
+            value (Str): Value to be set to the internal property
+        """
+        self._attachment_contents = value
+
+    @property
+    def attachment_mimetype(self) -> Str:
+        """Property for internal attachment_mimetype attribute.
+
+        Returns:
+            Str: Value of attachment_mimetype
+        """
+        return self._attachment_mimetype
+
+    @attachment_mimetype.setter
+    def attachment_mimetype(self, value: Str) -> None:
+        """Set a new attachment_mimetype
+
+        Args:
+            value (Str): Value to be set to the internal property
+        """
+        self._attachment_mimetype = value
+
+    @property
+    def user(self) -> Int:
+        """Property for internal user attribute.
+
+        Returns:
+            Str: Value of user
+        """
+        return self._user
+
+    @user.setter
+    def user(self, value: Int) -> None:
+        """Set a new user
+
+        Args:
+            value (Int): Value to be set to the internal property
+        """
+        self._user = value
+
+    def from_dict(self, data: dict) -> None:
+        """Set the internal properties from a dictionary.
+
+        Args:
+            data (dict): The dictionary to be used to set the internal properties.
+        """
+        self._question = data["question"]
+        self._stdin = data["stdin"]
+        self._attachment_contents = data["attachment_contents"]
+        self._attachment_mimetype = data["attachment_mimetype"]
+        self._user = data["user"]
 
 
 class Message(DBusData):

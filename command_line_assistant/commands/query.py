@@ -11,7 +11,7 @@ from command_line_assistant.dbus.exceptions import (
     MissingHistoryFileError,
     RequestFailedError,
 )
-from command_line_assistant.dbus.structures import Message
+from command_line_assistant.dbus.structures import Message, MessageInput
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
@@ -20,7 +20,9 @@ from command_line_assistant.rendering.decorators.text import (
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
-from command_line_assistant.utils.files import is_content_in_binary_format
+from command_line_assistant.utils.files import (
+    guess_mimetype,
+)
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
     create_spinner_renderer,
@@ -38,13 +40,33 @@ LEGAL_NOTICE = (
 ALWAYS_LEGAL_MESSAGE = "Always review AI generated content prior to use."
 
 
+def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
+    """Parse the attachment file and read its contents.
+
+    Args:
+        attachment (Optional[TextIOWrapper], optional): The attachment that will be parsed
+
+    Returns:
+        str: Either the str read or None.
+    """
+    if not attachment:
+        return ""
+
+    try:
+        return attachment.read().strip()
+    except UnicodeDecodeError as e:
+        raise ValueError(
+            "File appears to be binary or contains invalid text encoding"
+        ) from e
+
+
 class QueryCommand(BaseCLICommand):
     """Class that represents the query command."""
 
     def __init__(
         self,
-        query_string: Optional[str] = None,
-        stdin: Optional[str] = None,
+        query_string: Optional[str] = "",
+        stdin: Optional[str] = "",
         attachment: Optional[TextIOWrapper] = None,
     ) -> None:
         """Constructor of the class.
@@ -54,9 +76,12 @@ class QueryCommand(BaseCLICommand):
             stdin (Optional[str], optional): The user redirect input from stdin
             attachment (Optional[TextIOWrapper], optional): The file attachment from the user
         """
-        self._query = query_string.strip() if query_string else None
-        self._stdin = stdin.strip() if stdin else None
-        self._attachment = attachment
+        self._query = query_string.strip() if query_string else ""
+        self._stdin = stdin.strip() if stdin else ""
+
+        # Initialize it as None before we read and manipulate the rest.
+        self._attachment = _parse_attachment_file(attachment)
+        self._attachment_mimetype = guess_mimetype(attachment)
 
         self._spinner_renderer: SpinnerRenderer = create_spinner_renderer(
             message="Requesting knowledge from AI",
@@ -84,6 +109,9 @@ class QueryCommand(BaseCLICommand):
     def _get_input_source(self) -> str:
         """Determine and return the appropriate input source based on combination rules.
 
+        Warning:
+            This is set to be deprecated in the future when we normalize the API backend to accept the context and works with it.
+
         Rules:
         1. Positional query only -> use positional query
         2. Stdin query only -> use stdin query
@@ -99,28 +127,20 @@ class QueryCommand(BaseCLICommand):
         Returns:
             str: The query string from the selected input source(s)
         """
-        file_content = None
-        if self._attachment:
-            file_content = self._attachment.read().strip()
-            if is_content_in_binary_format(file_content):
-                raise ValueError("File appears to be binary")
-
-            file_content = file_content.strip()
-
         # Rule 7: All three present - positional and file take precedence
-        if all([self._query, self._stdin, file_content]):
+        if all([self._query, self._stdin, self._attachment]):
             self._warning_renderer.render(
                 "Using positional query and file input. Stdin will be ignored."
             )
-            return f"{self._query} {file_content}"
+            return f"{self._query} {self._attachment}"
 
         # Rule 6: Positional + file
-        if self._query and file_content:
-            return f"{self._query} {file_content}"
+        if self._query and self._attachment:
+            return f"{self._query} {self._attachment}"
 
         # Rule 5: Stdin + file
-        if self._stdin and file_content:
-            return f"{self._stdin} {file_content}"
+        if self._stdin and self._attachment:
+            return f"{self._stdin} {self._attachment}"
 
         # Rule 4: Stdin + positional
         if self._stdin and self._query:
@@ -128,7 +148,7 @@ class QueryCommand(BaseCLICommand):
 
         # Rules 1-3: Single source - return first non-empty source
         source = next(
-            (src for src in [self._query, self._stdin, file_content] if src),
+            (src for src in [self._query, self._stdin, self._attachment] if src),
             None,
         )
         if source:
@@ -155,8 +175,18 @@ class QueryCommand(BaseCLICommand):
 
         try:
             with self._spinner_renderer:
+                message_input = MessageInput()
+                message_input.from_dict(
+                    data={
+                        "question": question,
+                        "stdin": self._stdin,
+                        "attachment_contents": self._attachment,
+                        "attachment_mimetype": self._attachment_mimetype,
+                        "user": self._context.effective_user_id,
+                    }
+                )
                 response = self._proxy.AskQuestion(
-                    self._context.effective_user_id, question
+                    MessageInput.to_structure(message_input)
                 )
                 output = Message.from_structure(response).message
         except (

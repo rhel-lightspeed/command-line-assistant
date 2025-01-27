@@ -29,6 +29,18 @@ def test_read_stdin_no_input(monkeypatch):
     assert not cli.read_stdin()
 
 
+def test_read_stdin_value_error(monkeypatch):
+    # Mock select.select to simulate user input
+    def mock_select(*args, **kwargs):
+        return [sys.stdin], [], []
+
+    monkeypatch.setattr(select, "select", mock_select)
+    monkeypatch.setattr(sys.stdin, "read", lambda: b"'\x80abc'".decode())
+
+    with pytest.raises(ValueError, match="Binary input are not supported."):
+        cli.read_stdin()
+
+
 def test_create_argument_parser():
     """Test create_argument_parser returns parser and subparser"""
     parser, commands_parser = cli.create_argument_parser()
