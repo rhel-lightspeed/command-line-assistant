@@ -38,7 +38,7 @@ class DatabaseSchema:
         allowed_databases = ("mysql", "sqlite", "postgresql")
         if self.type not in allowed_databases:
             raise ValueError(
-                f"The database type must be one of {','.join(allowed_databases)}, not {self.type}"
+                f"The database type must be one of {', '.join(allowed_databases)}, not {self.type}"
             )
 
         if self.connection_string:
@@ -67,9 +67,6 @@ class DatabaseSchema:
             "mysql": f"mysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}",
             "postgresql": f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}",
         }
-
-        if self.type not in connection_urls:
-            raise ValueError(f"Unsupported database type: {self.type}")
 
         return connection_urls[self.type]
 
