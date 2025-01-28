@@ -1,11 +1,11 @@
-"""Module to handle the query command."""
+"""Module to handle the chat command."""
 
 import argparse
 from argparse import Namespace
 from io import TextIOWrapper
 from typing import Optional
 
-from command_line_assistant.dbus.constants import QUERY_IDENTIFIER
+from command_line_assistant.dbus.constants import CHAT_IDENTIFIER
 from command_line_assistant.dbus.exceptions import (
     CorruptedHistoryError,
     MissingHistoryFileError,
@@ -60,8 +60,8 @@ def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
         ) from e
 
 
-class QueryCommand(BaseCLICommand):
-    """Class that represents the query command."""
+class ChatCommand(BaseCLICommand):
+    """Class that represents the chat command."""
 
     def __init__(
         self,
@@ -102,7 +102,7 @@ class QueryCommand(BaseCLICommand):
         self._error_renderer: TextRenderer = create_error_renderer()
         self._warning_renderer: TextRenderer = create_warning_renderer()
 
-        self._proxy = QUERY_IDENTIFIER.get_proxy()
+        self._proxy = CHAT_IDENTIFIER.get_proxy()
 
         super().__init__()
 
@@ -210,15 +210,15 @@ def register_subcommand(parser: SubParsersAction) -> None:
     Args:
         parser (SubParsersAction): Root parser to register command-specific arguments
     """
-    query_parser = parser.add_parser(
-        "query",
+    chat_parser = parser.add_parser(
+        "chat",
         help="Command to ask a question to the LLM.",
     )
     # Positional argument, required only if no optional arguments are provided
-    query_parser.add_argument(
+    chat_parser.add_argument(
         "query_string", nargs="?", help="The question that will be sent to the LLM"
     )
-    query_parser.add_argument(
+    chat_parser.add_argument(
         "-a",
         "--attachment",
         nargs="?",
@@ -226,10 +226,10 @@ def register_subcommand(parser: SubParsersAction) -> None:
         help="File attachment to be read and sent alongside the query",
     )
 
-    query_parser.set_defaults(func=_command_factory)
+    chat_parser.set_defaults(func=_command_factory)
 
 
-def _command_factory(args: Namespace) -> QueryCommand:
+def _command_factory(args: Namespace) -> ChatCommand:
     """Internal command factory to create the command class
 
     Args:
@@ -248,4 +248,4 @@ def _command_factory(args: Namespace) -> QueryCommand:
     if "stdin" in args:
         options["stdin"] = args.stdin
 
-    return QueryCommand(**options)
+    return ChatCommand(**options)

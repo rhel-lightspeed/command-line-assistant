@@ -37,7 +37,7 @@ The Command Line Assistant powered by RHEL Lightspeed is a optional generative A
 .INDENT 3.5
 .sp
 .EX
-c [\-h] [\-\-version] {query,history} ...
+c [\-h] [\-\-version] {chat,history} ...
 .EE
 .UNINDENT
 .UNINDENT
@@ -48,23 +48,23 @@ c [\-h] [\-\-version] {query,history} ...
 .IP \(bu 2
 \fI\%\-\-version\fP \- Show program version
 .UNINDENT
-.SS c query
+.SS c chat
 .sp
 Command to ask a question to the LLM.
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-c query [\-h] [\-a [ATTACHMENT]] [query_string]
+c chat [\-h] [\-a [ATTACHMENT]] [query_string]
 .EE
 .UNINDENT
 .UNINDENT
-.SS c query positional arguments
+.SS c chat positional arguments
 .INDENT 0.0
 .IP \(bu 2
 \fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
 .UNINDENT
-.SS c query options
+.SS c chat options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
@@ -135,13 +135,13 @@ Alternatively, you can strictly specify that you want a query with:
 .INDENT 3.5
 .sp
 .EX
-$ c query \(dqWhat is RHEL?\(dq
+$ c chat \(dqWhat is RHEL?\(dq
 .EE
 .UNINDENT
 .UNINDENT
 .sp
 In case \fBquery\fP is not placed, the program will assume that anything that
-comes after is a potential query. That includes the options for \fBquery\fP
+comes after is a potential query. That includes the options for \fBchat\fP
 as well.
 .UNINDENT
 .UNINDENT

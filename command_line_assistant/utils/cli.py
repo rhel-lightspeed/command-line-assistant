@@ -66,7 +66,7 @@ def add_default_command(stdin: Optional[str], argv: list[str]):
 
     subcommand = _subcommand_used(argv)
     if not subcommand:
-        args.insert(0, "query")
+        args.insert(0, "chat")
 
     return args
 
@@ -75,7 +75,7 @@ def _subcommand_used(args: list[str]):
     """Return what subcommand has been used by the user. Return None if no subcommand has been used."""
     for index, argument in enumerate(args):
         # If we have a exact match for any of the commands, return directly
-        if argument in ("query", "history"):
+        if argument in ("chat", "history"):
             return argument
 
         # It means that we hit a --version/--help

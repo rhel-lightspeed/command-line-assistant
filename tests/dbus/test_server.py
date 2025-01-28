@@ -56,5 +56,5 @@ def test_serve_creates_interfaces(monkeypatch):
 
     publish_calls = system_bus_mock.publish_object.call_args_list
     assert len(publish_calls) == 2
-    assert isinstance(publish_calls[0][0][1], server.QueryInterface)
+    assert isinstance(publish_calls[0][0][1], server.ChatInterface)
     assert isinstance(publish_calls[1][0][1], server.HistoryInterface)

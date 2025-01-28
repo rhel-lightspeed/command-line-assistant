@@ -37,8 +37,8 @@ Files
 */etc/dbus-1/systemd/com.redhat.lightspeed.conf*
     D-Bus conf to control access of bus activation
 
-*/usr/share/dbus-1/system-services/com.redhat.lightspeed.query.srvice*
-    Service to enable dbus activation from query endpoint
+*/usr/share/dbus-1/system-services/com.redhat.lightspeed.chat.srvice*
+    Service to enable dbus activation from chat endpoint
 
 */usr/share/dbus-1/system-services/com.redhat.lightspeed.history.srvice*
     Service to enable dbus activation from history endpoint

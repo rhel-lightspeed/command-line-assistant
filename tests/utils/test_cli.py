@@ -55,17 +55,17 @@ def test_create_argument_parser():
     [
         # When we just call `c` and do anything, we print help
         (["c"], None, []),
-        (["c", "query", "test query"], None, ["query", "test query"]),
-        (["c", "how to list files?"], None, ["query", "how to list files?"]),
+        (["c", "chat", "test query"], None, ["chat", "test query"]),
+        (["c", "how to list files?"], None, ["chat", "how to list files?"]),
         # When we read from stdin, we just return the `query` command without the query_string part.
-        (["c"], "query from stdin", ["query"]),
+        (["c"], "query from stdin", ["chat"]),
         # It still should return the query command plus the query string
         (
             ["c", "what is this madness?"],
             "query from stdin",
-            ["query", "what is this madness?"],
+            ["chat", "what is this madness?"],
         ),
-        (["/usr/bin/c", "test query"], None, ["query", "test query"]),
+        (["/usr/bin/c", "test query"], None, ["chat", "test query"]),
         (["/usr/bin/c", "history"], None, ["history"]),
     ],
 )
@@ -77,7 +77,7 @@ def test_add_default_command(args, stdin, expected):
 @pytest.mark.parametrize(
     ("argv", "expected"),
     (
-        (["query"], "query"),
+        (["chat"], "chat"),
         (["--version"], "--version"),
         (["--help"], "--help"),
         (["--clear"], None),

@@ -7,7 +7,7 @@ from dasbus.server.template import InterfaceTemplate
 from dasbus.typing import Int, Str, Structure
 
 from command_line_assistant.daemon.http.query import submit
-from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER, QUERY_IDENTIFIER
+from command_line_assistant.dbus.constants import CHAT_IDENTIFIER, HISTORY_IDENTIFIER
 from command_line_assistant.dbus.structures import (
     HistoryEntry,
     HistoryItem,
@@ -21,8 +21,8 @@ audit_logger = logging.getLogger("audit")
 logger = logging.getLogger(__name__)
 
 
-@dbus_interface(QUERY_IDENTIFIER.interface_name)
-class QueryInterface(InterfaceTemplate):
+@dbus_interface(CHAT_IDENTIFIER.interface_name)
+class ChatInterface(InterfaceTemplate):
     """The DBus interface of a query."""
 
     def AskQuestion(self, message_input: Structure) -> Structure:
