@@ -23,9 +23,12 @@ file = "{output_file}"
 # Keep non-empty if your file contains only output of commands (not prompt itself)
 prompt_separator = "$"
 
+[database]
+type = "sqlite"
+connection_string = "{tmp_path / 'history.db'}"
+
 [history]
 enabled = true
-# max number of queries in history (including responses)
 
 [backend]
 endpoint = "https://localhost"
