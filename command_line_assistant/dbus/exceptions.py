@@ -3,9 +3,9 @@
 from dasbus.error import DBusError, get_error_decorator
 
 from command_line_assistant.dbus.constants import (
+    CHAT_NAMESAPCE,
     ERROR_MAPPER,
     HISTORY_NAMESPACE,
-    QUERY_NAMESAPCE,
     SERVICE_NAMESPACE,
 )
 
@@ -18,7 +18,7 @@ class NotAuthorizedUser(DBusError):
     """The current user is not authenticated to issue queries."""
 
 
-@dbus_error("RequestFailedError", namespace=QUERY_NAMESAPCE)
+@dbus_error("RequestFailedError", namespace=CHAT_NAMESAPCE)
 class RequestFailedError(DBusError):
     """Failed submit a request to the server."""
 

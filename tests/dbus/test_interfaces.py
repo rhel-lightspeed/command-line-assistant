@@ -4,8 +4,8 @@ import pytest
 from dasbus.server.template import InterfaceTemplate
 
 from command_line_assistant.dbus.interfaces import (
+    ChatInterface,
     HistoryInterface,
-    QueryInterface,
 )
 from command_line_assistant.dbus.structures import HistoryEntry, Message, MessageInput
 from command_line_assistant.history.manager import HistoryManager
@@ -21,7 +21,7 @@ def mock_history_entry(mock_config):
 @pytest.fixture
 def query_interface(mock_context):
     """Create a QueryInterface instance with mock implementation."""
-    interface = QueryInterface(mock_context)
+    interface = ChatInterface(mock_context)
     assert isinstance(interface, InterfaceTemplate)
     return interface
 

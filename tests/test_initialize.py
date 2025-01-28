@@ -28,7 +28,7 @@ def test_initialize_with_no_args(capsys):
     ("argv", "stdin"),
     (
         (
-            ["c", "query", "test", "query"],
+            ["c", "chat", "test", "query"],
             None,
         ),
         (["c"], "test from stdin"),
@@ -41,7 +41,7 @@ def test_initialize_with_query_command(argv, stdin):
 
     with (
         patch("sys.argv", argv),
-        patch("command_line_assistant.commands.query.register_subcommand"),
+        patch("command_line_assistant.commands.chat.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
         patch("command_line_assistant.initialize.read_stdin", lambda: stdin),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
@@ -59,7 +59,7 @@ def test_initialize_with_history_command():
 
     with (
         patch("sys.argv", ["c", "history", "--clear"]),
-        patch("command_line_assistant.commands.query.register_subcommand"),
+        patch("command_line_assistant.commands.chat.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
         patch("command_line_assistant.initialize.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
@@ -110,8 +110,8 @@ def test_initialize_bad_stdin(capsys):
         "expected_command",
     ),
     [
-        (["c"], "query"),  # Default to query
-        (["c", "query"], "query"),
+        (["c"], "chat"),  # Default to chat
+        (["c", "chat"], "chat"),
         (["c", "history"], "history"),
     ],
 )
@@ -122,7 +122,7 @@ def test_initialize_command_selection(argv, expected_command):
     with (
         patch("sys.argv", argv),
         patch("command_line_assistant.initialize.read_stdin", lambda: None),
-        patch("command_line_assistant.commands.query.register_subcommand"),
+        patch("command_line_assistant.commands.chat.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):

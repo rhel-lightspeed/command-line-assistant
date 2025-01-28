@@ -98,7 +98,7 @@ popd
 
 # d-bus policy config
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
-%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.query.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.query.service
+%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.chat.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.chat.service
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.history.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 
 # Config file
@@ -149,7 +149,7 @@ fi
 
 # d-bus policy config
 %config %{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
-%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.query.service
+%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.chat.service
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 
 # Config file

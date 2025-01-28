@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import pytest
 
-from command_line_assistant.commands.query import (
-    QueryCommand,
+from command_line_assistant.commands.chat import (
+    ChatCommand,
     _command_factory,
     _parse_attachment_file,
     register_subcommand,
@@ -22,9 +22,7 @@ from command_line_assistant.dbus.structures import Message
 @pytest.fixture(autouse=True)
 def mock_dbus_service(mock_proxy):
     """Fixture to mock DBus service and automatically use it for all tests"""
-    with patch(
-        "command_line_assistant.commands.query.QUERY_IDENTIFIER"
-    ) as mock_service:
+    with patch("command_line_assistant.commands.chat.CHAT_IDENTIFIER") as mock_service:
         # Create a mock proxy that will be returned by get_proxy()
         mock_service.get_proxy.return_value = mock_proxy
 
@@ -40,7 +38,7 @@ def mock_dbus_service(mock_proxy):
 def test_query_command_initialization():
     """Test QueryCommand initialization"""
     query = "test query"
-    command = QueryCommand(query, None)
+    command = ChatCommand(query, None)
     assert command._query == query
 
 
@@ -63,7 +61,7 @@ def test_query_command_run(mock_dbus_service, test_input, expected_output, capsy
     mock_output.user = "mock"
     mock_dbus_service.AskQuestion = lambda mock_input: Message.to_structure(mock_output)
 
-    command = QueryCommand(test_input, None)
+    command = ChatCommand(test_input, None)
     command.run()
 
     # Verify output was printed
@@ -79,7 +77,7 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
     mock_output.user = "mock"
     mock_dbus_service.AskQuestion = lambda mock_input: Message.to_structure(mock_output)
 
-    command = QueryCommand("test query", None)
+    command = ChatCommand("test query", None)
     command.run()
 
     captured = capsys.readouterr()
@@ -95,7 +93,7 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
 )
 def test_query_command_invalid_inputs(mock_dbus_service, test_args, capsys):
     """Test QueryCommand with invalid inputs"""
-    command = QueryCommand(test_args, None)
+    command = ChatCommand(test_args, None)
     command.run()
 
     captured = capsys.readouterr()
@@ -114,7 +112,7 @@ def test_register_subcommand():
     register_subcommand(subparsers)
 
     # Parse a test command
-    args = parser.parse_args(["query", "test query"])
+    args = parser.parse_args(["chat", "test query"])
 
     assert args.query_string == "test query"
     assert hasattr(args, "func")
@@ -143,7 +141,7 @@ def test_command_factory(query_string, stdin, attachment):
     args = Namespace(**options)
     command = _command_factory(args)
 
-    assert isinstance(command, QueryCommand)
+    assert isinstance(command, ChatCommand)
     assert command._query == query_string
     assert command._stdin == stdin
 
@@ -175,7 +173,7 @@ def test_get_input_source(query_string, stdin, attachment, expected, tmp_path):
         "stdin": stdin,
         "attachment": file_attachment,
     }
-    command = QueryCommand(**options)
+    command = ChatCommand(**options)
 
     output = command._get_input_source()
 
@@ -191,7 +189,7 @@ def test_get_inout_source_all_values_warning_message(capsys, tmp_path):
         "stdin": "stdin",
         "attachment": file_attachment,
     }
-    command = QueryCommand(**options)
+    command = ChatCommand(**options)
 
     output = command._get_input_source()
 
@@ -204,7 +202,7 @@ def test_get_inout_source_all_values_warning_message(capsys, tmp_path):
 
 
 def test_get_input_source_value_error():
-    command = QueryCommand(None, None, None)
+    command = ChatCommand(None, None, None)
 
     with pytest.raises(
         ValueError,
@@ -235,7 +233,7 @@ def test_dbus_error_handling(exception, expected, mock_dbus_service, capsys):
     # Make ProcessQuery raise a DBus error
     mock_dbus_service.AskQuestion.side_effect = exception
 
-    command = QueryCommand("test query", None)
+    command = ChatCommand("test query", None)
     command.run()
 
     # Verify error message in stdout

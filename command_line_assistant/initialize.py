@@ -3,7 +3,7 @@
 import sys
 from argparse import ArgumentParser, Namespace
 
-from command_line_assistant.commands import history, query
+from command_line_assistant.commands import chat, history
 from command_line_assistant.utils.cli import (
     add_default_command,
     create_argument_parser,
@@ -23,7 +23,7 @@ def register_subcommands() -> ArgumentParser:
     # TODO: add autodetection of BaseCLICommand classes in the future so we can
     # just drop new subcommand python modules into the directory and then loop
     # and call `register_subcommand()` on each one.
-    query.register_subcommand(commands_parser)  # type: ignore
+    chat.register_subcommand(commands_parser)  # type: ignore
     history.register_subcommand(commands_parser)  # type: ignore
 
     return parser

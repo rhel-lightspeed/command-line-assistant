@@ -37,10 +37,10 @@ Example 1. Asking a simple question
 
     Alternatively, you can strictly specify that you want a query with::
 
-        $ c query "What is RHEL?"
+        $ c chat "What is RHEL?"
 
     In case `query` is not placed, the program will assume that anything that
-    comes after is a potential query. That includes the options for `query`
+    comes after is a potential query. That includes the options for `chat`
     as well.
 
 Example 2. Redirecting output to `c`
