@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "CLAD" "8" "Jan 15, 2025" "0.1.0" "Command Line Assistant"
+.TH "CLAD" "8" "Jan 28, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 clad \- Command Line Assistant Daemon
 .SH SYNOPSIS
@@ -57,7 +57,7 @@ $ systemctl status clad
 .SH DESCRIPTION
 .sp
 Command Line Assistant Daemon (clad) is the core of the Command Line Assistant
-tooling. It manages the communication with WatsonX API trought an external
+tooling. It manages the communication with WatsonX API through an external
 backend, user history management and much more.
 .SH FILES
 .INDENT 0.0
@@ -67,6 +67,18 @@ System configuration file
 .TP
 .B \fI/var/lib/command\-line\-assistant/history.db\fP
 SQlite3 history database
+.TP
+.B \fI/etc/dbus\-1/systemd/com.redhat.lightspeed.conf\fP
+D\-Bus conf to control access of bus activation
+.TP
+.B \fI/usr/share/dbus\-1/system\-services/com.redhat.lightspeed.query.srvice\fP
+Service to enable dbus activation from query endpoint
+.TP
+.B \fI/usr/share/dbus\-1/system\-services/com.redhat.lightspeed.history.srvice\fP
+Service to enable dbus activation from history endpoint
+.TP
+.B \fI/usr/lib/systemd/system/clad.service\fP
+Systemd service file for clad
 .UNINDENT
 .SH REFERENCE
 .INDENT 0.0
