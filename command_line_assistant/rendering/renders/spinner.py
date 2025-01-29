@@ -22,6 +22,7 @@ class Animation:
         frames (Iterator[str]): The frames chosen
         encoding (str): The default encoding.
     """
+
     frames: Iterator[str]
     encoding: str = "utf8"
 
@@ -37,20 +38,24 @@ class Animation:
 #:      arrows (Iterator[str]): A spinner made with an arrow (←)
 #:      moving (Iterator[str]): A spinner made with equals signs ([=])
 ANIMATIONS = {
-    "default": Animation(itertools.cycle([
-        "⁺₊+⁺",
-        "⁻₊+⁺",
-        "⁺₊+⁺",
-        "⁺₊+⁺",
-        "⁺₋+⁺",
-        "⁺₊+⁺",
-        "⁺₊+⁺",
-        "⁺₊-⁺",
-        "⁺₊+⁺",
-        "⁺₊+⁺",
-        "⁺₊+⁻",
-        "⁺₊+⁺",
-    ])),
+    "default": Animation(
+        itertools.cycle(
+            [
+                "⁺₊+⁺",
+                "⁻₊+⁺",
+                "⁺₊+⁺",
+                "⁺₊+⁺",
+                "⁺₋+⁺",
+                "⁺₊+⁺",
+                "⁺₊+⁺",
+                "⁺₊-⁺",
+                "⁺₊+⁺",
+                "⁺₊+⁺",
+                "⁺₊+⁻",
+                "⁺₊+⁺",
+            ]
+        )
+    ),
     "braille": Animation(itertools.cycle(["⠋", "⠙", "⠸", "⠴", "⠦", "⠇"])),
     "dash": Animation(itertools.cycle(["-", "\\", "|", "/"]), "ascii"),
     "circular": Animation(itertools.cycle(["◐", "◓", "◑", "◒"])),
@@ -112,13 +117,13 @@ class SpinnerRenderer(BaseRenderer):
         # Normalize the frame encoding identifier
         frames_encoding = frames.encoding.lower()
         if frames_encoding.startswith("utf"):
-            frames_encoding.replace("-", "")
+            frames_encoding = frames_encoding.replace("-", "")
 
         # Only use spinners with characters compatible with the user's locale encoding.
         if frames.encoding != "ascii":
             locale_encoding = locale.getpreferredencoding().lower()
             if locale_encoding.startswith("utf"):
-                locale_encoding.replace("-", "")
+                locale_encoding = locale_encoding.replace("-", "")
 
             # In non-utf encodings, set frames to an animation that only
             # consists of ASCII characters to prevent sending bytes to the
@@ -126,7 +131,6 @@ class SpinnerRenderer(BaseRenderer):
             if frames_encoding != locale_encoding:
                 frames = ANIMATIONS["dash"]
 
-        breakpoint()
         self._frames = frames.frames
 
         self._done = threading.Event()
