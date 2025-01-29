@@ -114,13 +114,13 @@ class SpinnerRenderer(BaseRenderer):
         # Normalize the frame encoding identifier
         frames_encoding = frames.encoding.lower()
         if frames_encoding.startswith("utf"):
-            frames_encoding.replace("-", "")
+            frames_encoding = frames_encoding.replace("-", "")
 
         # Only use spinners with characters compatible with the user's locale encoding.
         if frames.encoding != "ascii":
             locale_encoding = locale.getpreferredencoding().lower()
             if locale_encoding.startswith("utf"):
-                locale_encoding.replace("-", "")
+                locale_encoding = locale_encoding.replace("-", "")
 
             # In non-utf encodings, set frames to an animation that only
             # consists of ASCII characters to prevent sending bytes to the
