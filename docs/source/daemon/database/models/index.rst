@@ -6,3 +6,4 @@ Models
 
    base
    history
+   chat

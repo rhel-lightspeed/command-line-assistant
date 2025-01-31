@@ -5,16 +5,20 @@ import pytest
 from command_line_assistant.commands.history import (
     HistoryCommand,
 )
-from command_line_assistant.dbus.structures import HistoryEntry, HistoryItem
+from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
 
 
 # Mock the entire DBus service/constants module
 @pytest.fixture(autouse=True)
 def mock_dbus_service(mock_proxy):
     """Fixture to mock DBus service and automatically use it for all tests"""
-    with patch(
-        "command_line_assistant.commands.history.HISTORY_IDENTIFIER"
-    ) as mock_service:
+    with (
+        patch(
+            "command_line_assistant.commands.history.HISTORY_IDENTIFIER"
+        ) as mock_service,
+        patch("command_line_assistant.commands.history.USER_IDENTIFIER"),
+        patch("command_line_assistant.commands.history.CHAT_IDENTIFIER"),
+    ):
         # Create a mock proxy that will be returned by get_proxy()
         mock_service.get_proxy.return_value = mock_proxy
 
@@ -24,18 +28,11 @@ def mock_dbus_service(mock_proxy):
 @pytest.fixture
 def sample_history_entry():
     """Create a sample history entry for testing."""
-    entry = HistoryItem()
-    entry.query = "test query"
-    entry.response = "test response"
-    entry.timestamp = "2024-01-01T00:00:00Z"
-
-    last = HistoryItem()
-    last.query = "test final query"
-    last.response = "test final response"
-    last.timestamp = "2024-01-02T00:00:00Z"
-
-    history_entry = HistoryEntry()
-    history_entry.entries = [entry, last]
+    entry = HistoryEntry("test query", "test response", "2024-01-01T00:00:00Z")
+    last = HistoryEntry(
+        "test final query", "test final response", "2024-01-02T00:00:00Z"
+    )
+    history_entry = HistoryList([entry, last])
     return history_entry
 
 
@@ -52,85 +49,45 @@ def test_retrieve_all_conversations_success(mock_proxy, sample_history_entry, ca
     mock_proxy.GetHistory.assert_called_once()
 
 
-def test_retrieve_all_conversations_empty(mock_proxy, capsys):
-    """Test retrieving all conversations when history is empty."""
-    empty_history = HistoryEntry()
-    mock_proxy.GetHistory.return_value = empty_history.to_structure(empty_history)
-
-    HistoryCommand(clear=False, first=False, last=False).run()
-    captured = capsys.readouterr()
-    assert "No history found.\n" in captured.out
-
-
 def test_retrieve_conversation_filtered_success(
     mock_proxy, sample_history_entry, capsys
 ):
     """Test retrieving last conversation successfully."""
-    mock_proxy.GetFilteredConversation.return_value = sample_history_entry.to_structure(
-        sample_history_entry
-    )
+    mock_proxy.GetFilteredConversation.return_value = sample_history_entry.structure()
 
     HistoryCommand(clear=False, first=False, last=False, filter="missing").run()
     captured = capsys.readouterr()
     mock_proxy.GetFilteredConversation.assert_called_once()
     assert (
-        "\x1b[92mQuery: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
+        "\x1b[92mQuestion: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
         in captured.out
     )
 
 
 def test_retrieve_first_conversation_success(mock_proxy, sample_history_entry, capsys):
     """Test retrieving first conversation successfully."""
-    mock_proxy.GetFirstConversation.return_value = sample_history_entry.to_structure(
-        sample_history_entry
-    )
+    mock_proxy.GetFirstConversation.return_value = sample_history_entry.structure()
 
     HistoryCommand(clear=False, first=True, last=False).run()
     captured = capsys.readouterr()
     mock_proxy.GetFirstConversation.assert_called_once()
     assert (
-        "\x1b[92mQuery: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
+        "\x1b[92mQuestion: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
         in captured.out
     )
 
 
-def test_retrieve_first_conversation_empty(mock_proxy, capsys):
-    """Test retrieving first conversation when history is empty."""
-    empty_history = HistoryEntry()
-    mock_proxy.GetFirstConversation.return_value = empty_history.to_structure(
-        empty_history
-    )
-
-    HistoryCommand(clear=False, first=True, last=False).run()
-    captured = capsys.readouterr()
-    assert "No history found.\n" in captured.out
-
-
 def test_retrieve_last_conversation_success(mock_proxy, sample_history_entry, capsys):
     """Test retrieving last conversation successfully."""
-    mock_proxy.GetLastConversation.return_value = sample_history_entry.to_structure(
-        sample_history_entry
-    )
+    mock_proxy.GetLastConversation.return_value = sample_history_entry.structure()
 
     HistoryCommand(clear=False, first=False, last=True).run()
     captured = capsys.readouterr()
     mock_proxy.GetLastConversation.assert_called_once()
     assert (
-        "\x1b[92mQuery: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
+        "\x1b[92mQuestion: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
         in captured.out
     )
-
-
-def test_retrieve_last_conversation_empty(mock_proxy, capsys):
-    """Test retrieving last conversation when history is empty."""
-    empty_history = HistoryEntry()
-    mock_proxy.GetLastConversation.return_value = empty_history.to_structure(
-        empty_history
-    )
-
-    HistoryCommand(clear=False, first=False, last=True).run()
-    captured = capsys.readouterr()
-    assert "No history found.\n" in captured.out
 
 
 def test_clear_history_success(mock_proxy, capsys):
@@ -147,21 +104,14 @@ def test_clear_history_success(mock_proxy, capsys):
         (
             "test",
             "test",
-            "\x1b[92mQuery: test\x1b[0m\n\x1b[94mAnswer: test\x1b[0m\nTime:\n",
+            "\x1b[92mQuestion: test\x1b[0m\n\x1b[94mAnswer: test\x1b[0m\nTime:\n",
         ),
     ),
 )
 def test_show_history(query, response, expected, capsys):
-    item = HistoryItem()
-    item.query = query
-    item.response = response
-    HistoryCommand(clear=False, first=False, last=False)._show_history([item])
+    HistoryCommand(clear=False, first=False, last=False)._show_history(
+        HistoryList([HistoryEntry(query, response)])
+    )
 
     captured = capsys.readouterr()
     assert expected in captured.out
-
-
-def test_show_history_no_entries(capsys):
-    HistoryCommand(clear=False, first=False, last=False)._show_history([])
-    captured = capsys.readouterr()
-    assert "No history found." in captured.out

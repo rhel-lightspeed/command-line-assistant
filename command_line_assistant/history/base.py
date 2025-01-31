@@ -1,10 +1,10 @@
 """Base module to track all the abstract classes for the history module."""
 
 import logging
-import uuid
 from abc import ABC, abstractmethod
 
 from command_line_assistant.config import Config
+from command_line_assistant.daemon.database.models.history import HistoryModel
 
 logger = logging.getLogger(__name__)
 
@@ -21,25 +21,34 @@ class BaseHistoryPlugin(ABC):
         self._config = config
 
     @abstractmethod
-    def read(self, user_id: uuid.UUID) -> list[dict[str, str]]:
+    def read(self, user_id: str) -> list[HistoryModel]:
         """Abstract method to represent a read operation
 
+        Arguments:
+            user_id (str): The user's identifier
+
         Returns:
-            History: Should return an instance of History schema.
+            list[HistoryModel]: Should return an instance of History schema.
         """
 
     @abstractmethod
-    def write(self, user_id: uuid.UUID, query: str, response: str) -> None:
+    def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
         """Abstract method to represent a write operation
 
         Args:
+            chat_id (str): The chat identifier
+            user_id (str): The user's identifier
             query (str): The user question
             response (str): The LLM response
         """
 
     @abstractmethod
-    def clear(self, user_id: uuid.UUID) -> None:
-        """Abstract method to represent a clear operation"""
+    def clear(self, user_id: str) -> None:
+        """Abstract method to represent a clear operation
+
+        Arguments:
+            user_id (str): The user's identifier
+        """
 
     def _check_if_history_is_enabled(self) -> bool:
         """Check if the history is enabled in the configuration file.

@@ -15,31 +15,33 @@ from command_line_assistant.dbus.exceptions import (
     MissingHistoryFileError,
     RequestFailedError,
 )
-from command_line_assistant.dbus.structures import Message
+from command_line_assistant.dbus.structures.chat import Response
 
 
 # Mock the entire DBus service/constants module
 @pytest.fixture(autouse=True)
 def mock_dbus_service(mock_proxy):
     """Fixture to mock DBus service and automatically use it for all tests"""
-    with patch("command_line_assistant.commands.chat.CHAT_IDENTIFIER") as mock_service:
+    with (
+        patch("command_line_assistant.commands.chat.CHAT_IDENTIFIER") as mock_service,
+        patch("command_line_assistant.commands.chat.HISTORY_IDENTIFIER"),
+        patch("command_line_assistant.commands.chat.USER_IDENTIFIER"),
+    ):
         # Create a mock proxy that will be returned by get_proxy()
         mock_service.get_proxy.return_value = mock_proxy
 
         # Setup default mock response
-        mock_output = Message()
-        mock_output.message = "default mock response"
-        mock_output.user = "mock"
-        mock_proxy.RetrieveAnswer = lambda: Message.to_structure(mock_output)
+        mock_output = Response("default mock response")
+        mock_proxy.RetrieveAnswer = lambda: mock_output.structure()
 
         yield mock_proxy
 
 
 def test_query_command_initialization():
     """Test QueryCommand initialization"""
-    query = "test query"
-    command = ChatCommand(query, None)
-    assert command._query == query
+    args = Namespace(query_string="test query", stdin=None, attachment=None)
+    command = ChatCommand(args)
+    assert command._query == args.query_string
 
 
 @pytest.mark.parametrize(
@@ -56,12 +58,22 @@ def test_query_command_initialization():
 def test_query_command_run(mock_dbus_service, test_input, expected_output, capsys):
     """Test QueryCommand run method with different inputs"""
     # Setup mock response for this specific test
-    mock_output = Message()
-    mock_output.message = expected_output
-    mock_output.user = "mock"
-    mock_dbus_service.AskQuestion = lambda mock_input: Message.to_structure(mock_output)
+    mock_output = Response(expected_output)
+    mock_dbus_service.AskQuestion = (
+        lambda chat_id, user_id, mock_input: mock_output.structure()
+    )
 
-    command = ChatCommand(test_input, None)
+    args = Namespace(
+        query_string=test_input,
+        stdin=None,
+        attachment=None,
+        list=None,
+        delete=None,
+        delete_all=None,
+        name=None,
+        description=None,
+    )
+    command = ChatCommand(args)
     command.run()
 
     # Verify output was printed
@@ -72,12 +84,22 @@ def test_query_command_run(mock_dbus_service, test_input, expected_output, capsy
 def test_query_command_empty_response(mock_dbus_service, capsys):
     """Test QueryCommand handling empty response"""
     # Setup empty response
-    mock_output = Message()
-    mock_output.message = ""
-    mock_output.user = "mock"
-    mock_dbus_service.AskQuestion = lambda mock_input: Message.to_structure(mock_output)
+    mock_output = Response("")
+    mock_dbus_service.AskQuestion = (
+        lambda chat_id, user_id, mock_input: mock_output.structure()
+    )
 
-    command = ChatCommand("test query", None)
+    args = Namespace(
+        query_string="test query",
+        stdin=None,
+        attachment=None,
+        list=None,
+        delete=None,
+        delete_all=None,
+        name=None,
+        description=None,
+    )
+    command = ChatCommand(args)
     command.run()
 
     captured = capsys.readouterr()
@@ -91,9 +113,19 @@ def test_query_command_empty_response(mock_dbus_service, capsys):
         ("   ",),
     ],
 )
-def test_query_command_invalid_inputs(mock_dbus_service, test_args, capsys):
+def test_query_command_invalid_inputs(test_args, capsys):
     """Test QueryCommand with invalid inputs"""
-    command = ChatCommand(test_args, None)
+    args = Namespace(
+        query_string=test_args,
+        stdin=None,
+        attachment=None,
+        list=None,
+        delete=None,
+        delete_all=None,
+        name=None,
+        description=None,
+    )
+    command = ChatCommand(args)
     command.run()
 
     captured = capsys.readouterr()
@@ -168,12 +200,8 @@ def test_get_input_source(query_string, stdin, attachment, expected, tmp_path):
         file_attachment.write_text(attachment)
         file_attachment = open(file_attachment, "r")
 
-    options = {
-        "query_string": query_string,
-        "stdin": stdin,
-        "attachment": file_attachment,
-    }
-    command = ChatCommand(**options)
+    args = Namespace(query_string=query_string, stdin=stdin, attachment=file_attachment)
+    command = ChatCommand(args)
 
     output = command._get_input_source()
 
@@ -184,12 +212,18 @@ def test_get_inout_source_all_values_warning_message(capsys, tmp_path):
     file_attachment = tmp_path / "test.txt"
     file_attachment.write_text("file")
     file_attachment = open(file_attachment, "r")
-    options = {
-        "query_string": "query",
-        "stdin": "stdin",
-        "attachment": file_attachment,
-    }
-    command = ChatCommand(**options)
+
+    args = Namespace(
+        query_string="query",
+        stdin="stdin",
+        attachment=file_attachment,
+        list=None,
+        delete=None,
+        delete_all=None,
+        name=None,
+        description=None,
+    )
+    command = ChatCommand(args)
 
     output = command._get_input_source()
 
@@ -202,7 +236,8 @@ def test_get_inout_source_all_values_warning_message(capsys, tmp_path):
 
 
 def test_get_input_source_value_error():
-    command = ChatCommand(None, None, None)
+    args = Namespace(query_string=None, stdin=None, attachment=None)
+    command = ChatCommand(args)
 
     with pytest.raises(
         ValueError,
@@ -233,7 +268,17 @@ def test_dbus_error_handling(exception, expected, mock_dbus_service, capsys):
     # Make ProcessQuery raise a DBus error
     mock_dbus_service.AskQuestion.side_effect = exception
 
-    command = ChatCommand("test query", None)
+    args = Namespace(
+        query_string="test query",
+        stdin=None,
+        attachment=None,
+        list=None,
+        delete=None,
+        delete_all=None,
+        name=None,
+        description=None,
+    )
+    command = ChatCommand(args)
     command.run()
 
     # Verify error message in stdout

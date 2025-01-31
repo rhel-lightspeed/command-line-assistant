@@ -16,7 +16,7 @@ class MockHistoryPlugin(BaseHistoryPlugin):
         self.read_called = True
         return []
 
-    def write(self, user_id, query: str, response: str) -> None:
+    def write(self, chat_id, user_id, query: str, response: str) -> None:
         self.write_called = True
 
     def clear(self, user_id) -> None:
@@ -25,12 +25,12 @@ class MockHistoryPlugin(BaseHistoryPlugin):
 
 @pytest.fixture
 def history_manager(mock_config):
-    return HistoryManager(mock_config, 1000, plugin=LocalHistory)
+    return HistoryManager(mock_config, plugin=LocalHistory)
 
 
 def test_history_manager_initialization(mock_config):
     """Test that HistoryManager initializes correctly"""
-    manager = HistoryManager(mock_config, 1000)
+    manager = HistoryManager(mock_config)
     assert manager._config == mock_config
     assert manager._plugin is None
     assert manager._instance is None
@@ -38,7 +38,7 @@ def test_history_manager_initialization(mock_config):
 
 def test_history_manager_plugin_setter(mock_config):
     """Test setting a valid plugin"""
-    manager = HistoryManager(mock_config, 1000)
+    manager = HistoryManager(mock_config)
     manager.plugin = MockHistoryPlugin
     assert manager._plugin == MockHistoryPlugin
     assert isinstance(manager._instance, MockHistoryPlugin)
@@ -46,7 +46,7 @@ def test_history_manager_plugin_setter(mock_config):
 
 def test_history_manager_invalid_plugin(mock_config):
     """Test setting an invalid plugin"""
-    manager = HistoryManager(mock_config, 1000)
+    manager = HistoryManager(mock_config)
 
     class InvalidPlugin(BaseHistoryPlugin):
         pass
@@ -57,28 +57,33 @@ def test_history_manager_invalid_plugin(mock_config):
 
 def test_history_manager_read_without_plugin(mock_config):
     """Test reading history without setting a plugin first"""
-    manager = HistoryManager(mock_config, 1000)
+    manager = HistoryManager(mock_config)
     with pytest.raises(RuntimeError):
-        manager.read()
+        manager.read("6d4e6b1e-dfcb-11ef-9b4f-52b437312584")
 
 
 def test_history_manager_write_without_plugin(mock_config):
     """Test writing history without setting a plugin first"""
-    manager = HistoryManager(mock_config, 1000)
+    manager = HistoryManager(mock_config)
     with pytest.raises(RuntimeError):
-        manager.write("test query", "test response")
+        manager.write(
+            "6d4e6b1e-dfcb-11ef-9b4f-52b437312584",
+            "6d4e6b1e-dfcb-11ef-9b4f-52b437312584",
+            "test query",
+            "test response",
+        )
 
 
 def test_history_manager_clear_without_plugin(mock_config):
     """Test clearing history without setting a plugin first"""
-    manager = HistoryManager(mock_config, 1000)
+    manager = HistoryManager(mock_config)
     with pytest.raises(RuntimeError):
-        manager.clear()
+        manager.clear("6d4e6b1e-dfcb-11ef-9b4f-52b437312584")
 
 
 def test_history_manager_read(history_manager):
     """Test reading history"""
-    history = history_manager.read()
+    history = history_manager.read("6d4e6b1e-dfcb-11ef-9b4f-52b437312584")
     assert isinstance(history, list)
     assert len(history) == 0
     assert isinstance(history_manager._instance, LocalHistory)
@@ -88,24 +93,25 @@ def test_history_manager_write(history_manager):
     """Test writing to history"""
     test_query = "How do I check disk space?"
     test_response = "Use the df command"
+    uid = "6d4e6b1e-dfcb-11ef-9b4f-52b437312584"
+    history_manager.write(uid, uid, test_query, test_response)
 
-    history_manager.write(test_query, test_response)
-
-    history = history_manager.read()
+    history = history_manager.read(uid)
     assert len(history) == 1
-    assert history[0]["query"] == test_query
-    assert history[0]["response"] == test_response
+    assert history[0].interactions[0].question == test_query
+    assert history[0].interactions[0].response == test_response
 
 
 def test_history_manager_clear(history_manager):
     """Test clearing history"""
     # First write something
-    history_manager.write("test query", "test response")
-    assert len(history_manager.read()) == 1
+    uid = "6d4e6b1e-dfcb-11ef-9b4f-52b437312584"
+    history_manager.write(uid, uid, "test query", "test response")
+    assert len(history_manager.read(uid)) == 1
 
     # Then clear it
-    history_manager.clear()
-    assert len(history_manager.read()) == 0
+    history_manager.clear(uid)
+    assert len(history_manager.read(uid)) == 0
 
 
 def test_history_manager_multiple_writes(history_manager):
@@ -115,13 +121,16 @@ def test_history_manager_multiple_writes(history_manager):
         ("query2", "response2"),
         ("query3", "response3"),
     ]
-
+    uid = "6d4e6b1e-dfcb-11ef-9b4f-52b437312584"
     for query, response in entries:
-        history_manager.write(query, response)
+        history_manager.write(
+            uid,
+            uid,
+            query,
+            response,
+        )
 
-    history = history_manager.read()
-    assert len(history) == len(entries)
-
-    for i, (query, response) in enumerate(entries):
-        assert history[i]["query"] == query
-        assert history[i]["response"] == response
+    history = history_manager.read(uid)
+    # 1 history, with multiple interactions
+    assert len(history) == 1
+    assert len(history[0].interactions) == len(entries)

@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Jan 28, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Jan 30, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -55,21 +55,36 @@ Command to ask a question to the LLM.
 .INDENT 3.5
 .sp
 .EX
-c chat [\-h] [\-a [ATTACHMENT]] [query_string]
+c chat [\-h] [\-a [ATTACHMENT]] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
+       [\-\-description [DESCRIPTION]]
+       [query_string]
 .EE
 .UNINDENT
-.UNINDENT
-.SS c chat positional arguments
-.INDENT 0.0
-.IP \(bu 2
-\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
 .UNINDENT
 .SS c chat options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+.UNINDENT
+.SS c chat Question options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
 .IP \(bu 2
 \fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
+.UNINDENT
+.SS c chat Chat options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-l\fP, \fI\%\-\-list\fP \- List all chats
+.IP \(bu 2
+\fI\%\-d\fP \fBDELETE\fP, \fI\%\-\-delete\fP \fBDELETE\fP \- Delete a chat session (default: \fB\fP)
+.IP \(bu 2
+\fI\%\-da\fP, \fI\%\-\-delete\-all\fP \- Delete all chats
+.IP \(bu 2
+\fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session (default: \fBdefault\fP)
+.IP \(bu 2
+\fI\%\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session (default: \fBDefault Command Line Assistant Chat.\fP)
 .UNINDENT
 .SS c history
 .sp
@@ -78,7 +93,7 @@ Manage user conversation history
 .INDENT 3.5
 .sp
 .EX
-c history [\-h] [\-\-clear] [\-\-first] [\-\-last] [\-\-filter FILTER]
+c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-fr FROM] [\-c]
 .EE
 .UNINDENT
 .UNINDENT
@@ -86,14 +101,22 @@ c history [\-h] [\-\-clear] [\-\-first] [\-\-last] [\-\-filter FILTER]
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+.UNINDENT
+.SS c history Filtering options
+.INDENT 0.0
 .IP \(bu 2
-\fI\%\-\-clear\fP \- Clear the entire history.
+\fI\%\-f\fP, \fI\%\-\-first\fP \- Get the first conversation from history. If no \-\-from is specified, this will get the first conversation across all chats.
 .IP \(bu 2
-\fI\%\-\-first\fP \- Get the first conversation from history.
+\fI\%\-l\fP, \fI\%\-\-last\fP \- Get the last conversation from history. If no \-\-from is specified, this will get the last conversation across all chats.
 .IP \(bu 2
-\fI\%\-\-last\fP \- Get the last conversation from history.
+\fI\%\-fi\fP \fBFILTER\fP, \fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. If no \-\-from is specified, this will filter conversations across all chats. (default: \fBNone\fP)
 .IP \(bu 2
-\fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. (default: \fBNone\fP)
+\fI\%\-fr\fP \fBFROM\fP, \fI\%\-\-from\fP \fBFROM\fP \- Specify which chat to get the history from. If not specified, this will get the history from all chats. (default: \fBNone\fP)
+.UNINDENT
+.SS c history Management options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-c\fP, \fI\%\-\-clear\fP \- Clear the entire history. If no \-\-from is specified, it will clear all history from all chats.
 .UNINDENT
 .SH DESCRIPTION
 .sp

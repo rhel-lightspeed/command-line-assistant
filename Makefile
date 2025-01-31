@@ -6,7 +6,8 @@
 	clean \
 	link-systemd-units \
 	unlink-systemd-units \
-	run-clad status-clad \
+	run-clad \
+	status-clad \
 	reload-clad \
 	manpages \
 	docs \
@@ -99,7 +100,7 @@ run-clad: ## Run the clad under systemd
 	@systemctl start --user clad
 
 status-clad: ## Check the status for clad
-	@systemctl status -f --user clad
+	@journalctl --user -fu clad
 
 reload-clad: ## Reload clad systemd unit
 	@systemctl --user daemon-reload

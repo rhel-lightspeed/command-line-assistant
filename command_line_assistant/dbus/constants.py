@@ -19,6 +19,9 @@ CHAT_NAMESAPCE = (*SERVICE_NAMESPACE, "chat")
 #: The history namespace
 HISTORY_NAMESPACE = (*SERVICE_NAMESPACE, "history")
 
+#: The user namespace
+USER_NAMESPACE = (*SERVICE_NAMESPACE, "user")
+
 #: The chat identifier that represents a dbus service
 CHAT_IDENTIFIER = DBusServiceIdentifier(
     namespace=CHAT_NAMESAPCE, message_bus=SYSTEM_BUS
@@ -27,4 +30,9 @@ CHAT_IDENTIFIER = DBusServiceIdentifier(
 #: The history identifier that represents a dbus service
 HISTORY_IDENTIFIER = DBusServiceIdentifier(
     namespace=HISTORY_NAMESPACE, message_bus=SYSTEM_BUS
+)
+
+#: The user identifier that represents a dbus service
+USER_IDENTIFIER = DBusServiceIdentifier(
+    namespace=USER_NAMESPACE, message_bus=SYSTEM_BUS
 )

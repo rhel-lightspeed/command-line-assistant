@@ -1,17 +1,14 @@
 """Plugin for handling local history managemnet."""
 
 import logging
-import platform
-import uuid
-from datetime import datetime
-
-from sqlalchemy import asc
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.manager import DatabaseManager
-from command_line_assistant.daemon.database.models.history import (
-    HistoryModel,
-    InteractionModel,
+from command_line_assistant.daemon.database.models.history import HistoryModel
+from command_line_assistant.daemon.database.repository.chat import ChatRepository
+from command_line_assistant.daemon.database.repository.history import (
+    HistoryRepository,
+    InteractionRepository,
 )
 from command_line_assistant.dbus.exceptions import (
     CorruptedHistoryError,
@@ -32,7 +29,11 @@ class LocalHistory(BaseHistoryPlugin):
             config (Config): Configuration class
         """
         super().__init__(config)
-        self._db: DatabaseManager = self._initialize_database()
+        manager = self._initialize_database()
+
+        self._chat_repository = ChatRepository(manager=manager)
+        self._history_repository = HistoryRepository(manager=manager)
+        self._interaction_repository = InteractionRepository(manager=manager)
 
     def _initialize_database(self) -> DatabaseManager:
         """Initialize the database connection and create tables if needed.
@@ -45,17 +46,19 @@ class LocalHistory(BaseHistoryPlugin):
         """
         try:
             db = DatabaseManager(self._config)
-            db.connect()
             return db
         except Exception as e:
             logger.error("Failed to initialize database: %s", e)
             raise MissingHistoryFileError(f"Could not initialize database: {e}") from e
 
-    def read(self, user_id: uuid.UUID) -> list[dict[str, str]]:
+    def read(self, user_id: str) -> list[HistoryModel]:
         """Reads the history from the database.
 
+        Arguments:
+            user_id (str): The user's identifier
+
         Returns:
-            History: An instance of a History class that holds the history data.
+            list[HistoryModel]: The history entries
 
         Raises:
             CorruptedHistoryError: Raised when there's an error reading from the database.
@@ -65,33 +68,17 @@ class LocalHistory(BaseHistoryPlugin):
             return []
 
         try:
-            with self._db.session() as session:
-                # Query history entries with relationships
-                entries = (
-                    session.query(HistoryModel)
-                    .join(InteractionModel)
-                    .filter(HistoryModel.deleted_at.is_(None))
-                    .order_by(asc(HistoryModel.timestamp))
-                    .where(HistoryModel.user_id == user_id)
-                    .all()
-                )
-
-                return [
-                    {
-                        "query": entry.interaction.query_text,
-                        "response": entry.interaction.response_text,
-                        "timestamp": str(entry.timestamp),
-                    }
-                    for entry in entries
-                ]
+            return self._history_repository.select_all_history(user_id)
         except Exception as e:
             logger.error("Failed to read from database: %s", e)
             raise CorruptedHistoryError(f"Failed to read from database: {e}") from e
 
-    def write(self, user_id: uuid.UUID, query: str, response: str) -> None:
+    def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
         """Write history to the database.
 
         Args:
+            chat_id (str): The chat id
+            user_id (str): The user id
             query (str): The user question
             response (str): The LLM response
 
@@ -103,37 +90,52 @@ class LocalHistory(BaseHistoryPlugin):
             return
 
         try:
-            with self._db.session() as session:
-                # Create Interaction record
-                interaction = InteractionModel(
-                    query_text=query,
-                    response_text=response,
-                    response_tokens=len(response),
-                    os_distribution="RHEL",  # Default to RHEL for now
-                    os_version=platform.release(),
-                    os_arch=platform.machine(),
-                )
-                session.add(interaction)
+            # Verify if the given chat_id has a history associated with it
+            result = self._history_repository.select_by_chat_id(chat_id)
 
-                # Create History record
-                history = HistoryModel(interaction=interaction, user_id=user_id)
-                session.add(history)
+            history_id = None
+            if result:
+                history_id = result.id
+                logger.info("Found history '%s' for user '%s'", history_id, user_id)
+            else:
+                history_id = self._history_repository.insert(
+                    {"chat_id": chat_id, "user_id": user_id}
+                )[0]
+                logger.info(
+                    "Wrote a new history '%s' for user '%s'", history_id, user_id
+                )
+
+            # Create Interaction record
+            interaction_id = self._interaction_repository.insert(
+                {
+                    "question": query,
+                    "response": response,
+                    "history_id": history_id,
+                    "os_info": {},
+                }
+            )
+            logger.info(
+                "Wrote a new interaction '%s' for user '%s' in history '%s' that belongs to chat '%s'",
+                interaction_id,
+                user_id,
+                history_id,
+                chat_id,
+            )
         except Exception as e:
             logger.error("Failed to write to database: %s", e)
             raise CorruptedHistoryError(f"Failed to write to database: {e}") from e
 
-    def clear(self, user_id: uuid.UUID) -> None:
+    def clear(self, user_id: str) -> None:
         """Clear the database by dropping and recreating tables.
+
+        Arguments:
+            user_id (str): The user's identifier
 
         Raises:
             MissingHistoryFileError: Raised when the database file is missing.
         """
         try:
-            with self._db.session() as session:
-                # Soft delete by setting deleted_at
-                session.query(HistoryModel).where(
-                    HistoryModel.user_id == user_id
-                ).update({"deleted_at": datetime.utcnow()})
+            self._history_repository.delete(identifier=user_id)
             logger.info("Database cleared successfully")
         except Exception as e:
             logger.error("Failed to clear database: %s", e)
