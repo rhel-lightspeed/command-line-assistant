@@ -21,7 +21,8 @@ class Frames:
         This is how each spinner will be represented as 1 character in the
         terminal. Read from left to right.
 
-        >>> default = (["⠋", "⠙", "⠸", "⠴", "⠦", "⠇"]
+        >>> default = ["⁺₊✦", "⁻₊✦", "⁺₊✦", "⁺₊✦", "⁺₋✦", "⁺₊✦", "⁺₊✦", "⁺₊✧", "⁺₊✦"]
+        >>> double_dots = ["⠋", "⠙", "⠸", "⠴", "⠦", "⠇"]
         >>> dash = ["-", "\\", "|", "/"]
         >>> circular = ["◐", "◓", "◑", "◒"]
         >>> dots = [".  ", ".. ", "...", " ..", "  .", "   "]
@@ -29,17 +30,34 @@ class Frames:
         >>> moving = ["[   ]", "[=  ]", "[== ]", "[===]", "[ ==]", "[  =]", "[   ]"]
 
     Attributes:
-        default (Iterator[str]): The default spinner frame (braille)
+        default (Iterator[str]): The default spinner frame (star)
         dash (Iterator[str]): A spinner made with dashes (-)
         circular (Iterator[str]): A spinner made with half-circles (◐)
+        double_dots (Iterator[str]): A spinner mode with double dots
         dots (Iterator[str]): A spinner made with dots (.)
         arrows (Iterator[str]): A spinner made with an arrow (←)
         moving (Iterator[str]): A spinner made with equals ([=])
     """
 
-    default: Iterator[str] = itertools.cycle(["⠋", "⠙", "⠸", "⠴", "⠦", "⠇"])
+    default: Iterator[str] = itertools.cycle(
+        [
+            "⁺₊+⁺",
+            "⁻₊+⁺",
+            "⁺₊+⁺",
+            "⁺₊+⁺",
+            "⁺₋+⁺",
+            "⁺₊+⁺",
+            "⁺₊+⁺",
+            "⁺₊-⁺",
+            "⁺₊+⁺",
+            "⁺₊+⁺",
+            "⁺₊+⁻",
+            "⁺₊+⁺",
+        ]
+    )
     dash: Iterator[str] = itertools.cycle(["-", "\\", "|", "/"])
     circular: Iterator[str] = itertools.cycle(["◐", "◓", "◑", "◒"])
+    double_dots: Iterator[str] = itertools.cycle(["⠋", "⠙", "⠸", "⠴", "⠦", "⠇"])
     dots: Iterator[str] = itertools.cycle([".  ", ".. ", "...", " ..", "  .", "   "])
     arrows: Iterator[str] = itertools.cycle(["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"])
     moving: Iterator[str] = itertools.cycle(

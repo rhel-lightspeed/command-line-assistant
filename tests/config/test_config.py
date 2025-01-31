@@ -25,7 +25,7 @@ prompt_separator = "$"
 
 [database]
 type = "sqlite"
-connection_string = "{tmp_path / 'history.db'}"
+connection_string = "{tmp_path / "history.db"}"
 
 [history]
 enabled = true

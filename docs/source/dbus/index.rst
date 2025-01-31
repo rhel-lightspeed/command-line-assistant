@@ -7,6 +7,6 @@ D-Bus
    constants
    context
    exceptions
-   interfaces
+   interfaces/index
    server
-   structures
+   structures/index

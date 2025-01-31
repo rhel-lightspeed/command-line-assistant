@@ -31,3 +31,13 @@ class CorruptedHistoryError(DBusError):
 @dbus_error("MissingHistoryFileError", namespace=HISTORY_NAMESPACE)
 class MissingHistoryFileError(DBusError):
     """Missing history file in the destination"""
+
+
+@dbus_error("HistoryNotAvailable", namespace=HISTORY_NAMESPACE)
+class HistoryNotAvailable(DBusError):
+    """History for that particular user is not available."""
+
+
+@dbus_error("ChatNotFound", namespace=CHAT_NAMESAPCE)
+class ChatNotFoundError(DBusError):
+    """Couldn't find chat for the given user."""

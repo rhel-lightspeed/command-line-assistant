@@ -3,12 +3,18 @@
 from argparse import Namespace
 from typing import Optional
 
-from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
+from command_line_assistant.dbus.constants import (
+    CHAT_IDENTIFIER,
+    HISTORY_IDENTIFIER,
+    USER_IDENTIFIER,
+)
 from command_line_assistant.dbus.exceptions import (
+    ChatNotFoundError,
     CorruptedHistoryError,
+    HistoryNotAvailable,
     MissingHistoryFileError,
 )
-from command_line_assistant.dbus.structures import HistoryEntry, HistoryItem
+from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
@@ -47,6 +53,8 @@ class HistoryCommand(BaseCLICommand):
         self._filter = filter
 
         self._proxy = HISTORY_IDENTIFIER.get_proxy()
+        self._user_proxy = USER_IDENTIFIER.get_proxy()
+        self._chat_proxy = CHAT_IDENTIFIER.get_proxy()
 
         self._spinner_renderer: SpinnerRenderer = create_spinner_renderer(
             message="Loading history",
@@ -69,91 +77,89 @@ class HistoryCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution.
         """
-
         try:
+            user_id = self._user_proxy.GetUserId(self._context.effective_user_id)
+
             if self._clear:
-                self._clear_history()
+                self._clear_history(user_id)
             elif self._first:
-                self._retrieve_first_conversation()
+                self._retrieve_first_conversation(user_id)
             elif self._last:
-                self._retrieve_last_conversation()
+                self._retrieve_last_conversation(user_id)
             elif self._filter:
-                self._retrieve_conversation_filtered(self._filter)
+                self._retrieve_conversation_filtered(user_id, self._filter)
             else:
-                self._retrieve_all_conversations()
+                self._retrieve_all_conversations(user_id)
 
             return 0
-        except (MissingHistoryFileError, CorruptedHistoryError) as e:
+        except (
+            MissingHistoryFileError,
+            CorruptedHistoryError,
+            ChatNotFoundError,
+            HistoryNotAvailable,
+        ) as e:
             self._error_renderer.render(str(e))
             return 1
 
-    def _retrieve_all_conversations(self) -> None:
+    def _retrieve_all_conversations(self, user_id: str) -> None:
         """Retrieve and display all conversations from history."""
         self._text_renderer.render("Getting all conversations from history.")
-        response = self._proxy.GetHistory(self._context.effective_user_id)
-        history = HistoryEntry.from_structure(response)
+        response = self._proxy.GetHistory(user_id)
+        history = HistoryList.from_structure(response)
 
         # Display the conversation
-        self._show_history(history.entries)
+        self._show_history(history)
 
-    def _retrieve_first_conversation(self) -> None:
+    def _retrieve_first_conversation(self, user_id: str) -> None:
         """Retrieve the first conversation in the conversation cache."""
         self._text_renderer.render("Getting first conversation from history.")
-        response = self._proxy.GetFirstConversation(self._context.effective_user_id)
-        history = HistoryEntry.from_structure(response)
+        response = self._proxy.GetFirstConversation(user_id)
+        history = HistoryList.from_structure(response)
 
         # Display the conversation
-        self._show_history(history.entries)
+        self._show_history(history)
 
-    def _retrieve_conversation_filtered(self, filter: str) -> None:
+    def _retrieve_conversation_filtered(self, user_id: str, filter: str) -> None:
         """Retrieve the user conversation with keyword filtering.
 
         Args:
             filter (str): Keyword to filter in the user history
         """
         self._text_renderer.render("Filtering conversation history.")
-        response = self._proxy.GetFilteredConversation(
-            self._context.effective_user_id, filter
-        )
+        response = self._proxy.GetFilteredConversation(user_id, filter)
 
         # Handle and display the response
-        history = HistoryEntry.from_structure(response)
+        history = HistoryList.from_structure(response)
 
         # Display the conversation
-        self._show_history(history.entries)
+        self._show_history(history)
 
-    def _retrieve_last_conversation(self) -> None:
+    def _retrieve_last_conversation(self, user_id: str) -> None:
         """Retrieve the last conversation in the conversation cache."""
         self._text_renderer.render("Getting last conversation from history.")
-        response = self._proxy.GetLastConversation(self._context.effective_user_id)
+        response = self._proxy.GetLastConversation(user_id)
 
-        # Handle and display the response
-        history = HistoryEntry.from_structure(response)
-
+        history = HistoryList.from_structure(response)
         # Display the conversation
-        self._show_history(history.entries)
+        self._show_history(history)
 
-    def _clear_history(self) -> None:
+    def _clear_history(self, user_id: str) -> None:
         """Clear the user history"""
         self._text_renderer.render("Cleaning the history.")
-        self._proxy.ClearHistory(self._context.effective_user_id)
+        self._proxy.ClearHistory(user_id)
 
-    def _show_history(self, entries: list[HistoryItem]) -> None:
+    def _show_history(self, entries: HistoryList) -> None:
         """Internal method to show the history in a standardized way
 
         Args:
             entries (list[HistoryItem]): The list of entries in the history
         """
-        if not entries:
-            self._text_renderer.render("No history found.")
-            return
-
-        is_separator_needed = len(entries) > 1
-        for entry in entries:
-            self._q_renderer.render(f"Query: {entry.query}")
+        is_separator_needed = len(entries.histories) > 1
+        for entry in entries.histories:
+            self._q_renderer.render(f"Question: {entry.question}")
             self._a_renderer.render(f"Answer: {entry.response}")
 
-            timestamp = f"Time: {entry.timestamp}"
+            timestamp = f"Time: {entry.created_at}"
             self._text_renderer.render(timestamp)
 
             if is_separator_needed:
@@ -172,24 +178,34 @@ def register_subcommand(parser: SubParsersAction):
         "history",
         help="Manage user conversation history",
     )
-    history_parser.add_argument(
-        "--clear",
-        action="store_true",
-        help="Clear the entire history.",
-    )
-    history_parser.add_argument(
+
+    filtering_options = history_parser.add_argument_group("Filtering options")
+    filtering_options.add_argument(
+        "-f",
         "--first",
         action="store_true",
-        help="Get the first conversation from history.",
+        help="Get the first conversation from history. If no --from is specified, this will get the first conversation across all chats.",
     )
-    history_parser.add_argument(
+    filtering_options.add_argument(
+        "-l",
         "--last",
         action="store_true",
-        help="Get the last conversation from history.",
+        help="Get the last conversation from history. If no --from is specified, this will get the last conversation across all chats.",
     )
-    history_parser.add_argument(
-        "--filter", help="Search for a specific keyword of text in the history."
+    filtering_options.add_argument(
+        "-fi",
+        "--filter",
+        help="Search for a specific keyword of text in the history. If no --from is specified, this will filter conversations across all chats.",
     )
+
+    management_options = history_parser.add_argument_group("Management options")
+    management_options.add_argument(
+        "-c",
+        "--clear",
+        action="store_true",
+        help="Clear the entire history. If no --from is specified, it will clear all history from all chats.",
+    )
+
     history_parser.set_defaults(func=_command_factory)
 
 

@@ -1,16 +1,15 @@
 """Base module to hold the declarative base for sqlalchemy models"""
 
 import uuid
+from datetime import datetime
 from typing import Any
 
+from sqlalchemy import Column, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.types import CHAR, TypeDecorator
-
-#: The declarative base model for SQLAlchemy models
-BaseModel = declarative_base()
 
 
 class GUID(TypeDecorator):
@@ -96,3 +95,18 @@ class GUID(TypeDecorator):
             Any: Any value returned by the internal _uuid_value method
         """
         return self._uuid_value(value)
+
+
+class BaseMixin:
+    """A mixin class that gathers the default columns for any model."""
+
+    __name__ = "BaseMixin"
+
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    created_at = Column(DateTime, default=datetime.now(), nullable=False)
+    updated_at = Column(DateTime, default=datetime.now(), nullable=False)
+    deleted_at = Column(DateTime, default=None, nullable=True)
+
+
+#: The declarative base model for SQLAlchemy models
+BaseModel = declarative_base(cls=BaseMixin)

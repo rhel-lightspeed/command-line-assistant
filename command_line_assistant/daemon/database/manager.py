@@ -1,9 +1,8 @@
 """Database module to handle SQLAlchemy connections and interactions."""
 
 import logging
-import uuid
 from contextlib import contextmanager
-from typing import Generator, Optional, TypeVar
+from typing import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -14,10 +13,6 @@ from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.models.base import BaseModel
 
 logger = logging.getLogger(__name__)
-
-
-# Type variable for ORM models
-T = TypeVar("T")
 
 
 class DatabaseError(Exception):
@@ -44,7 +39,9 @@ class DatabaseManager:
         """
         self._config = config
         self._engine: Engine = self._create_engine(echo)
-        self._session_factory = sessionmaker(bind=self._engine)
+        self._session_factory = sessionmaker(bind=self._engine, expire_on_commit=False)
+
+        self._connect()
 
     def _create_engine(self, echo: bool) -> Engine:
         """Create SQLAlchemy engine with proper settings.
@@ -62,9 +59,8 @@ class DatabaseManager:
             connection_url = self._config.database.get_connection_url()
 
             # SQLite-specific settings
-            connect_args = {}
             if self._config.database.type == "sqlite":
-                connect_args["check_same_thread"] = False
+                connect_args = {"check_same_thread": False}
                 return create_engine(
                     connection_url,
                     echo=echo,
@@ -84,9 +80,10 @@ class DatabaseManager:
             logger.error("Failed to create database engine: %s", e)
             raise ConnectionError(f"Could not create database engine: {e}") from e
 
-    def connect(self) -> None:
+    def _connect(self) -> None:
         """Create database tables if they don't exist."""
         try:
+            # Order here is the name of the table that will be created
             BaseModel.metadata.create_all(self._engine)
         except Exception as e:
             logger.error("Failed to create database tables: %s", e)
@@ -112,59 +109,3 @@ class DatabaseManager:
             raise QueryError(f"Session error: {e}") from e
         finally:
             session.close()
-
-    def add(self, instance: T) -> None:
-        """Add an instance to the database.
-
-        Args:
-            instance (T): SQLAlchemy model instance to add
-
-        Raises:
-            QueryError: If adding fails
-        """
-        try:
-            with self.session() as session:
-                session.add(instance)
-                session.flush()
-        except Exception as e:
-            logger.error("Failed to add instance: %s", e)
-            raise QueryError(f"Failed to add instance: {e}") from e
-
-    def query(self, model: type[T]) -> list[T]:
-        """Query all instances of a model.
-
-        Args:
-            model (type[T]): SQLAlchemy model class to query
-
-        Returns:
-            list[T]: List of model instances
-
-        Raises:
-            QueryError: If query fails
-        """
-        try:
-            with self.session() as session:
-                return session.query(model).all()
-        except Exception as e:
-            logger.error("Failed to query instances: %s", e)
-            raise QueryError(f"Failed to query instances: {e}") from e
-
-    def get(self, model: type[T], id: uuid.UUID) -> Optional[T]:
-        """Get a single instance by ID.
-
-        Args:
-            model (type[T]): SQLAlchemy model class
-            id (uuid.UUID): Instance ID to get
-
-        Returns:
-            Optional[T]: Model instance if found, None otherwise
-
-        Raises:
-            QueryError: If query fails
-        """
-        try:
-            with self.session() as session:
-                return session.query(model).get(id)
-        except Exception as e:
-            logger.error("Failed to get instance: %s", e)
-            raise QueryError(f"Failed to get instance: {e}") from e
