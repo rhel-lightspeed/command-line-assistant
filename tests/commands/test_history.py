@@ -5,6 +5,12 @@ import pytest
 from command_line_assistant.commands.history import (
     HistoryCommand,
 )
+from command_line_assistant.dbus.exceptions import (
+    ChatNotFoundError,
+    CorruptedHistoryError,
+    HistoryNotAvailable,
+    MissingHistoryFileError,
+)
 from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
 
 
@@ -115,3 +121,22 @@ def test_show_history(query, response, expected, capsys):
 
     captured = capsys.readouterr()
     assert expected in captured.out
+
+
+@pytest.mark.parametrize(
+    ("exception", "expected_msg"),
+    (
+        (MissingHistoryFileError("missing history"), "missing history"),
+        (CorruptedHistoryError("corrupted history"), "corrupted history"),
+        (ChatNotFoundError("chat not found"), "chat not found"),
+        (HistoryNotAvailable("history not available"), "history not available"),
+    ),
+)
+def test_history_run_exceptions(exception, expected_msg, mock_proxy, capsys):
+    mock_proxy.GetHistory.side_effect = exception
+
+    result = HistoryCommand(clear=False, first=False, last=False, filter=None).run()
+
+    captured = capsys.readouterr()
+    assert result == 1
+    assert expected_msg in captured.err

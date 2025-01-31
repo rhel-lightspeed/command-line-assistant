@@ -1,9 +1,10 @@
 """Module to hold the history repository"""
 
+from datetime import datetime
 from typing import Union
 from uuid import UUID
 
-from sqlalchemy import asc, select
+from sqlalchemy import asc, select, update
 
 from command_line_assistant.daemon.database.manager import DatabaseManager
 from command_line_assistant.daemon.database.models.history import (
@@ -61,6 +62,25 @@ class HistoryRepository(BaseRepository):
 
         with self._manager.session() as session:
             return session.execute(statement=statement).scalars().all()  # type: ignore
+
+    def delete_all(self, user_id: Union[UUID, str]) -> None:
+        """Method to remove all history from the database.
+
+        Note:
+            This method will actually call `update` internally to update the
+            `deleted_at` field in the table.
+
+        Arguments:
+            user_id (Union[UUID, str]): The unique identifier to query in the database.
+        """
+        statement = (
+            update(self._model)
+            .values({"deleted_at": datetime.now()})
+            .where(self._model.user_id == user_id)
+        )
+
+        with self._manager.session() as session:
+            session.execute(statement=statement)
 
 
 class InteractionRepository(BaseRepository):

@@ -52,7 +52,29 @@ class BaseRepository:
         with self._manager.session() as session:
             return session.execute(statement=statement).scalars().all()
 
-    def select_all_by_id(self, user_id: Union[UUID, str]) -> Any:
+    def select_all_by_id(self, identifier: Union[UUID, str]) -> Any:
+        """Default method to select all entries by filtering using an identifier.
+
+        Arguments:
+            identifier (Union[UUID, str]): The unique identifier to query in the database.
+
+        Returns:
+            Any: Information retrieved from the database.
+        """
+        statement = (
+            select(self._model)
+            .where(
+                self._model.id == identifier,
+            )
+            .filter(self._model.deleted_at.is_(None))
+            .order_by(asc(self._model.created_at))
+            .limit(10)
+        )
+
+        with self._manager.session() as session:
+            return session.execute(statement=statement).scalars().all()
+
+    def select_all_by_user_id(self, user_id: Union[UUID, str]) -> Any:
         """Default method to select all entries by filtering using an identifier.
 
         Arguments:
@@ -158,7 +180,7 @@ class BaseRepository:
         statement = (
             update(self._model)
             .values({"deleted_at": datetime.now()})
-            .where(self._model.user_id == identifier)
+            .where(self._model.id == identifier)
         )
 
         with self._manager.session() as session:

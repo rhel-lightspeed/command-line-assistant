@@ -137,12 +137,12 @@ class HistoryInterface(InterfaceTemplate):
             question (Str): The question asked by the user.
             response (Str): The response given to the user.
         """
+        self._history_manager.write(chat_id, user_id, question, response)
         logger.info(
-            "Writing a new entry to the user history for user '%s' in chat '%s'.",
+            "Wrote a new entry to the user history for user '%s' in chat '%s'.",
             user_id,
             chat_id,
         )
-        self._history_manager.write(chat_id, user_id, question, response)
 
 
 def _parse_interactions(interactions: list[InteractionModel]) -> HistoryList:

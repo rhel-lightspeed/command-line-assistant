@@ -287,7 +287,6 @@ class ChatCommand(BaseCLICommand):
             ),
         )
         response = self._proxy.AskQuestion(
-            chat_id,
             user_id,
             message_input.structure(),
         )
@@ -303,6 +302,13 @@ class ChatCommand(BaseCLICommand):
         Returns:
             str: The identifier of the chat session.
         """
+        has_chat_id = self._proxy.GetChatId(user_id, self._args.name)
+
+        # To avoid doing this check inside the CreateChat method, let's do it
+        # in here.
+        if has_chat_id:
+            return has_chat_id
+
         return self._proxy.CreateChat(
             user_id,
             self._args.name,

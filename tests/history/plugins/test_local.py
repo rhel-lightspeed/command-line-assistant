@@ -132,12 +132,12 @@ class TestLocalHistoryClear:
         """Should successfully clear history."""
         uid = "6d4e6b1e-dfcb-11ef-9b4f-52b437312584"
         local_history.write(
-            "6d4e6b1e-dfcb-11ef-9b4f-52b437312584",
-            "6d4e6b1e-dfcb-11ef-9b4f-52b437312584",
+            uid,
+            uid,
             "test",
             "test",
         )
-        local_history.clear("6d4e6b1e-dfcb-11ef-9b4f-52b437312584")
+        local_history.clear(uid)
 
         # Verify soft delete was performed
         assert not local_history.read(uid)

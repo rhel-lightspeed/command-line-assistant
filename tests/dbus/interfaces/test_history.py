@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from dasbus.server.template import InterfaceTemplate
 
+from command_line_assistant.dbus.exceptions import HistoryNotAvailable
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
 from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.history.manager import HistoryManager
@@ -28,9 +29,10 @@ def test_history_interface_get_history(history_interface, mock_history_entry):
     with patch(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
+        uid = "1710e580-dfce-11ef-a98f-52b437312584"
         manager.write(
-            "1710e580-dfce-11ef-a98f-52b437312584",
-            "1710e580-dfce-11ef-a98f-52b437312584",
+            uid,
+            uid,
             "test query",
             "test response",
         )
@@ -40,6 +42,15 @@ def test_history_interface_get_history(history_interface, mock_history_entry):
         assert len(reconstructed.histories) == 1
         assert reconstructed.histories[0].question == "test query"
         assert reconstructed.histories[0].response == "test response"
+
+
+def test_history_interface_get_history_exception(history_interface):
+    """Test getting all history through history interface."""
+    uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    with pytest.raises(
+        HistoryNotAvailable, match="Unfortunately, no history was found."
+    ):
+        history_interface.GetHistory(uid)
 
 
 def test_history_interface_get_first_conversation(
@@ -62,6 +73,14 @@ def test_history_interface_get_first_conversation(
         assert reconstructed.histories[0].response == "test response"
 
 
+def test_history_interface_get_first_conversation_exception(history_interface):
+    uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    with pytest.raises(
+        HistoryNotAvailable, match="Unfortunately, no history was found."
+    ):
+        history_interface.GetFirstConversation(uid)
+
+
 def test_history_interface_get_last_conversation(history_interface, mock_history_entry):
     """Test getting first conversation through history interface."""
     with patch(
@@ -77,6 +96,14 @@ def test_history_interface_get_last_conversation(history_interface, mock_history
         assert len(reconstructed.histories) == 1
         assert reconstructed.histories[0].question == "test query3"
         assert reconstructed.histories[0].response == "test response3"
+
+
+def test_history_interface_get_last_conversation_exception(history_interface):
+    uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    with pytest.raises(
+        HistoryNotAvailable, match="Unfortunately, no history was found."
+    ):
+        history_interface.GetLastConversation(uid)
 
 
 def test_history_interface_get_filtered_conversation(
@@ -95,6 +122,14 @@ def test_history_interface_get_filtered_conversation(
         assert len(reconstructed.histories) == 1
         assert reconstructed.histories[0].question == "test query"
         assert reconstructed.histories[0].response == "test response"
+
+
+def test_history_interface_get_filtered_conversation_exception(history_interface):
+    uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    with pytest.raises(
+        HistoryNotAvailable, match="Unfortunately, no history was found."
+    ):
+        history_interface.GetFilteredConversation(uid, filter="test")
 
 
 def test_history_interface_get_filtered_conversation_duplicate_entries_not_matching(
@@ -142,3 +177,14 @@ def test_history_interface_empty_history(mock_history_entry, history_interface):
             response = method("1710e580-dfce-11ef-a98f-52b437312584")
             reconstructed = HistoryList.from_structure(response)
             assert len(reconstructed.histories) == 1
+
+
+def test_write_history(history_interface, caplog):
+    with patch("command_line_assistant.dbus.interfaces.history.HistoryManager"):
+        uid = "1710e580-dfce-11ef-a98f-52b437312584"
+        history_interface.WriteHistory(uid, uid, "test", "test")
+
+    assert (
+        f"Wrote a new entry to the user history for user '{uid}' in chat '{uid}'."
+        in caplog.records[-1].message
+    )

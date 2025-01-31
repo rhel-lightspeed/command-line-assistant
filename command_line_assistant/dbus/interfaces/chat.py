@@ -47,7 +47,7 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Structure: The list of chat sessions.
         """
-        result = self._chat_repository.select_all_by_id(user_id)
+        result = self._chat_repository.select_all_by_user_id(user_id)
 
         chat_entries = []
         for entry in result:
@@ -73,7 +73,7 @@ class ChatInterface(InterfaceTemplate):
         Raises:
             ChatNotFoundError: In case no chat was found for the current user.
         """
-        all_chats = self._chat_repository.select_all_by_id(user_id)
+        all_chats = self._chat_repository.select_all_by_user_id(user_id)
 
         if not all_chats:
             raise ChatNotFoundError("No chat found to delete.")
@@ -107,10 +107,10 @@ class ChatInterface(InterfaceTemplate):
 
         logger.info(
             "Found chat '%s' for user '%s'. Deleteing it as requested.",
-            chat.id,
+            chat[0].id,
             user_id,
         )
-        self._chat_repository.delete(chat.id)
+        self._chat_repository.delete(chat[0].id)
 
     def GetLatestChatFromUser(self, user_id: Str) -> Str:
         """Get the latest chat session for a given user.
@@ -146,11 +146,11 @@ class ChatInterface(InterfaceTemplate):
 
         logger.info(
             "Found existing chat with id '%s' and name '%s' for user '%s'",
-            result.id,
+            result[0].id,
             name,
             user_id,
         )
-        return str(result.id)
+        return str(result[0].id)
 
     def CreateChat(self, user_id: Str, name: Str, description: Str) -> Str:
         """Create a new chat session for a given conversation.
@@ -163,32 +163,18 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Str: The identifier of the chat session.
         """
-        result = self._chat_repository.select_by_name(user_id, name)
-        if result:
-            logger.info(
-                "Found existing chat with id '%s' and name '%s' for user '%s'",
-                result.id,
-                name,
-                user_id,
-            )
-            logger.info("Skipping the creation of a new chat entry.")
-            return str(result.id)
-
         identifier = self._chat_repository.insert(
             {"user_id": user_id, "name": name, "description": description}
         )
         logger.info(
             "New chat session created with id '%s' and name '%s'", identifier, name
         )
-        return str(identifier)
+        return str(identifier[0])
 
-    def AskQuestion(
-        self, chat_id: Str, user_id: Str, message_input: Structure
-    ) -> Structure:
+    def AskQuestion(self, user_id: Str, message_input: Structure) -> Structure:
         """This method is mainly called by the client to retrieve it's answer.
 
         Arguments:
-            chat_id (Str): The identifier of the chat session.
             user_id (Str): The identifier of the user.
             message_input (Structure): The message input in format of a d-bus structure.
 

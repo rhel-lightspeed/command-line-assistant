@@ -1,5 +1,4 @@
 ci:
-  autoupdate_schedule: quarterly
   skip:
     # https://github.com/pre-commit-ci/issues/issues/55
     - pyright

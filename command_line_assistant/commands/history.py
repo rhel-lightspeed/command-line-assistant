@@ -80,23 +80,24 @@ class HistoryCommand(BaseCLICommand):
         try:
             user_id = self._user_proxy.GetUserId(self._context.effective_user_id)
 
-            try:
-                if self._clear:
-                    self._clear_history(user_id)
-                elif self._first:
-                    self._retrieve_first_conversation(user_id)
-                elif self._last:
-                    self._retrieve_last_conversation(user_id)
-                elif self._filter:
-                    self._retrieve_conversation_filtered(user_id, self._filter)
-                else:
-                    self._retrieve_all_conversations(user_id)
-            except HistoryNotAvailable as e:
-                self._error_renderer.render(str(e))
-                return 1
+            if self._clear:
+                self._clear_history(user_id)
+            elif self._first:
+                self._retrieve_first_conversation(user_id)
+            elif self._last:
+                self._retrieve_last_conversation(user_id)
+            elif self._filter:
+                self._retrieve_conversation_filtered(user_id, self._filter)
+            else:
+                self._retrieve_all_conversations(user_id)
 
             return 0
-        except (MissingHistoryFileError, CorruptedHistoryError, ChatNotFoundError) as e:
+        except (
+            MissingHistoryFileError,
+            CorruptedHistoryError,
+            ChatNotFoundError,
+            HistoryNotAvailable,
+        ) as e:
             self._error_renderer.render(str(e))
             return 1
 

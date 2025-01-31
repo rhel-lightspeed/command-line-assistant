@@ -107,7 +107,8 @@ def test_history_manager_clear(history_manager):
     # First write something
     uid = "6d4e6b1e-dfcb-11ef-9b4f-52b437312584"
     history_manager.write(uid, uid, "test query", "test response")
-    assert len(history_manager.read(uid)) == 1
+    data = history_manager.read(uid)
+    assert len(data) == 1
 
     # Then clear it
     history_manager.clear(uid)

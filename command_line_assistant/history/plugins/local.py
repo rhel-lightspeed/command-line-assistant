@@ -135,7 +135,7 @@ class LocalHistory(BaseHistoryPlugin):
             MissingHistoryFileError: Raised when the database file is missing.
         """
         try:
-            self._history_repository.delete(identifier=user_id)
+            self._history_repository.delete_all(user_id)
             logger.info("Database cleared successfully")
         except Exception as e:
             logger.error("Failed to clear database: %s", e)
