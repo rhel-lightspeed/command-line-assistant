@@ -51,12 +51,13 @@ class CommandContext:
         """
         try:
             contents = OS_RELEASE_PATH.read_text()
-            self.os_release = {
-                key.lower(): value.strip('"')
-                for key, value in (
-                    line.strip().split("=", 1) for line in contents.splitlines()
-                )
-            }
+            # Clean the empty lines
+            contents = [content for content in contents.splitlines() if content]
+            for line in contents:
+                splitted_line = line.strip().split("=", 1)
+                key = splitted_line[0].lower()
+                value = splitted_line[1].strip('"')
+                self.os_release[key] = value
         except FileNotFoundError as e:
             raise ValueError("OS Release file not found.") from e
 
