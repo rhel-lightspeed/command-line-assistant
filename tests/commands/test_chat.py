@@ -25,6 +25,7 @@ def default_namespace():
         query_string=None,
         stdin=None,
         attachment=None,
+        interactive=None,
         list=None,
         delete=None,
         delete_all=None,

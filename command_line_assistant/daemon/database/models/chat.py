@@ -13,3 +13,4 @@ class ChatModel(BaseModel):
     user_id = Column(GUID(), nullable=False)
     name = Column(String(25), nullable=False)
     description = Column(Text, nullable=True)
+    # mode = Column(String(15), nullable=False)
