@@ -66,9 +66,9 @@ verify_ssl = true
 # The default logging level for all messages logged by CLAD.
 level = "INFO"
 # Global setting to enable logging responses in an audit file and journald
-responses = true
+responses = false
 # Global setting to enable logging question in an audit file and journald
-question = true # Global setting - don't log questions by default
+question = false # Global setting - don't log questions by default
 
 # User-specific settings that can override the global settings based on user name.
 # Note: The user must exist in order for this to work.
