@@ -22,6 +22,7 @@ Welcome to Command Line Assistant documentation
    initialize
    logger
    meta
+   exceptions
 
 .. toctree::
    :maxdepth: 1

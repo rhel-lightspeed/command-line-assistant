@@ -23,11 +23,13 @@ from command_line_assistant.dbus.structures.chat import (
     Response,
     StdinInput,
 )
+from command_line_assistant.exceptions import StopInteractiveMode
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
     WriteOnceDecorator,
 )
+from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
@@ -36,6 +38,7 @@ from command_line_assistant.utils.files import (
 )
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
+    create_interactive_renderer,
     create_spinner_renderer,
     create_text_renderer,
     create_warning_renderer,
@@ -91,6 +94,7 @@ class ChatCommand(BaseCLICommand):
         self._attachment = _parse_attachment_file(args.attachment)
         self._attachment_mimetype = guess_mimetype(args.attachment)
 
+        self._interactive_renderer: InteractiveRenderer = create_interactive_renderer()
         self._spinner_renderer: SpinnerRenderer = create_spinner_renderer(
             message="Requesting knowledge from AI",
             decorators=[EmojiDecorator(emoji="U+1F916")],
@@ -169,6 +173,16 @@ class ChatCommand(BaseCLICommand):
             "No input provided. Please provide input via file, stdin, or direct query."
         )
 
+    def _display_response(self, response: str) -> None:
+        """Internal function to display the response in a nice way.
+
+        Arguments:
+            response (str): The resopnse to be displayed
+        """
+        self._legal_renderer.render(LEGAL_NOTICE)
+        self._text_renderer.render(response)
+        self._notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
+
     def _chat_management(self, user_id: str, args: Namespace) -> int:
         """Manage the chat sessions based on the arguments provided.
 
@@ -212,7 +226,7 @@ class ChatCommand(BaseCLICommand):
 
         return 0
 
-    def _chat_question(self, user_id: str, args: Namespace) -> int:
+    def _chat_question(self, user_id: str) -> int:
         """Manage chat question
 
         Arguments:
@@ -228,24 +242,47 @@ class ChatCommand(BaseCLICommand):
             self._error_renderer.render(str(e))
             return 1
 
-        response = "Nothing to see here..."
+        response = self._submit_question(user_id, question)
+        self._display_response(response)
 
-        try:
-            with self._spinner_renderer:
-                chat_id = self._create_chat_session(user_id)
-                response = self._get_response(user_id, chat_id, question)
-                self._history_proxy.WriteHistory(chat_id, user_id, question, response)
-        except (
-            RequestFailedError,
-            MissingHistoryFileError,
-            CorruptedHistoryError,
-        ) as e:
-            self._error_renderer.render(str(e))
-            return 1
+        return 0
 
-        self._legal_renderer.render(LEGAL_NOTICE)
-        self._text_renderer.render(response)
-        self._notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
+    def _submit_question(self, user_id: str, question: str) -> str:
+        """Submit the question over dbus.
+
+        Arguments:
+            user_id (str): The unique identifier for the user
+            question (str): The question to be asked
+
+        Returns:
+            str: The response from the backend server
+        """
+        with self._spinner_renderer:
+            chat_id = self._create_chat_session(user_id)
+            response = self._get_response(user_id, question)
+            self._history_proxy.WriteHistory(chat_id, user_id, question, response)
+            return response
+
+    def _interactive_chat_question(self, user_id: str) -> int:
+        """Initiate a new interactive chat for the user.
+
+        Arguments:
+            user_id (str): The unique identifier for the user
+
+        Returns:
+            int: The return code for the interactive chat
+        """
+        while True:
+            self._interactive_renderer.render(">>> ")
+            question = self._interactive_renderer.output
+            if not question:
+                self._error_renderer.render(
+                    "Your question can't be empty. Please, try again."
+                )
+                continue
+            response = self._submit_question(user_id, question)
+            self._display_response(response)
+
         return 0
 
     def run(self) -> int:
@@ -254,21 +291,27 @@ class ChatCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution
         """
-        user_id = self._get_user_id()
-        if self._args.list or self._args.delete or self._args.delete_all:
-            return self._chat_management(user_id, self._args)
+        try:
+            user_id = self._user_proxy.GetUserId(self._context.effective_user_id)
+            if self._args.list or self._args.delete or self._args.delete_all:
+                return self._chat_management(user_id, self._args)
 
-        return self._chat_question(user_id, self._args)
+            if self._args.interactive:
+                return self._interactive_chat_question(user_id)
 
-    def _get_user_id(self) -> str:
-        """Get the user ID based on the effective user ID.
+            return self._chat_question(user_id)
+        except (
+            RequestFailedError,
+            MissingHistoryFileError,
+            CorruptedHistoryError,
+            StopInteractiveMode,
+        ) as e:
+            self._error_renderer.render(str(e))
+            return 1
 
-        Returns:
-            str: The user ID
-        """
-        return self._user_proxy.GetUserId(self._context.effective_user_id)
+        return 0
 
-    def _get_response(self, user_id: str, chat_id: str, question: str) -> str:
+    def _get_response(self, user_id: str, question: str) -> str:
         """Get the response from the chat session.
 
         Arguments:
@@ -345,6 +388,12 @@ def register_subcommand(parser: SubParsersAction) -> None:
         nargs="?",
         type=argparse.FileType("r"),
         help="File attachment to be read and sent alongside the query",
+    )
+    question_group.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="Start interactive chat session",
     )
 
     chat_arguments = chat_parser.add_argument_group("Chat options")
