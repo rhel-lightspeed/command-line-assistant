@@ -6,3 +6,4 @@ Renders
 
    spinner
    text
+   interactive

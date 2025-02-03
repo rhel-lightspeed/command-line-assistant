@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Jan 30, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Feb 03, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -37,16 +37,16 @@ The Command Line Assistant powered by RHEL Lightspeed is a optional generative A
 .INDENT 3.5
 .sp
 .EX
-c [\-h] [\-\-version] {chat,history} ...
+c [\-h] [\-v] {chat,history} ...
 .EE
 .UNINDENT
 .UNINDENT
 .SS c options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
 .IP \(bu 2
-\fI\%\-\-version\fP \- Show program version
+\fI\%\-v\fP, \fI\%\-\-version\fP \- Show program version
 .UNINDENT
 .SS c chat
 .sp
@@ -55,7 +55,7 @@ Command to ask a question to the LLM.
 .INDENT 3.5
 .sp
 .EX
-c chat [\-h] [\-a [ATTACHMENT]] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
+c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
        [\-\-description [DESCRIPTION]]
        [query_string]
 .EE
@@ -72,6 +72,8 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
 \fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
 .IP \(bu 2
 \fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
+.IP \(bu 2
+\fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start interactive chat session
 .UNINDENT
 .SS c chat Chat options
 .INDENT 0.0
@@ -93,7 +95,7 @@ Manage user conversation history
 .INDENT 3.5
 .sp
 .EX
-c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-fr FROM] [\-c]
+c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-c]
 .EE
 .UNINDENT
 .UNINDENT
@@ -110,8 +112,6 @@ c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-fr FROM] [\-c]
 \fI\%\-l\fP, \fI\%\-\-last\fP \- Get the last conversation from history. If no \-\-from is specified, this will get the last conversation across all chats.
 .IP \(bu 2
 \fI\%\-fi\fP \fBFILTER\fP, \fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. If no \-\-from is specified, this will filter conversations across all chats. (default: \fBNone\fP)
-.IP \(bu 2
-\fI\%\-fr\fP \fBFROM\fP, \fI\%\-\-from\fP \fBFROM\fP \- Specify which chat to get the history from. If not specified, this will get the history from all chats. (default: \fBNone\fP)
 .UNINDENT
 .SS c history Management options
 .INDENT 0.0
@@ -120,17 +120,17 @@ c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-fr FROM] [\-c]
 .UNINDENT
 .SH DESCRIPTION
 .sp
-The Command Line Assistant powered by RHEL Lightspeed is a optional generative
+The Command Line Assistant powered by RHEL Lightspeed is an optional generative
 AI assistant available within the RHEL command line interface. The Command Line
 Assistant can help with several tasks such as:
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-1. answering RHEL related questions
-2. assisting with troubleshooting
-3. assisting with deciphering log entries
-3. and many other tasks.
+*. Answering RHEL related questions
+*. Assisting with troubleshooting
+*. Assisting with understanding log entries
+*. And many other tasks.
 .EE
 .UNINDENT
 .UNINDENT
@@ -166,6 +166,16 @@ $ c chat \(dqWhat is RHEL?\(dq
 In case \fBquery\fP is not placed, the program will assume that anything that
 comes after is a potential query. That includes the options for \fBchat\fP
 as well.
+.sp
+Alternativelly, you can also use \fB\-\-interactive\fP to start an interactive session:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c \-\-interactive
+.EE
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .UNINDENT
 .sp
@@ -195,7 +205,7 @@ $ my\-command | c
 .UNINDENT
 .UNINDENT
 .sp
-Sometimes, only providing the error output may not be enough. For that, you
+Sometimes, only providing the error output might not be enough. For that, you
 can combine your redirect output with a question like this:
 .INDENT 0.0
 .INDENT 3.5
@@ -222,7 +232,7 @@ $ c \-\-attachment log_with_error.log
 .UNINDENT
 .UNINDENT
 .sp
-Or, with it\(aqs short version:
+Optionally, you can use the short version:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -232,7 +242,7 @@ $ c \-a log_with_error.log
 .UNINDENT
 .UNINDENT
 .sp
-You can also combine the attachemtn with a question:
+You can also combine the attachment with a question:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -252,14 +262,14 @@ echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log
 .UNINDENT
 .UNINDENT
 .sp
-However, if you specify a redirect output and a query at the same you have
+However, if you specify a redirect output and a query at the same time that you have
 an attachment, only the attachment plus the query will be used. The
 redirect output will be ignored:
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-# The redirection here will be ignored as the query has precedence over redirection in this scenario.
+# The redirection output here will be ignored, as the query has precedence over redirection in this scenario.
 echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
 .EE
 .UNINDENT
@@ -270,9 +280,8 @@ echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
 Example 4. History management
 .INDENT 0.0
 .INDENT 3.5
-With Command Line Assistant, you can also check your conversation history.
-To do so, one can issue the following command to retrieve all user
-history:: Check all history entries:
+With Command Line Assistant, you can also check your conversation history. For that, use the following command to retrieve all user
+history:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -282,7 +291,7 @@ $ c history
 .UNINDENT
 .UNINDENT
 .sp
-If you don\(aqt want all history, you can filter either for the first, or last
+If you don\(aqt want all history, you can filter it for either the first or last
 result with:
 .INDENT 0.0
 .INDENT 3.5
@@ -306,7 +315,7 @@ $ c history \-\-filter \(dqselinux\(dq
 .UNINDENT
 .UNINDENT
 .sp
-And lastly, to start a clean history, you can clear all of it with:
+And finally, to start a clean history, you can clear all the user history with:
 .INDENT 0.0
 .INDENT 3.5
 .sp
