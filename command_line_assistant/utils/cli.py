@@ -3,6 +3,7 @@ Utilitary module to interact with the CLI. This olds the basic implementation
 that is reused across commands and other interactions.
 """
 
+import argparse
 import dataclasses
 import getpass
 import os
@@ -118,8 +119,17 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     parser = ArgumentParser(
         prog="c",
         description="The Command Line Assistant powered by RHEL Lightspeed is a optional generative AI assistant available within the RHEL command line interface.",
+        add_help=False,
     )
     parser.add_argument(
+        "-h",
+        "--help",
+        action="help",
+        default=argparse.SUPPRESS,
+        help="Show this help message and exit.",
+    )
+    parser.add_argument(
+        "-v",
         "--version",
         action="version",
         version=VERSION,
