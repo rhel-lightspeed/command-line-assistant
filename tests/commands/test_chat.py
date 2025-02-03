@@ -367,3 +367,16 @@ def test_chat_management_delete_all_exception(
     captured = capsys.readouterr()
 
     assert "chat not found" in captured.err
+
+
+def test_create_chat_session(mock_dbus_service, default_namespace):
+    mock_dbus_service.GetChatId = lambda user_id, name: "1"
+    default_namespace.name = "test"
+    assert ChatCommand(default_namespace)._create_chat_session("1") == "1"
+
+
+def test_create_chat_session_exception(mock_dbus_service, default_namespace):
+    mock_dbus_service.GetChatId.side_effect = ChatNotFoundError("no chat available")
+    mock_dbus_service.CreateChat = lambda user_id, name, description: "1"
+    default_namespace.name = "test"
+    assert ChatCommand(default_namespace)._create_chat_session("1") == "1"

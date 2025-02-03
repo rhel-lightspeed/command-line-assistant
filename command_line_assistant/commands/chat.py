@@ -302,7 +302,13 @@ class ChatCommand(BaseCLICommand):
         Returns:
             str: The identifier of the chat session.
         """
-        has_chat_id = self._proxy.GetChatId(user_id, self._args.name)
+        has_chat_id = None
+        try:
+            has_chat_id = self._proxy.GetChatId(user_id, self._args.name)
+        except ChatNotFoundError:
+            # It's okay to swallow this exception as if there is no chat for
+            # this user, we will create one.
+            pass
 
         # To avoid doing this check inside the CreateChat method, let's do it
         # in here.

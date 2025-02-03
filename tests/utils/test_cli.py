@@ -1,9 +1,25 @@
 import select
 import sys
+from unittest.mock import patch
 
 import pytest
 
 from command_line_assistant.utils import cli
+
+
+def test_command_context_initialization():
+    command_context = cli.CommandContext()
+    assert command_context.username
+    assert command_context.effective_user_id
+    assert command_context.os_release
+
+
+def test_command_context_os_release_not_found(tmp_path):
+    os_release = tmp_path / "not_found"
+
+    with patch("command_line_assistant.utils.cli.OS_RELEASE_PATH", os_release):
+        with pytest.raises(ValueError, match="OS Release file not found"):
+            cli.CommandContext()
 
 
 def test_read_stdin(monkeypatch):
