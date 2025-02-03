@@ -8,6 +8,7 @@ from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
     TextWrapDecorator,
 )
+from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.rendering.stream import StderrStream, StdoutStream
@@ -69,6 +70,18 @@ def create_spinner_renderer(
     decorators.append(TextWrapDecorator())
     spinner.update(decorators)
     return spinner
+
+
+def create_interactive_renderer() -> InteractiveRenderer:
+    """Create a new instance of the interactive rendering.
+
+    Returns:
+        InteractiveRenderer: A new instance of the interactive renderer.
+    """
+    interactive = InteractiveRenderer(
+        banner="Welcome to the interactive mode for command line assistant! To exit, press Ctrl + C or type '.exit'."
+    )
+    return interactive
 
 
 def create_text_renderer(
