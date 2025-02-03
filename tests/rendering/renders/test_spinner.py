@@ -8,7 +8,7 @@ from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
     TextWrapDecorator,
 )
-from command_line_assistant.rendering.renders.spinner import Frames, SpinnerRenderer
+from command_line_assistant.rendering.renders.spinner import ANIMATIONS, SpinnerRenderer
 
 
 @pytest.fixture
@@ -29,7 +29,10 @@ def test_spinner_initialization():
 def test_spinner_custom_initialization():
     """Test spinner initialization with custom values"""
     spinner = SpinnerRenderer(
-        message="Custom loading", frames=Frames.dash, delay=0.2, clear_message=True
+        message="Custom loading",
+        frames=ANIMATIONS["dash"],
+        delay=0.2,
+        clear_message=True,
     )
     assert spinner._message == "Custom loading"
     assert spinner._delay == 0.2
@@ -101,12 +104,12 @@ def test_spinner_with_text_wrap(mock_stream):
 @pytest.mark.parametrize(
     "frames",
     [
-        Frames.default,
-        Frames.dash,
-        Frames.circular,
-        Frames.dots,
-        Frames.arrows,
-        Frames.moving,
+        ANIMATIONS["default"],
+        ANIMATIONS["dash"],
+        ANIMATIONS["circular"],
+        ANIMATIONS["dots"],
+        ANIMATIONS["arrows"],
+        ANIMATIONS["moving"],
     ],
 )
 def test_different_frame_styles(mock_stream, frames):
