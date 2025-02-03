@@ -31,7 +31,7 @@ LOGGING_CONFIG_DICTIONARY = {
         },
         "audit_file": {
             "class": "logging.FileHandler",
-            "filename": "/var/log/command-line-assistant/audit.log",
+            "filename": "/tmp/audit.log",
             "formatter": "audit",
             "mode": "a",
         },
@@ -64,10 +64,10 @@ def _should_log_for_user(effective_user_id: int, config: Config, log_type: str) 
     """
     logging_users = copy.deepcopy(config.logging.users)
     for user in config.logging.users.keys():
-        user_id = str(UserSessionManager(user).user_id)
+        user_id = UserSessionManager().get_user_id(int(user))
         logging_users[user_id] = logging_users.pop(user)
 
-    user_id = str(UserSessionManager(effective_user_id).user_id)
+    user_id = UserSessionManager().get_user_id(effective_user_id)
     # If user has specific settings, use those
     if user_id in logging_users:
         return logging_users[user_id].get(log_type, False)

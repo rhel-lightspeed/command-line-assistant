@@ -8,3 +8,4 @@ Schemas
    history
    logging
    output
+   database

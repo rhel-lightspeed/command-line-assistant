@@ -10,6 +10,7 @@ import select
 import sys
 from abc import ABC, abstractmethod
 from argparse import SUPPRESS, ArgumentParser, _SubParsersAction
+from pathlib import Path
 from typing import Optional
 
 from command_line_assistant.constants import VERSION
@@ -19,6 +20,8 @@ SubParsersAction = _SubParsersAction
 
 PARENT_ARGS: list[str] = ["--version", "-v", "-h", "--help"]
 ARGS_WITH_VALUES: list[str] = ["--clear"]
+
+OS_RELEASE_PATH = Path("/etc/os-release")
 
 
 @dataclasses.dataclass
@@ -31,10 +34,32 @@ class CommandContext:
     Attributes:
         username (str): The username of the current user.
         effective_user_id (int): The effective user id.
+        os_release (dict[str, str]): A dictionary with the OS release information.
     """
 
     username: str = getpass.getuser()
     effective_user_id: int = os.getegid()
+
+    # Empty dictionary for os_release information. Parsed at the __post__init__ method.
+    os_release: dict[str, str] = dataclasses.field(default_factory=dict)
+
+    def __post_init__(self):
+        """Post init method to parse the OS Release file.
+
+        Raises:
+            ValueError: If the OS Release file is not found.
+        """
+        try:
+            contents = OS_RELEASE_PATH.read_text()
+            # Clean the empty lines
+            contents = [content for content in contents.splitlines() if content]
+            for line in contents:
+                splitted_line = line.strip().split("=", 1)
+                key = splitted_line[0].lower()
+                value = splitted_line[1].strip('"')
+                self.os_release[key] = value
+        except FileNotFoundError as e:
+            raise ValueError("OS Release file not found.") from e
 
 
 class BaseCLICommand(ABC):
@@ -43,7 +68,6 @@ class BaseCLICommand(ABC):
     def __init__(self) -> None:
         """Constructor for the base class."""
         self._context: CommandContext = CommandContext()
-
         super().__init__()
 
     @abstractmethod

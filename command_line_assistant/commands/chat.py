@@ -5,13 +5,24 @@ from argparse import Namespace
 from io import TextIOWrapper
 from typing import Optional
 
-from command_line_assistant.dbus.constants import CHAT_IDENTIFIER
+from command_line_assistant.dbus.constants import (
+    CHAT_IDENTIFIER,
+    HISTORY_IDENTIFIER,
+    USER_IDENTIFIER,
+)
 from command_line_assistant.dbus.exceptions import (
+    ChatNotFoundError,
     CorruptedHistoryError,
     MissingHistoryFileError,
     RequestFailedError,
 )
-from command_line_assistant.dbus.structures import Message, MessageInput
+from command_line_assistant.dbus.structures.chat import (
+    AttachmentInput,
+    ChatList,
+    Question,
+    Response,
+    StdinInput,
+)
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
@@ -65,23 +76,20 @@ class ChatCommand(BaseCLICommand):
 
     def __init__(
         self,
-        query_string: Optional[str] = "",
-        stdin: Optional[str] = "",
-        attachment: Optional[TextIOWrapper] = None,
+        args: Namespace,
     ) -> None:
         """Constructor of the class.
 
         Args:
-            query_string (Optional[str], optional): The query provided by the user.
-            stdin (Optional[str], optional): The user redirect input from stdin
-            attachment (Optional[TextIOWrapper], optional): The file attachment from the user
+            args (Namespace): The argparse namespace object
         """
-        self._query = query_string.strip() if query_string else ""
-        self._stdin = stdin.strip() if stdin else ""
+        self._args = args
+        self._query = args.query_string.strip() if args.query_string else ""
+        self._stdin = args.stdin.strip() if args.stdin else ""
 
         # Initialize it as None before we read and manipulate the rest.
-        self._attachment = _parse_attachment_file(attachment)
-        self._attachment_mimetype = guess_mimetype(attachment)
+        self._attachment = _parse_attachment_file(args.attachment)
+        self._attachment_mimetype = guess_mimetype(args.attachment)
 
         self._spinner_renderer: SpinnerRenderer = create_spinner_renderer(
             message="Requesting knowledge from AI",
@@ -102,7 +110,10 @@ class ChatCommand(BaseCLICommand):
         self._error_renderer: TextRenderer = create_error_renderer()
         self._warning_renderer: TextRenderer = create_warning_renderer()
 
+        # Proxy objects
         self._proxy = CHAT_IDENTIFIER.get_proxy()
+        self._user_proxy = USER_IDENTIFIER.get_proxy()
+        self._history_proxy = HISTORY_IDENTIFIER.get_proxy()
 
         super().__init__()
 
@@ -158,37 +169,72 @@ class ChatCommand(BaseCLICommand):
             "No input provided. Please provide input via file, stdin, or direct query."
         )
 
-    def run(self) -> int:
-        """Main entrypoint for the command to run.
+    def _chat_management(self, user_id: str, args: Namespace) -> int:
+        """Manage the chat sessions based on the arguments provided.
+
+        Args:
+            user_id (str): The user identifier
+            args (Namespace): The arguments processed with argparse.
 
         Returns:
             int: Status code of the execution
         """
+        if args.list:
+            all_chats = ChatList.from_structure(self._proxy.GetAllChatFromUser(user_id))
 
+            if not all_chats.chats:
+                self._text_renderer.render("No chats available.")
+                return 0
+
+            self._text_renderer.render(
+                f"Found a total of {len(all_chats.chats)} chats:"
+            )
+            for index, chat in enumerate(all_chats.chats):
+                self._text_renderer.render(
+                    f"{index}. Chat: {chat.name} - {chat.description} (created at: {chat.created_at})"
+                )
+
+        if args.delete:
+            try:
+                self._proxy.DeleteChatForUser(user_id, args.delete)
+                self._text_renderer.render(f"Chat {args.delete} deleted successfully.")
+            except ChatNotFoundError as e:
+                self._error_renderer.render(str(e))
+                return 1
+
+        if args.delete_all:
+            try:
+                self._proxy.DeleteAllChatForUser(user_id)
+                self._text_renderer.render("Deleted all chats successfully.")
+            except ChatNotFoundError as e:
+                self._error_renderer.render(str(e))
+                return 1
+
+        return 0
+
+    def _chat_question(self, user_id: str, args: Namespace) -> int:
+        """Manage chat question
+
+        Arguments:
+            user_id (str): The user identifier
+            args (Namespace): The arguments processed with argparse.
+
+        Returns:
+            int: Status code of the execution
+        """
         try:
             question = self._get_input_source()
         except ValueError as e:
             self._error_renderer.render(str(e))
             return 1
 
-        output = "Nothing to see here..."
+        response = "Nothing to see here..."
 
         try:
             with self._spinner_renderer:
-                message_input = MessageInput()
-                message_input.from_dict(
-                    data={
-                        "question": question,
-                        "stdin": self._stdin,
-                        "attachment_contents": self._attachment,
-                        "attachment_mimetype": self._attachment_mimetype,
-                        "user": self._context.effective_user_id,
-                    }
-                )
-                response = self._proxy.AskQuestion(
-                    MessageInput.to_structure(message_input)
-                )
-                output = Message.from_structure(response).message
+                chat_id = self._create_chat_session(user_id)
+                response = self._get_response(user_id, chat_id, question)
+                self._history_proxy.WriteHistory(chat_id, user_id, question, response)
         except (
             RequestFailedError,
             MissingHistoryFileError,
@@ -198,9 +244,82 @@ class ChatCommand(BaseCLICommand):
             return 1
 
         self._legal_renderer.render(LEGAL_NOTICE)
-        self._text_renderer.render(output)
+        self._text_renderer.render(response)
         self._notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
         return 0
+
+    def run(self) -> int:
+        """Main entrypoint for the command to run.
+
+        Returns:
+            int: Status code of the execution
+        """
+        user_id = self._get_user_id()
+        if self._args.list or self._args.delete or self._args.delete_all:
+            return self._chat_management(user_id, self._args)
+
+        return self._chat_question(user_id, self._args)
+
+    def _get_user_id(self) -> str:
+        """Get the user ID based on the effective user ID.
+
+        Returns:
+            str: The user ID
+        """
+        return self._user_proxy.GetUserId(self._context.effective_user_id)
+
+    def _get_response(self, user_id: str, chat_id: str, question: str) -> str:
+        """Get the response from the chat session.
+
+        Arguments:
+            user_id (str): The user identifier
+            chat_id (str): The chat session identifier
+            question (str): The question to be asked
+
+        Returns:
+            str: The response from the chat session
+        """
+        message_input = Question(
+            message=question,
+            stdin=StdinInput(stdin=self._stdin),
+            attachment=AttachmentInput(
+                contents=self._attachment, mimetype=self._attachment_mimetype
+            ),
+        )
+        response = self._proxy.AskQuestion(
+            user_id,
+            message_input.structure(),
+        )
+
+        return Response.from_structure(response).message
+
+    def _create_chat_session(self, user_id: str) -> str:
+        """Create a new chat session for a given conversation.
+
+        Arguments:
+            user_id (str): The user identifier
+
+        Returns:
+            str: The identifier of the chat session.
+        """
+        has_chat_id = None
+        try:
+            has_chat_id = self._proxy.GetChatId(user_id, self._args.name)
+        except ChatNotFoundError:
+            # It's okay to swallow this exception as if there is no chat for
+            # this user, we will create one.
+            pass
+
+        # To avoid doing this check inside the CreateChat method, let's do it
+        # in here.
+        if has_chat_id:
+            return has_chat_id
+
+        return self._proxy.CreateChat(
+            user_id,
+            self._args.name,
+            self._args.description,
+        )
 
 
 def register_subcommand(parser: SubParsersAction) -> None:
@@ -214,16 +333,42 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "chat",
         help="Command to ask a question to the LLM.",
     )
+
+    question_group = chat_parser.add_argument_group("Question options")
     # Positional argument, required only if no optional arguments are provided
-    chat_parser.add_argument(
+    question_group.add_argument(
         "query_string", nargs="?", help="The question that will be sent to the LLM"
     )
-    chat_parser.add_argument(
+    question_group.add_argument(
         "-a",
         "--attachment",
         nargs="?",
         type=argparse.FileType("r"),
         help="File attachment to be read and sent alongside the query",
+    )
+
+    chat_arguments = chat_parser.add_argument_group("Chat options")
+    chat_arguments.add_argument(
+        "-l", "--list", action="store_true", help="List all chats"
+    )
+    chat_arguments.add_argument(
+        "-d", "--delete", nargs="?", help="Delete a chat session", default=""
+    )
+    chat_arguments.add_argument(
+        "-da", "--delete-all", action="store_true", help="Delete all chats"
+    )
+    chat_arguments.add_argument(
+        "-n",
+        "--name",
+        nargs="?",
+        help="Give a name to the chat session",
+        default="default",
+    )
+    chat_arguments.add_argument(
+        "--description",
+        nargs="?",
+        help="Give a description to the chat session",
+        default="Default Command Line Assistant Chat.",
     )
 
     chat_parser.set_defaults(func=_command_factory)
@@ -238,14 +383,4 @@ def _command_factory(args: Namespace) -> ChatCommand:
     Returns:
         QueryCommand: Return an instance of class
     """
-    options = {
-        "query_string": args.query_string,
-        "stdin": None,
-        "attachment": args.attachment,
-    }
-
-    # We may not always have the stdin argument in the namespace.
-    if "stdin" in args:
-        options["stdin"] = args.stdin
-
-    return ChatCommand(**options)
+    return ChatCommand(args)

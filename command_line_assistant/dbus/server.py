@@ -9,13 +9,27 @@ from command_line_assistant.dbus.constants import (
     CHAT_IDENTIFIER,
     HISTORY_IDENTIFIER,
     SYSTEM_BUS,
+    USER_IDENTIFIER,
 )
 from command_line_assistant.dbus.context import (
     DaemonContext,
 )
-from command_line_assistant.dbus.interfaces import ChatInterface, HistoryInterface
+from command_line_assistant.dbus.interfaces.chat import ChatInterface
+from command_line_assistant.dbus.interfaces.history import HistoryInterface
+from command_line_assistant.dbus.interfaces.user import UserInterface
 
 logger = logging.getLogger(__name__)
+
+
+def _dbus_setup(objects: list[tuple]) -> None:
+    """Setup the DBus server and publish the objects.
+
+    Arguments:
+        objects (list[tuple]): A tuple of objects to publish.
+    """
+    for obj, interface in objects:
+        SYSTEM_BUS.publish_object(obj.object_path, interface)
+        SYSTEM_BUS.register_service(obj.service_name)
 
 
 def serve(config: Config):
@@ -26,15 +40,13 @@ def serve(config: Config):
     """
     logger.info("Starting clad!")
     try:
-        SYSTEM_BUS.publish_object(
-            CHAT_IDENTIFIER.object_path, ChatInterface(DaemonContext(config))
+        _dbus_setup(
+            [
+                (CHAT_IDENTIFIER, ChatInterface(DaemonContext(config))),
+                (HISTORY_IDENTIFIER, HistoryInterface(DaemonContext(config))),
+                (USER_IDENTIFIER, UserInterface(DaemonContext(config))),
+            ]
         )
-        SYSTEM_BUS.publish_object(
-            HISTORY_IDENTIFIER.object_path, HistoryInterface(DaemonContext(config))
-        )
-
-        SYSTEM_BUS.register_service(CHAT_IDENTIFIER.service_name)
-        SYSTEM_BUS.register_service(HISTORY_IDENTIFIER.service_name)
 
         loop = EventLoop()
         loop.run()

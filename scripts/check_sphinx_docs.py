@@ -70,8 +70,7 @@ def main() -> int:
         return 0
 
     print(
-        "Oh no! It seems that some of your source files are not present in "
-        "the docs!\n",
+        "Oh no! It seems that some of your source files are not present in the docs!\n",
     )
     print("\n".join(missing_documents))
     return 1

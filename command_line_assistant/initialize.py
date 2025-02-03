@@ -43,8 +43,10 @@ def initialize() -> int:
 
         args = add_default_command(stdin, sys.argv)
 
-        # Small workaround to include the stdin in the namespace object in case it exists.
-        namespace = Namespace(stdin=stdin) if stdin else Namespace()
+        # Small workaround to include the stdin in the namespace object. If it
+        # exists, it will have the value of the stdin redirection, otherwise,
+        # it will be None.
+        namespace = Namespace(stdin=stdin)
         args = parser.parse_args(args, namespace=namespace)
 
         if not hasattr(args, "func"):
