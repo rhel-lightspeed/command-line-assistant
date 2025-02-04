@@ -127,8 +127,9 @@ def test_add_default_command(args, stdin, expected):
     ("argv", "expected"),
     (
         (["chat"], "chat"),
-        (["--version"], "--version"),
-        (["--help"], "--help"),
+        (["--debug"], None),
+        (["--version"], None),
+        (["--help"], None),
         (["--clear"], None),
     ),
 )

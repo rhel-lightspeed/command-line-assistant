@@ -158,7 +158,7 @@ def test_history_interface_clear_history(history_interface, caplog):
     with patch("command_line_assistant.dbus.interfaces.history.HistoryManager"):
         uid = "1710e580-dfce-11ef-a98f-52b437312584"
         history_interface.ClearHistory(uid)
-        assert f"Clearing history entries for user '{uid}'" in caplog.records[0].message
+        assert "Clearing history entries for user." in caplog.records[0].message
 
 
 def test_history_interface_empty_history(mock_history_entry, history_interface):
@@ -185,6 +185,5 @@ def test_write_history(history_interface, caplog):
         history_interface.WriteHistory(uid, uid, "test", "test")
 
     assert (
-        f"Wrote a new entry to the user history for user '{uid}' in chat '{uid}'."
-        in caplog.records[-1].message
+        "Wrote a new entry to the user history for user." in caplog.records[-1].message
     )

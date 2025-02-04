@@ -10,7 +10,6 @@ restorecon -R /etc/xdg/command-line-assistant/config.toml; \
 restorecon -R /etc/xdg/command-line-assistant; \
 restorecon -R /var/lib/command-line-assistant; \
 restorecon -R /var/log/command-line-assistant; \
-restorecon -R /var/log/command-line-assistant/audit.log; \
 
 %define selinux_policyver 41.27-1
 

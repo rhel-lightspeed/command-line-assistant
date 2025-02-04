@@ -48,9 +48,8 @@ def test_disable_ssl_verification(caplog, default_payload, mock_config):
     responses.post(url="http://localhost/infer", json={"data": {"text": "yeah, test!"}})
 
     result = query.submit(default_payload, config=mock_config)
-
     assert result == "yeah, test!"
     assert (
         "Disabling SSL verification as per user requested."
-        in caplog.records[-1].message
+        in caplog.records[-2].message
     )

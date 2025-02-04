@@ -8,6 +8,3 @@
 # Data directory
 /var/lib/command-line-assistant(/.*)?             gen_context(system_u:object_r:clad_var_lib_t,s0)
 /var/lib/command-line-assistant/history.db     -- gen_context(system_u:object_r:clad_var_lib_t,s0)
-
-# Log files
-/var/log/command-line-assistant/audit.log      -- gen_context(system_u:object_r:clad_log_t,s0)

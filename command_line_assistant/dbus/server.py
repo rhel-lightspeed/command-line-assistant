@@ -32,13 +32,15 @@ def _dbus_setup(objects: list[tuple]) -> None:
         SYSTEM_BUS.register_service(obj.service_name)
 
 
+logger = logging.getLogger(__name__)
+
+
 def serve(config: Config):
     """Main function to serve and start the daemon server.
 
     Args:
         config (Config): An instance of the configuration class.
     """
-    logger.info("Starting clad!")
     try:
         _dbus_setup(
             [
@@ -48,6 +50,7 @@ def serve(config: Config):
             ]
         )
 
+        logger.info("Starting clad!")
         loop = EventLoop()
         loop.run()
     finally:
