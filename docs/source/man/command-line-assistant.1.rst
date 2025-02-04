@@ -114,6 +114,28 @@ Example 4. History management
 
         $ c history --clear
 
+Example 5. Shell integrations
+
+    With Command Line Assistant, you can also enable shell integrations to help
+    in your experience::
+
+        $ c shell --enable-integration
+
+
+    The above command will place a file under ~/.bashrc.d folder that will
+    be sourced by bash after the next time you open up your terminal.
+    Currently, we only have one integration that aims to start the
+    interactive mode with a keybind, like the following::
+
+        $ c shell --enable-integration
+        # After enabling the integration, restart your terminal or run
+        $ source ~/.bashrc
+        # After the integration was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
+
+    If you wish to disable the integration, that can be done with::
+
+        $ c shell --disabled-integration
+
 Notes
 -----
 
@@ -128,6 +150,12 @@ order to maintain a correct order of querying. The rules can be seen here::
     5. Stdin + file query -> combine as "{stdin} {file_query}"
     6. Positional + file query -> combine as "{positional_query} {file_query}"
     7. All three sources -> use only positional and file as "{positional_query} {file_query}"
+
+Files
+-----
+
+*~/.bashrc.d/cla-interactive.bashrc*
+    Bash script to add keyboard binding to enable interactive mode.
 
 Reference
 ---------

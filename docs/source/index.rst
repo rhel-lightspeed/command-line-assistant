@@ -23,6 +23,7 @@ Welcome to Command Line Assistant documentation
    logger
    meta
    exceptions
+   integrations
 
 .. toctree::
    :maxdepth: 1

@@ -27,22 +27,24 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Feb 03, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Feb 05, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
 .sp
-The Command Line Assistant powered by RHEL Lightspeed is a optional generative AI assistant available within the RHEL command line interface.
+The Command Line Assistant powered by RHEL Lightspeed is an optional generative AI assistant available within the RHEL command line interface.
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-c [\-h] [\-v] {chat,history} ...
+c [\-\-debug] [\-h] [\-v] {chat,history,shell} ...
 .EE
 .UNINDENT
 .UNINDENT
 .SS c options
 .INDENT 0.0
+.IP \(bu 2
+\fI\%\-\-debug\fP \- Enable debug logging information
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
 .IP \(bu 2
@@ -118,6 +120,26 @@ c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-c]
 .IP \(bu 2
 \fI\%\-c\fP, \fI\%\-\-clear\fP \- Clear the entire history. If no \-\-from is specified, it will clear all history from all chats.
 .UNINDENT
+.SS c shell
+.sp
+Manage shell integrations
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+c shell [\-h] [\-ei] [\-di]
+.EE
+.UNINDENT
+.UNINDENT
+.SS c shell options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+.IP \(bu 2
+\fI\%\-ei\fP, \fI\%\-\-enable\-integration\fP \- Enable the shell integrations on the system. Currently, only BASH is supported.
+.IP \(bu 2
+\fI\%\-di\fP, \fI\%\-\-disable\-integration\fP \- Disable the shell integrations on the system.
+.UNINDENT
 .SH DESCRIPTION
 .sp
 The Command Line Assistant powered by RHEL Lightspeed is an optional generative
@@ -137,6 +159,12 @@ Assistant can help with several tasks such as:
 .sp
 The Command Line Assistant provides a natural language interface, and can
 incorporate information from resources such as the RHEL documentation.
+.SH FILES
+.INDENT 0.0
+.TP
+.B \fI~/.bashrc.d/cla\-interactive.bashrc\fP
+Bash script to add keyboard binding to enable interactive mode.
+.UNINDENT
 .SH EXAMPLES
 .sp
 Example 1. Asking a simple question
@@ -321,6 +349,48 @@ And finally, to start a clean history, you can clear all the user history with:
 .sp
 .EX
 $ c history \-\-clear
+.EE
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Example 5. Shell integrations
+.INDENT 0.0
+.INDENT 3.5
+With Command Line Assistant, you can also enable shell integrations to help
+in your experience:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c shell \-\-enable\-integration
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+The above command will place a file under ~/.bashrc.d folder that will
+be sourced by bash after the next time you open up your terminal.
+Currently, we only have one integration that aims to start the
+interactive mode with a keybind, like the following:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c shell \-\-enable\-integration
+# After enabling the integration, restart your terminal or run
+$ source ~/.bashrc
+# After the integration was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+If you wish to disable the integration, that can be done with:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c shell \-\-disabled\-integration
 .EE
 .UNINDENT
 .UNINDENT
