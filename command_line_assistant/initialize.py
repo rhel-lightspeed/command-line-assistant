@@ -4,7 +4,7 @@ import logging
 import sys
 from argparse import ArgumentParser, Namespace
 
-from command_line_assistant.commands import chat, history
+from command_line_assistant.commands import chat, history, shell
 from command_line_assistant.logger import setup_logging
 from command_line_assistant.utils.cli import (
     add_default_command,
@@ -27,6 +27,7 @@ def register_subcommands() -> ArgumentParser:
     # and call `register_subcommand()` on each one.
     chat.register_subcommand(commands_parser)  # type: ignore
     history.register_subcommand(commands_parser)  # type: ignore
+    shell.register_subcommand(commands_parser)  # type: ignore
 
     return parser
 
@@ -59,6 +60,7 @@ def initialize() -> int:
         # In case the uder specify the --debug, we will enable the logging here.
         if args.debug:
             setup_logging()
+
         service = args.func(args)
         return service.run()
     except ValueError as e:

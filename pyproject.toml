@@ -40,7 +40,11 @@ tests = [
     "tox>=4.23.2",
     "responses>=0.25.3",
 ]
-dev = ["PyGObject>=3.50.0"]
+dev = [
+    "PyGObject>=3.50.0",
+    # added here mainly for editor happines
+    "ruff>=0.9.4"
+]
 
 # ----- Tooling specifics
 [tool.setuptools.packages.find]

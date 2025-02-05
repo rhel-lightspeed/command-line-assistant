@@ -72,6 +72,25 @@ def test_initialize_with_history_command():
         mock_command.assert_called_once()
 
 
+def test_initialize_with_shell_command():
+    """Test initialize with shell command"""
+    mock_command = Mock(return_value=MockCommand())
+
+    with (
+        patch("sys.argv", ["c", "shell", "--enable-integration"]),
+        patch("command_line_assistant.commands.chat.register_subcommand"),
+        patch("command_line_assistant.commands.history.register_subcommand"),
+        patch("command_line_assistant.commands.shell.register_subcommand"),
+        patch("command_line_assistant.initialize.read_stdin", lambda: None),
+        patch("argparse.ArgumentParser.parse_args") as mock_parse,
+    ):
+        mock_parse.return_value.func = mock_command
+        result = initialize()
+
+        assert result == 1
+        mock_command.assert_called_once()
+
+
 def test_initialize_with_version(capsys):
     """Test initialize with --version flag"""
     with (
@@ -116,6 +135,7 @@ def test_initialize_bad_stdin(capsys):
         (["c"], "chat"),  # Default to chat
         (["c", "chat"], "chat"),
         (["c", "history"], "history"),
+        (["c", "shell"], "shell"),
     ],
 )
 def test_initialize_command_selection(argv, expected_command):
