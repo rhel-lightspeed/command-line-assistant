@@ -1,9 +1,11 @@
 """Main module for the cli."""
 
+import logging
 import sys
 from argparse import ArgumentParser, Namespace
 
 from command_line_assistant.commands import chat, history
+from command_line_assistant.logger import setup_logging
 from command_line_assistant.utils.cli import (
     add_default_command,
     create_argument_parser,
@@ -29,6 +31,9 @@ def register_subcommands() -> ArgumentParser:
     return parser
 
 
+logger = logging.getLogger(__name__)
+
+
 def initialize() -> int:
     """Main function for the cli entrypoint
 
@@ -40,9 +45,7 @@ def initialize() -> int:
 
     try:
         stdin = read_stdin()
-
         args = add_default_command(stdin, sys.argv)
-
         # Small workaround to include the stdin in the namespace object. If it
         # exists, it will have the value of the stdin redirection, otherwise,
         # it will be None.
@@ -53,6 +56,9 @@ def initialize() -> int:
             parser.print_help()
             return 1
 
+        # In case the uder specify the --debug, we will enable the logging here.
+        if args.debug:
+            setup_logging()
         service = args.func(args)
         return service.run()
     except ValueError as e:

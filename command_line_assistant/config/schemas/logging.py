@@ -1,8 +1,17 @@
 """Schemas for the logging config."""
 
-import copy
 import dataclasses
-import pwd
+
+
+@dataclasses.dataclass
+class AuditSchema:
+    """This class represents the [logging.audit] section of our config.toml file.
+
+    Attributes:
+        enabled (bool): Flag to control if the logging should be enabled or not.
+    """
+
+    enabled: bool = True
 
 
 @dataclasses.dataclass
@@ -17,9 +26,7 @@ class LoggingSchema:
     """
 
     level: str = "INFO"
-    responses: bool = True
-    question: bool = True
-    users: dict[str, dict[str, bool]] = dataclasses.field(default_factory=dict)
+    audit: AuditSchema = dataclasses.field(default_factory=AuditSchema)
 
     def __post_init__(self) -> None:
         """Post initialization method to normalize values
@@ -34,16 +41,4 @@ class LoggingSchema:
                 f"The requested level '{level}' is not allowed. Choose from: {', '.join(allowed_levels)}"
             )
 
-        self.level = self.level.upper()
-
-        if self.users:
-            # Turn any username to their effective_user_id
-            defined_users = copy.deepcopy(self.users)
-            for user in defined_users.keys():
-                try:
-                    effective_user_id = str(pwd.getpwnam(user).pw_uid)
-                    self.users[effective_user_id] = self.users.pop(user)
-                except KeyError as e:
-                    raise ValueError(
-                        f"{user} is not present on the system. Remove it from the configuration."
-                    ) from e
+        self.level = level

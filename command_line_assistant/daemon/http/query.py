@@ -28,12 +28,11 @@ def submit(payload: dict, config: Config) -> str:
     query_endpoint = f"{config.backend.endpoint}/infer"
 
     try:
-        logger.info("Waiting for response from AI...")
         with get_session(config) as session:
             response = session.post(
                 query_endpoint, data=json.dumps(payload), timeout=30
             )
-
+        logger.info("Got response from LLM backend")
         response.raise_for_status()
         data = response.json()
         data = data.get("data", {})

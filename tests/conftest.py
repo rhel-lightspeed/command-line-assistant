@@ -17,13 +17,12 @@ from tests.helpers import MockStream
 
 
 @pytest.fixture(autouse=True)
-def setup_logger(tmp_path, request):
+def setup_logger(request):
     # This makes it so we can skip this using @pytest.mark.noautofixtures
     if "noautofixtures" in request.keywords:
         return
 
     logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
-    logging_configuration["handlers"]["audit_file"]["filename"] = tmp_path / "audit.log"
     with patch(
         "command_line_assistant.logger.LOGGING_CONFIG_DICTIONARY", logging_configuration
     ):
@@ -72,7 +71,6 @@ def mock_config(tmp_path):
             database=DatabaseSchema(type="sqlite", connection_string=history_db),
             logging=LoggingSchema(
                 level="debug",
-                users={"testuser": {"question": True, "responses": False}},
             ),
         )
 

@@ -2,6 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from command_line_assistant.constants import VERSION
 from command_line_assistant.initialize import initialize
 from command_line_assistant.utils.cli import BaseCLICommand
 
@@ -71,15 +72,17 @@ def test_initialize_with_history_command():
         mock_command.assert_called_once()
 
 
-def test_initialize_with_version():
+def test_initialize_with_version(capsys):
     """Test initialize with --version flag"""
     with (
         patch("sys.argv", ["c", "--version"]),
         patch("command_line_assistant.initialize.read_stdin", lambda: None),
-        patch("argparse.ArgumentParser.exit") as mock_exit,
     ):
-        initialize()
-        mock_exit.assert_called_once()
+        with pytest.raises(SystemExit):
+            initialize()
+
+        captured = capsys.readouterr()
+        assert VERSION in captured.out
 
 
 def test_initialize_with_help(capsys):

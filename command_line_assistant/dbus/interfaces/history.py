@@ -20,7 +20,6 @@ from command_line_assistant.dbus.structures.history import (
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
 
-audit_logger = logging.getLogger("audit")
 logger = logging.getLogger(__name__)
 
 
@@ -123,7 +122,10 @@ class HistoryInterface(InterfaceTemplate):
         Arguments:
             user_id (Str): The identifier of the user.
         """
-        logger.info("Clearing history entries for user '%s'.", user_id)
+        logger.info(
+            "Clearing history entries for user.",
+            extra={"audit": True, "user_id": user_id},
+        )
         self._history_manager.clear(user_id)
 
     def WriteHistory(
@@ -139,9 +141,8 @@ class HistoryInterface(InterfaceTemplate):
         """
         self._history_manager.write(chat_id, user_id, question, response)
         logger.info(
-            "Wrote a new entry to the user history for user '%s' in chat '%s'.",
-            user_id,
-            chat_id,
+            "Wrote a new entry to the user history for user.",
+            extra={"audit": True, "user_id": user_id, "chat_id": str(chat_id)},
         )
 
 

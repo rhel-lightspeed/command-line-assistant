@@ -19,7 +19,6 @@ from command_line_assistant.dbus.structures.chat import (
     Response,
 )
 
-audit_logger = logging.getLogger("audit")
 logger = logging.getLogger(__name__)
 
 
@@ -79,7 +78,10 @@ class ChatInterface(InterfaceTemplate):
             raise ChatNotFoundError("No chat found to delete.")
 
         for chat in all_chats:
-            logger.info("Deleting chat '%s' for user '%s", chat.id, user_id)
+            logger.info(
+                "Deleting chat for user.",
+                extra={"audit": True, "chat_id": chat.id, "user_id": user_id},
+            )
             self._chat_repository.delete(chat.id)
 
     def DeleteChatForUser(self, user_id: Str, name: Str) -> None:
@@ -92,7 +94,10 @@ class ChatInterface(InterfaceTemplate):
         Raises:
             ChatNotFoundError: In case no chat was found with the given name for the current user.
         """
-        logger.info("Looking for chat '%s' on user '%s'", name, user_id)
+        logger.info(
+            "Looking for chat '%s' on user '%s'",
+            extra={"audit": True, "chat_name": name, "user_id": user_id},
+        )
         chat = self._chat_repository.select_by_name(user_id, name)
 
         if not chat:
@@ -106,9 +111,8 @@ class ChatInterface(InterfaceTemplate):
             )
 
         logger.info(
-            "Found chat '%s' for user '%s'. Deleteing it as requested.",
-            chat[0].id,
-            user_id,
+            "Deleting the request chat for user.",
+            extra={"audit": True, "chat_id": chat[0].id, "user_id": user_id},
         )
         self._chat_repository.delete(chat[0].id)
 
@@ -167,7 +171,8 @@ class ChatInterface(InterfaceTemplate):
             {"user_id": user_id, "name": name, "description": description}
         )
         logger.info(
-            "New chat session created with id '%s' and name '%s'", identifier, name
+            "New chat session created with for user.",
+            extra={"audit": True, "identifier": identifier, "chat_name": name},
         )
         return str(identifier[0])
 
@@ -193,18 +198,17 @@ class ChatInterface(InterfaceTemplate):
                 },
             },
         }
+        logger.info(
+            "Submitting question from user.",
+            extra={
+                "audit": True,
+                "user": user_id,
+            },
+        )
         llm_response = submit(data, self.implementation.config)
 
         # Create message object
         response = Response(llm_response)
 
-        audit_logger.info(
-            "Query executed successfully.",
-            extra={
-                "user": user_id,
-                "query": content.message,
-                "response": llm_response,
-            },
-        )
         # Return the data
         return response.structure()

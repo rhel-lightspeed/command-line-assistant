@@ -19,7 +19,7 @@ from command_line_assistant.constants import VERSION
 # Define the type here so pyright is happy with it.
 SubParsersAction = _SubParsersAction
 
-PARENT_ARGS: list[str] = ["--version", "-v", "-h", "--help"]
+GLOBAL_FLAGS: list[str] = ["--debug", "--version", "-v", "-h", "--help"]
 ARGS_WITH_VALUES: list[str] = ["--clear"]
 
 OS_RELEASE_PATH = Path("/etc/os-release")
@@ -89,37 +89,58 @@ def add_default_command(stdin: Optional[str], argv: list[str]):
     if not args and not stdin:
         return args
 
+    global_flags = []
+    command_args = []
+    for arg in args:
+        if arg in GLOBAL_FLAGS:
+            global_flags.append(arg)
+        else:
+            command_args.append(arg)
+
     subcommand = _subcommand_used(argv)
     if not subcommand:
-        args.insert(0, "chat")
-
+        return global_flags + ["chat"] + command_args
     return args
 
 
-def _subcommand_used(args: list[str]):
-    """Return what subcommand has been used by the user. Return None if no subcommand has been used."""
+def _subcommand_used(args: list[str]) -> Optional[str]:
+    """Return what subcommand has been used by the user. Return None if no subcommand has been used.
+
+    Arguments:
+        args (list[str]): The arguments from the command line
+
+    Returns:
+        Optional[str]: If we find a match for the argument, we return it, otherwise we return None.
+    """
     for index, argument in enumerate(args):
+        # It means that we hit a --version/--help
+        if argument in GLOBAL_FLAGS:
+            continue
+
         # If we have a exact match for any of the commands, return directly
         if argument in ("chat", "history"):
             return argument
 
-        # It means that we hit a --version/--help
-        if argument in PARENT_ARGS:
-            return argument
-
         # Otherwise, check if this is the second part of an arg that takes a value.
-        elif args[index - 1] in ARGS_WITH_VALUES:
+        elif index > 0 and args[index - 1] in ARGS_WITH_VALUES:
             continue
 
     return None
 
 
 def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
-    """Create the argument parser for command line assistant."""
+    """Create the argument parser for command line assistant.
+
+    Returns:
+        tuple[ArgumentParser, SubParsersAction]: The parent and subparser created
+    """
     parser = ArgumentParser(
         prog="c",
-        description="The Command Line Assistant powered by RHEL Lightspeed is a optional generative AI assistant available within the RHEL command line interface.",
+        description="The Command Line Assistant powered by RHEL Lightspeed is an optional generative AI assistant available within the RHEL command line interface.",
         add_help=False,
+    )
+    parser.add_argument(
+        "--debug", action="store_true", help="Enable debug logging information"
     )
     parser.add_argument(
         "-h",

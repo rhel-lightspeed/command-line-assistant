@@ -71,7 +71,7 @@ def test_delete_all_chat_for_user(chat_interface, mock_repository, caplog):
     mock_repository.insert({"name": "test", "description": "test", "user_id": uid})
     chat_interface.DeleteAllChatForUser(uid)
 
-    assert f"for user '{uid}" in caplog.records[-1].message
+    assert "Deleting chat for user." in caplog.records[-1].message
 
 
 def test_delete_all_chat_for_user_no_chat(chat_interface):
@@ -85,7 +85,7 @@ def test_delete_chat_for_user(chat_interface, mock_repository, caplog):
     mock_repository.insert({"name": "test", "description": "test", "user_id": uid})
     chat_interface.DeleteChatForUser(uid, "test")
 
-    assert f"for user '{uid}'. Deleteing it as requested." in caplog.records[-1].message
+    assert "Deleting the request chat for user." in caplog.records[-1].message
 
 
 def test_delete_chat_for_user_exception(chat_interface):
@@ -127,6 +127,6 @@ def test_get_chat_id_exception(chat_interface):
 
 def test_create_chat(chat_interface, caplog):
     uid = "2345f9e6-dfea-11ef-9ae9-52b437312584"
-    chat_interface.CreateChat(uid, "test", "test")
-
-    assert "New chat session created" in caplog.records[-1].message
+    result = chat_interface.CreateChat(uid, "test", "test")
+    assert result
+    assert "-" in result
