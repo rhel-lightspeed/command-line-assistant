@@ -32,3 +32,17 @@ def test_get_xdg_state_path(xdg_path_env, expected, monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(environment, "WANTED_XDG_STATE_PATH", Path("some/dir"))
     monkeypatch.setenv("XDG_STATE_HOME", xdg_path_env)
     assert environment.get_xdg_state_path() == expected
+
+
+@pytest.mark.parametrize(
+    ("xdg_path_env", "expected"),
+    (
+        ("", Path("some/dir")),
+        ("/etc/xdg", Path("/etc/xdg")),
+        ("/my-special-one-path", Path("/my-special-one-path")),
+    ),
+)
+def test_get_xdg_data_path(xdg_path_env, expected, monkeypatch):
+    monkeypatch.setattr(environment, "WANTED_XDG_DATA_PATH", Path("some/dir"))
+    monkeypatch.setenv("XDG_DATA_HOME", xdg_path_env)
+    assert environment.get_xdg_data_path() == expected

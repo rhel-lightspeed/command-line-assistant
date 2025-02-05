@@ -116,6 +116,7 @@ def test_create_argument_parser():
         ),
         (["/usr/bin/c", "test query"], None, ["chat", "test query"]),
         (["/usr/bin/c", "history"], None, ["history"]),
+        (["/usr/bin/c", "shell"], None, ["shell"]),
     ],
 )
 def test_add_default_command(args, stdin, expected):

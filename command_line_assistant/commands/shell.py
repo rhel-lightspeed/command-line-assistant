@@ -4,12 +4,6 @@ import logging
 from argparse import Namespace
 from pathlib import Path
 
-from command_line_assistant.dbus.exceptions import (
-    ChatNotFoundError,
-    CorruptedHistoryError,
-    HistoryNotAvailable,
-    MissingHistoryFileError,
-)
 from command_line_assistant.integrations import BASH_INTERACTIVE
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
@@ -54,20 +48,12 @@ class ShellCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution.
         """
-        try:
-            if self._args.enable_integration:
-                return self._write_bash_functions()
-            elif self._args.disable_integration:
-                return self._remove_bash_functions()
-            return 0
-        except (
-            MissingHistoryFileError,
-            CorruptedHistoryError,
-            ChatNotFoundError,
-            HistoryNotAvailable,
-        ) as e:
-            self._error_renderer.render(str(e))
-            return 1
+        if self._args.enable_integration:
+            return self._write_bash_functions()
+        elif self._args.disable_integration:
+            return self._remove_bash_functions()
+
+        return 0
 
     def _write_bash_functions(self) -> int:
         """Internal method to handle the creation of the bash integration file.
@@ -75,15 +61,21 @@ class ShellCommand(BaseCLICommand):
         Returns:
             int: The status code of the operation
         """
-
         if not BASH_RC_D_PATH.exists():
             try:
                 BASH_RC_D_PATH.mkdir(0o700)
             except FileExistsError as e:
                 logger.debug(
-                    "While trying to create the bashrc.d folder, we got an exception '%s'.",
+                    "While trying to create the folder at '%s', we got an exception '%s'.",
+                    BASH_RC_D_PATH,
                     str(e),
                 )
+
+        if INTEGRATION_FILE.exists():
+            self._warning_renderer.render(
+                f"Integration is already present at {INTEGRATION_FILE}."
+            )
+            return 0
 
         try:
             INTEGRATION_FILE.write_text(BASH_INTERACTIVE)
