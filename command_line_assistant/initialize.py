@@ -52,7 +52,6 @@ def initialize() -> int:
         # it will be None.
         namespace = Namespace(stdin=stdin)
         args = parser.parse_args(args, namespace=namespace)
-
         if not hasattr(args, "func"):
             parser.print_help()
             return 1

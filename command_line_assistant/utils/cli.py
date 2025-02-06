@@ -161,7 +161,7 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     return parser, commands_parser
 
 
-def read_stdin() -> Optional[str]:
+def read_stdin() -> str:
     """Parse the std input when a user give us.
 
     For example, consider the following scenario:
@@ -171,8 +171,7 @@ def read_stdin() -> Optional[str]:
         >>> cat error-log | c "How to fix this?"
 
     Returns:
-        In case we have a stdin, we parse and retrieve it. Otherwise, just
-        return None.
+        str: Return the stdin that was read or if there is nothing, return an empty string.
     """
     # Check if there's input available on stdin
     if select.select([sys.stdin], [], [], 0.0)[0]:
@@ -184,5 +183,31 @@ def read_stdin() -> Optional[str]:
 
         return input_data
 
-    # If no input, return None or handle as you prefer
-    return None
+    return ""
+
+
+def create_subparser(parser: SubParsersAction, name: str, help: str) -> ArgumentParser:
+    """Create a subparser with some default options
+
+    Arguments:
+        parser (SubParsersAction): The parent subparser to be used
+        name (str): The name of the new custom subparser
+        help (str): The help message to be displayed with the subparser
+
+    Returns:
+        ArgumentParser: A new instance of a ArgumentParser to be used as a command.
+    """
+    custom_parser = parser.add_parser(
+        name,
+        help=help,
+        add_help=False,
+    )
+    custom_parser.add_argument(
+        "-h",
+        "--help",
+        action="help",
+        default=argparse.SUPPRESS,
+        help="Show this help message and exit.",
+    )
+
+    return custom_parser

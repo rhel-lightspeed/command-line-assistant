@@ -21,7 +21,11 @@ from command_line_assistant.rendering.decorators.text import (
 )
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
-from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
+from command_line_assistant.utils.cli import (
+    BaseCLICommand,
+    SubParsersAction,
+    create_subparser,
+)
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
     create_spinner_renderer,
@@ -174,12 +178,9 @@ def register_subcommand(parser: SubParsersAction):
     Args:
         parser (SubParsersAction): Root parser to register command-specific arguments
     """
-    history_parser = parser.add_parser(
-        "history",
-        help="Manage user conversation history",
-    )
+    history_parser = create_subparser(parser, "history", "Manage conversation history")
 
-    filtering_options = history_parser.add_argument_group("Filtering options")
+    filtering_options = history_parser.add_argument_group("Filtering Options")
     filtering_options.add_argument(
         "-f",
         "--first",
@@ -198,7 +199,7 @@ def register_subcommand(parser: SubParsersAction):
         help="Search for a specific keyword of text in the history. If no --from is specified, this will filter conversations across all chats.",
     )
 
-    management_options = history_parser.add_argument_group("Management options")
+    management_options = history_parser.add_argument_group("Management Options")
     management_options.add_argument(
         "-c",
         "--clear",
