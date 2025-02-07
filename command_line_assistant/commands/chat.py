@@ -50,7 +50,6 @@ from command_line_assistant.utils.renderers import (
     create_interactive_renderer,
     create_spinner_renderer,
     create_text_renderer,
-    create_warning_renderer,
 )
 
 #: Legal notice that we need to output once per user
@@ -307,9 +306,6 @@ class BaseChatQuestionOperation(BaseChatOperation):
 
 @ChatOperationFactory.register(ChatOperationType.LIST_CHATS)
 class ListChatsOperation(BaseChatOperation):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
     def execute(self) -> None:
         user_id = self._get_user_id(self.context.effective_user_id)
         all_chats = ChatList.from_structure(self.chat_proxy.GetAllChatFromUser(user_id))
@@ -431,8 +427,6 @@ class ChatCommand(BaseCLICommand):
 
         self._operation_factory = ChatOperationFactory(
             create_text_renderer(decorators=[ColorDecorator(foreground="green")]),
-            create_warning_renderer(),
-            self._error_renderer,
         )
 
         super().__init__()
@@ -457,7 +451,7 @@ class ChatCommand(BaseCLICommand):
 
 def register_subcommand(parser: SubParsersAction) -> None:
     """
-    Register this command to argparse so it's available for the root parserself._.
+    Register this command to argparse so it's available for the root parser.
 
     Args:
         parser (SubParsersAction): Root parser to register command-specific arguments
@@ -500,7 +494,11 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "-l", "--list", action="store_true", help="List all chats"
     )
     chat_arguments.add_argument(
-        "-d", "--delete", nargs="?", help="Delete a chat session", default=""
+        "-d",
+        "--delete",
+        nargs="?",
+        default="",
+        help="Delete a chat session",
     )
     chat_arguments.add_argument(
         "-da", "--delete-all", action="store_true", help="Delete all chats"

@@ -7,6 +7,11 @@ from typing import ClassVar, Optional, Protocol, Type
 
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.utils.cli import CommandContext
+from command_line_assistant.utils.renderers import (
+    create_error_renderer,
+    create_text_renderer,
+    create_warning_renderer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +54,13 @@ class CommandOperationFactory:
 
     def __init__(
         self,
-        text_renderer: TextRenderer,
-        warning_renderer: TextRenderer,
-        error_renderer: TextRenderer,
+        text_renderer: Optional[TextRenderer] = None,
+        warning_renderer: Optional[TextRenderer] = None,
+        error_renderer: Optional[TextRenderer] = None,
     ):
-        self.text_renderer = text_renderer
-        self.warning_renderer = warning_renderer
-        self.error_renderer = error_renderer
+        self.text_renderer = text_renderer or create_text_renderer()
+        self.warning_renderer = warning_renderer or create_warning_renderer()
+        self.error_renderer = error_renderer or create_error_renderer()
 
     @classmethod
     def register(cls, operation_type: CommandOperationType):

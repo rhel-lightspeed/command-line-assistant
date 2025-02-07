@@ -10,4 +10,8 @@ class ChatCommandException(Exception):
 
 
 class ShellCommandException(Exception):
-    """Exception class to controll shell command."""
+    """Exception class to control shell command."""
+
+
+class HistoryCommandException(Exception):
+    """Exception class to control history command."""
