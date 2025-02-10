@@ -34,13 +34,13 @@ Files
 */var/lib/command-line-assistant/history.db*
     SQlite3 history database
 
-*/etc/dbus-1/systemd/com.redhat.lightspeed.conf*
+*/etc/dbus-1/system.d/com.redhat.lightspeed.conf*
     D-Bus conf to control access of bus activation
 
-*/usr/share/dbus-1/system-services/com.redhat.lightspeed.chat.srvice*
+*/usr/share/dbus-1/system-services/com.redhat.lightspeed.chat.service*
     Service to enable dbus activation from chat endpoint
 
-*/usr/share/dbus-1/system-services/com.redhat.lightspeed.history.srvice*
+*/usr/share/dbus-1/system-services/com.redhat.lightspeed.history.service*
     Service to enable dbus activation from history endpoint
 
 */usr/lib/systemd/system/clad.service*
