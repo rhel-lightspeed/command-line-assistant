@@ -56,8 +56,8 @@ Requires:       python3-tomli
 A simple wrapper to interact with RAG
 
 %package selinux
-Summary:	CLAD SELinux policy
-BuildArch:	noarch
+Summary:    CLAD SELinux policy
+BuildArch:  noarch
 
 Requires:       selinux-policy-%{selinuxtype}
 Requires(post): selinux-policy-%{selinuxtype}
