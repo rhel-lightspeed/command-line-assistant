@@ -8,7 +8,7 @@ prompt_separator = "$"
 
 [database]
 type = "sqlite"
-connection_string = "~/.local/share/command-line-assistant/history.db"
+connection_string = "/tmp/history.db"
 
 [history]
 enabled = true
@@ -26,4 +26,4 @@ verify_ssl = false
 level = "DEBUG"
 
 [logging.audit]
-enabled = true
+enabled = false

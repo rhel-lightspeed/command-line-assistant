@@ -9,7 +9,7 @@ from command_line_assistant.logger import (
     AuditFilter,
     AuditFormatter,
     NonAuditFilter,
-    setup_logging,
+    setup_daemon_logging,
 )
 
 
@@ -116,11 +116,11 @@ def test_get_extra_fields_with_skipping_values():
 def test_setup_logging(mock_dict_config, mock_config):
     """Test setup of logging configuration."""
     mock_config.logging.level = "INFO"
-    setup_logging(mock_config)
+    setup_daemon_logging(mock_config)
     mock_dict_config.assert_called_once()
 
 
-def test_audit_formatter_user_specific_logging(mock_config):
+def test_audit_formatter_user_specific_logging():
     """Test user-specific logging configuration."""
     # Configure mock for user-specific settings
     formatter = AuditFormatter()
@@ -144,11 +144,11 @@ def test_audit_formatter_user_specific_logging(mock_config):
     assert data["audit_data"]["something"] == "yes"
 
 
-def test_setup_logging_invalid_level(mock_config):
+def test_setup_logging_invalid_level_daemon(mock_config):
     """Test setup_logging with invalid log level."""
     mock_config.logging.level = "INVALID_LEVEL"
     with pytest.raises(ValueError):
-        setup_logging(mock_config)
+        setup_daemon_logging(mock_config)
 
 
 @pytest.mark.parametrize(

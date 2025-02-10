@@ -48,7 +48,7 @@ LOGGING_CONFIG_DICTIONARY = {
     },
     "loggers": {
         # Root logger
-        "root": {"handlers": ["audit", "console"], "level": "INFO"},
+        "root": {"handlers": ["console"], "level": "INFO"},
     },
 }
 
@@ -194,16 +194,43 @@ class AuditFormatter(logging.Formatter):
         return extras
 
 
-def setup_logging(config: Optional[Config] = None) -> None:
+def _setup_logging(logging_level: str, handlers: list[str]) -> None:
+    """Internal method to handle logging configuration and initialization.
+
+    Arguments:
+        logging_level (str): The mininaml level to enable
+        handlers (list[str]): A list of handlers to add to the root loger.
+    """
+    logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
+    logging_configuration["level"] = logging_level
+    logging_configuration["loggers"]["root"]["level"] = logging_level
+    logging_configuration["loggers"]["root"]["handlers"].extend(handlers)
+    logging.config.dictConfig(logging_configuration)
+
+
+def setup_daemon_logging(config: Config) -> None:
     """Setup basic logging functionality.
 
     Note:
-        This is intended to be called by the daemon to initialize their logging routine.
+        This is intended to be called by the daemon to initialize their logging
+        routine.
 
     Arguments:
         config (Config): Instance of a config class.
     """
-    logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
-    loggin_level = "DEBUG" if not config else config.logging.level
-    logging_configuration["loggers"]["root"]["level"] = loggin_level
-    logging.config.dictConfig(logging_configuration)
+    custom_handlers = []
+    # Add audit logging in case it is enabledc
+    if config.logging.audit.enabled:
+        custom_handlers.append("audit")
+
+    _setup_logging(config.logging.level, custom_handlers)
+
+
+def setup_client_logging() -> None:
+    """Setup basic logging functionality.
+
+    Note:
+        This is intended to be called by the client to initialize their logging
+        routine.
+    """
+    _setup_logging(logging_level="DEBUG", handlers=[])

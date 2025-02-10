@@ -13,7 +13,7 @@ def mock_config():
 
 @pytest.fixture
 def mock_setup_logging():
-    with patch("command_line_assistant.daemon.clad.setup_logging") as mock:
+    with patch("command_line_assistant.daemon.clad.setup_daemon_logging") as mock:
         yield mock
 
 
