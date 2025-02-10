@@ -26,10 +26,11 @@ jobs:
           sudo apt update -y
           sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
           make install
-          echo "$(poetry env info -p)/bin" >> $GITHUB_PATH
 
       - name: Run unit tests
-        run: make unit-test-coverage
+        run: |
+          make unit-test-coverage
+          make coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
