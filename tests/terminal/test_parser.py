@@ -18,6 +18,10 @@ TERMINAL_LOG_MOCK = [
         "command": "\u001b]0;rolivier@fedora:~/Workspace/command-line-assistant\u0007\u001b[?2004h\u001b]633;A\u0007(command-line-assistant-py3.13) \u001b]633;A\u0007\u001b[m\u001b[0m\u001b[m\u001b[0m$\u001b[0m \u001b]633;B\u0007\u001b]633;B\u0007",
         "output": "\u001b[?2004l\r\r\nexit",
     },
+    {
+        "command": "\u001b]0;rolivier@fedora:~/Workspace/command-line-assistant\u0007\u001b[?2004h\u001b]633;A\u0007(command-line-assistant-py3.13) \u001b]633;A\u0007\u001b[m\u001b[0m\u001b[m\u001b[0m$\u001b[0m \u001b]633;B\u0007\u001b]633;B\u0007",
+        "output": "\u001b[?2004lblablabla]\r\r\nexit",
+    },
 ]
 
 

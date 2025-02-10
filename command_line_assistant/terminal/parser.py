@@ -34,7 +34,7 @@ def parse_terminal_output() -> list[dict[str, str]]:
                 parsed["command"] = clean_parsed_text(parsed["command"])
                 parsed["output"] = clean_parsed_text(parsed["output"])
                 # Just ignore the exit at the end.
-                if parsed["output"] == "exit":
+                if parsed["output"].endswith("exit"):
                     continue
                 result.append(parsed)
             except json.JSONDecodeError as e:
