@@ -73,11 +73,16 @@ def _read_last_terminal_output(index: int) -> str:
     Returns:
         str: The data read or an empty string
     """
+    logger.info("Reading terminal output.")
     contents = parse_terminal_output()
 
     if not contents:
+        logger.info(
+            "No contents found during reading the terminal output. Returning empty string."
+        )
         return ""
 
+    logger.info("Finding output by index, if any.")
     last_output = find_output_by_index(index=index, output=contents)
     return clean_parsed_text(last_output)
 
@@ -141,32 +146,44 @@ def _get_input_source(query: str, stdin: str, attachment: str, last_output: str)
 
     # Rule 8: positional + attachment + last output
     if query and attachment and last_output:
+        logger.info(
+            "Positional query, attachment and last output found. Using all of them at once."
+        )
         return f"{query} {attachment} {last_output}"
 
     # Rule 7: positional + last_output
     if query and last_output:
+        logger.info("Positional query and last output found. Using them.")
         return f"{query} {last_output}"
 
     # Rule 6: Positional + file
     if query and attachment:
+        logger.info("Positional query and attachment found. Using them.")
         return f"{query} {attachment}"
 
     # Rule 5: Stdin + file
     if stdin and attachment:
+        logger.info("stdin and attachment found. Using them.")
         return f"{stdin} {attachment}"
 
     # Rule 4: Stdin + positional
     if stdin and query:
+        logger.info("Positional query and stidn found. Using them.")
         return f"{query} {stdin}"
 
     # Rules 1-3: Single source - return first non-empty source
+    logger.info(
+        "Defaulting to use any of positional query, stdin, attachment or last output since no combinations where provided."
+    )
     source = next(
         (src for src in [query, stdin, attachment, last_output] if src),
         None,
     )
+
     if source:
         return source
 
+    logger.error("Couldn't find a match.")
     raise ValueError(
         "No input provided. Please provide input via file, stdin, or direct query."
     )
