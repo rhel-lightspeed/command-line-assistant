@@ -2,12 +2,12 @@
 
 import logging
 from argparse import Namespace
-from dataclasses import dataclass
 from enum import auto
 from pathlib import Path
 from typing import ClassVar, Union
 
 from command_line_assistant.commands.base import (
+    BaseCLICommand,
     BaseOperation,
     CommandOperationFactory,
     CommandOperationType,
@@ -20,15 +20,12 @@ from command_line_assistant.integrations import (
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.reader import start_capturing
 from command_line_assistant.utils.cli import (
-    BaseCLICommand,
     SubParsersAction,
     create_subparser,
 )
 from command_line_assistant.utils.files import create_folder, write_file
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
-    create_text_renderer,
-    create_warning_renderer,
 )
 
 #: The path to bashrc.d folder
@@ -49,6 +46,8 @@ logger = logging.getLogger(__name__)
 
 
 class ShellOperationType(CommandOperationType):
+    """Enum to control the operations for the command"""
+
     ENABLE_INTERACTIVE = auto()
     DISABLE_INTERACTIVE = auto()
     ENABLE_PERSISTENT_CAPTURE = auto()
@@ -70,14 +69,22 @@ class ShellOperationFactory(CommandOperationFactory):
 
 
 # Base class for shell operations with common functionality
-@dataclass
 class BaseShellOperation(BaseOperation):
+    """Base shell operation common to all operations."""
+
     def _initialize_bash_folder(self) -> None:
+        """Internal function to initialize the bash folder"""
         # Always ensure essential exports are in place
         create_folder(BASH_RC_D_PATH)
         write_file(BASH_ESSENTIAL_EXPORTS, ESSENTIAL_EXPORTS_FILE)
 
     def _write_bash_functions(self, file: Path, contents: Union[bytes, str]) -> None:
+        """Internal funtion to write the bash function to the desired location
+
+        Arguments:
+            file (Path): The path object with the correct location
+            contents (Union[bytes, str]): The contents to be written in the file.
+        """
         self._initialize_bash_folder()
         if file.exists():
             logger.info("File already exists at %s.", file)
@@ -94,6 +101,11 @@ class BaseShellOperation(BaseOperation):
         )
 
     def _remove_bash_functions(self, file: Path) -> None:
+        """Internal function to remove a bash integration
+
+        Arguments:
+            file (Path): The path object with the correct location
+        """
         if not file.exists():
             logger.debug("Couldn't find integration file at '%s'", str(file))
             self.warning_renderer.render(
@@ -114,19 +126,28 @@ class BaseShellOperation(BaseOperation):
 # Register operations using the decorator
 @ShellOperationFactory.register(ShellOperationType.ENABLE_INTERACTIVE)
 class EnableInteractiveMode(BaseShellOperation):
+    """Class to hold the enable interactive mode operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self._write_bash_functions(INTERACTIVE_MODE_INTEGRATION_FILE, BASH_INTERACTIVE)
 
 
 @ShellOperationFactory.register(ShellOperationType.DISABLE_INTERACTIVE)
 class DisableInteractiveMode(BaseShellOperation):
+    """Class to hold the disable interactive mode operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self._remove_bash_functions(INTERACTIVE_MODE_INTEGRATION_FILE)
 
 
 @ShellOperationFactory.register(ShellOperationType.ENABLE_PERSISTENT_CAPTURE)
 class EnablePersistentCapture(BaseShellOperation):
+    """Class to hold the enable persistent capture more"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self._write_bash_functions(
             PERSISTENT_TERMINAL_CAPTURE_FILE, BASH_ESSENTIAL_EXPORTS
         )
@@ -134,13 +155,19 @@ class EnablePersistentCapture(BaseShellOperation):
 
 @ShellOperationFactory.register(ShellOperationType.DISABLE_PERSISTENT_CAPTURE)
 class DisablePersistentCapture(BaseShellOperation):
+    """Class to the disable persistent capture mode"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self._remove_bash_functions(PERSISTENT_TERMINAL_CAPTURE_FILE)
 
 
 @ShellOperationFactory.register(ShellOperationType.ENABLE_CAPTURE)
 class EnableTerminalCapture(BaseShellOperation):
+    """Class to hold the enable terminal capture operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self.text_renderer.render(
             "Starting terminal reader. Press Ctrl + D to stop the capturing."
         )
@@ -150,36 +177,18 @@ class EnableTerminalCapture(BaseShellOperation):
 class ShellCommand(BaseCLICommand):
     """Class that represents the history command."""
 
-    def __init__(self, args: Namespace) -> None:
-        """Constructor of the class.
-
-        Note:
-            If none of the above is specified, the command will retrieve all
-            user history.
-
-        Arguments:
-            args (Namespace): The args for that command.
-        """
-        self._args = args
-
-        self._error_renderer: TextRenderer = create_error_renderer()
-
-        self._operation_factory = ShellOperationFactory(
-            create_text_renderer(), create_warning_renderer(), self._error_renderer
-        )
-
-        super().__init__()
-
     def run(self) -> int:
         """Main entrypoint for the command to run.
 
         Returns:
             int: Return the status code for the operation
         """
+        error_renderer: TextRenderer = create_error_renderer()
+        operation_factory = ShellOperationFactory()
         try:
             # Get and execute the appropriate operation
-            operation = self._operation_factory.create_operation(
-                self._args, self._context
+            operation = operation_factory.create_operation(
+                self._args, self._context, error_renderer=error_renderer
             )
             if operation:
                 operation.execute()
@@ -187,7 +196,7 @@ class ShellCommand(BaseCLICommand):
             return 0
         except ShellCommandException as e:
             logger.info("Failed to execute shell command: %s", str(e))
-            self._error_renderer.render(f"Failed to execute shell command: {str(e)}")
+            error_renderer.render(f"Failed to execute shell command: {str(e)}")
             return 1
 
 

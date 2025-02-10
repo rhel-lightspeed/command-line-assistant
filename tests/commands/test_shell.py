@@ -1,8 +1,9 @@
-from argparse import Namespace
-from unittest.mock import MagicMock, patch
+from argparse import ArgumentParser, Namespace
+from unittest import mock
 
 import pytest
 
+from command_line_assistant.commands import shell
 from command_line_assistant.commands.shell import (
     BaseShellOperation,
     DisableInteractiveMode,
@@ -11,220 +12,200 @@ from command_line_assistant.commands.shell import (
     EnablePersistentCapture,
     EnableTerminalCapture,
     ShellCommand,
-    ShellOperationFactory,
+    _command_factory,
+    register_subcommand,
 )
-from command_line_assistant.rendering.renders.text import TextRenderer
+from command_line_assistant.exceptions import ShellCommandException
+from command_line_assistant.integrations import BASH_ESSENTIAL_EXPORTS
+from command_line_assistant.utils.renderers import create_text_renderer
 
 
-@pytest.fixture
-def mock_text_renderer():
-    renderer = MagicMock(spec=TextRenderer)
-    return renderer
+@pytest.fixture(autouse=True)
+def mock_bash_rc(monkeypatch, tmp_path):
+    bash_rc_d = tmp_path / ".bashrc.d"
+    monkeypatch.setattr(shell, "BASH_RC_D_PATH", bash_rc_d)
 
+    essential_exports_file = tmp_path / "cla-exports.bashrc"
+    monkeypatch.setattr(shell, "ESSENTIAL_EXPORTS_FILE", essential_exports_file)
 
-@pytest.fixture
-def shell_operation_factory(mock_text_renderer):
-    return ShellOperationFactory(mock_text_renderer, mock_text_renderer)
-
-
-@pytest.fixture
-def base_shell_operation(mock_text_renderer):
-    return BaseShellOperation(mock_text_renderer, mock_text_renderer)
-
-
-# Test Shell Operation Factory
-def test_shell_operation_factory_registration():
-    """Test operation registration in factory"""
-    factory = ShellOperationFactory(MagicMock(), MagicMock())
-
-    # Verify all operations are registered
-    assert EnableInteractiveMode in factory._operations.values()
-    assert DisableInteractiveMode in factory._operations.values()
-    assert EnablePersistentCapture in factory._operations.values()
-    assert DisablePersistentCapture in factory._operations.values()
-    assert EnableTerminalCapture in factory._operations.values()
-
-
-def test_shell_operation_factory_create_operation(shell_operation_factory):
-    """Test creation of operations through factory"""
-    # Test enable interactive mode
-    args = Namespace(
-        enable_interactive=True,
-        disable_interactive=False,
-        enable_persistent_capture=False,
-        disable_persistent_capture=False,
-        enable_capture=False,
+    interactive_mode_integration_file = tmp_path / "cla-interactive.bashrc"
+    monkeypatch.setattr(
+        shell, "INTERACTIVE_MODE_INTEGRATION_FILE", interactive_mode_integration_file
     )
-    operation = shell_operation_factory.create_operation(args)
-    assert isinstance(operation, EnableInteractiveMode)
 
-    # Test disable interactive mode
-    args = Namespace(
-        enable_interactive=False,
-        disable_interactive=True,
-        enable_persistent_capture=False,
-        disable_persistent_capture=False,
-        enable_capture=False,
+    persistent_terminal_capture_file = tmp_path / "cla-persistent-capture.bashrc"
+    monkeypatch.setattr(
+        shell, "PERSISTENT_TERMINAL_CAPTURE_FILE", persistent_terminal_capture_file
     )
-    operation = shell_operation_factory.create_operation(args)
-    assert isinstance(operation, DisableInteractiveMode)
 
 
-def test_shell_operation_factory_no_operation(shell_operation_factory):
-    """Test factory returns None when no operation specified"""
-    args = Namespace(
-        enable_interactive=False,
-        disable_interactive=False,
-        enable_persistent_capture=False,
-        disable_persistent_capture=False,
-        enable_capture=False,
+def test_initialize_bash_folder(default_kwargs, tmp_path):
+    essential_exports_file = tmp_path / "cla-exports.bashrc"
+    bash_rc_d = tmp_path / ".bashrc.d"
+    BaseShellOperation(**default_kwargs)._initialize_bash_folder()
+
+    assert essential_exports_file.exists()
+    assert BASH_ESSENTIAL_EXPORTS == essential_exports_file.read_text()
+    assert oct(essential_exports_file.stat().st_mode).endswith("600")
+    assert oct(bash_rc_d.stat().st_mode).endswith("700")
+
+
+def test_write_bash_functions(default_kwargs, tmp_path, capsys):
+    some_bash_file = tmp_path / "test.bashrc"
+    default_kwargs["text_renderer"] = create_text_renderer()
+    bash_shell_operation = BaseShellOperation(**default_kwargs)
+
+    bash_shell_operation._write_bash_functions(some_bash_file, "export TEST=1")
+
+    assert some_bash_file.exists()
+    assert some_bash_file.read_text() == "export TEST=1"
+    captured = capsys.readouterr()
+    assert "Integration successfully added at" in captured.out
+    assert oct(some_bash_file.stat().st_mode).endswith("600")
+
+
+def test_write_bash_functions_file_exists(default_kwargs, tmp_path, capsys):
+    some_bash_file = tmp_path / "test.bashrc"
+    some_bash_file.write_text("export TEST=1")
+    default_kwargs["warning_renderer"] = create_text_renderer()
+    bash_shell_operation = BaseShellOperation(**default_kwargs)
+
+    bash_shell_operation._write_bash_functions(some_bash_file, "export TEST=1")
+
+    assert some_bash_file.exists()
+    assert some_bash_file.read_text() == "export TEST=1"
+    captured = capsys.readouterr()
+    assert "The integration is already present and enabled" in captured.out
+
+
+def test_remove_bash_functions(default_kwargs, tmp_path, capsys):
+    some_bash_file = tmp_path / "test.bashrc"
+    some_bash_file.write_text("export TEST=1")
+    default_kwargs["text_renderer"] = create_text_renderer()
+    bash_shell_operation = BaseShellOperation(**default_kwargs)
+
+    bash_shell_operation._remove_bash_functions(some_bash_file)
+
+    assert not some_bash_file.exists()
+    captured = capsys.readouterr()
+    assert "Integration disabled successfully." in captured.out
+
+
+def test_remove_bash_functions_no_integration_found(default_kwargs, tmp_path, capsys):
+    some_bash_file = tmp_path / "test.bashrc"
+    default_kwargs["warning_renderer"] = create_text_renderer()
+    bash_shell_operation = BaseShellOperation(**default_kwargs)
+
+    bash_shell_operation._remove_bash_functions(some_bash_file)
+
+    assert not some_bash_file.exists()
+    captured = capsys.readouterr()
+    assert (
+        "It seems that the integration is not enabled. Skipping operation."
+        in captured.out
     )
-    operation = shell_operation_factory.create_operation(args)
-    assert operation is None
 
 
-# Test Base Shell Operation
-@patch("pathlib.Path.mkdir")
-@patch("pathlib.Path.write_text")
-def test_base_shell_operation_initialize_bash_folder(
-    mock_write, mock_mkdir, base_shell_operation
-):
-    """Test initialization of bash folder"""
-    base_shell_operation._initialize_bash_folder()
-    mock_mkdir.assert_called_once()
-    mock_write.assert_called_once()
+@pytest.mark.parametrize(
+    ("operation"),
+    (
+        (EnableInteractiveMode),
+        (DisableInteractiveMode),
+        (EnablePersistentCapture),
+        (DisablePersistentCapture),
+    ),
+)
+def test_shell_operations(operation, default_kwargs):
+    """Test that all shell operations will work when executed.
+
+    We are calling it this way because all operations are very simply and only
+    change the contents and filepath to write. Once we start to make them more
+    verbose and complex, we can come back and remove the specific operation
+    from the parametrize and make a special test for them. But right now, this
+    simple verification should be enough.
+
+    In case there is a failure during the execution, we will catch this
+    exception and makr the test as a failed.
+    """
+    op = operation(**default_kwargs)
+    try:
+        op.execute()
+    except Exception as e:
+        pytest.fail(f"We got a failure in {op} with stack: {str(e)}")
 
 
-@patch("pathlib.Path.exists")
-@patch("pathlib.Path.write_text")
-def test_base_shell_operation_write_bash_functions(
-    mock_write, mock_exists, base_shell_operation
-):
-    """Test writing bash functions"""
-    mock_exists.return_value = False
-    base_shell_operation._write_bash_functions(MagicMock(), "test content")
-    mock_write.assert_called_once_with("test content")
-
-
-@patch("pathlib.Path.exists")
-@patch("pathlib.Path.unlink")
-def test_base_shell_operation_remove_bash_functions(
-    mock_unlink, mock_exists, base_shell_operation
-):
-    """Test removing bash functions"""
-    mock_exists.return_value = True
-    base_shell_operation._remove_bash_functions(MagicMock())
-    mock_unlink.assert_called_once()
-
-
-# Test Shell Command
-def test_shell_command_initialization():
-    """Test shell command initialization"""
-    args = Namespace(
-        enable_interactive=False,
-        disable_interactive=False,
-        enable_persistent_capture=False,
-        disable_persistent_capture=False,
-        enable_capture=False,
+@pytest.mark.parametrize(
+    ("exception", "expected_msg"),
+    ((ShellCommandException("oh no, failure"), "oh no, failure"),),
+)
+def test_shell_run_exceptions(exception, expected_msg, capsys, monkeypatch):
+    monkeypatch.setattr(
+        shell.BaseShellOperation,
+        "_initialize_bash_folder",
+        mock.Mock(side_effect=exception),
     )
-    command = ShellCommand(args)
-    assert hasattr(command, "_args")
-    assert hasattr(command, "_text_renderer")
-    assert hasattr(command, "_warning_renderer")
-    assert hasattr(command, "_error_renderer")
-
-
-@patch("command_line_assistant.commands.shell.ShellOperationFactory")
-def test_shell_command_run_success(mock_factory):
-    """Test successful shell command execution"""
     args = Namespace(
-        enable_interactive=True,
-        disable_interactive=False,
-        enable_persistent_capture=False,
-        disable_persistent_capture=False,
         enable_capture=False,
-    )
-    mock_operation = MagicMock()
-    mock_factory.return_value.create_operation.return_value = mock_operation
-
-    command = ShellCommand(args)
-    result = command.run()
-
-    assert result == 0
-    mock_operation.execute.assert_called_once()
-
-
-@patch("command_line_assistant.commands.shell.ShellOperationFactory")
-def test_shell_command_run_no_operation(mock_factory):
-    """Test shell command with no operation"""
-    args = Namespace(
+        enable_persistent_capture=True,
+        disable_persistent_capture=False,
         enable_interactive=False,
         disable_interactive=False,
-        enable_persistent_capture=False,
-        disable_persistent_capture=False,
-        enable_capture=False,
     )
-    mock_factory.return_value.create_operation.return_value = None
+    result = ShellCommand(args).run()
 
-    command = ShellCommand(args)
-    result = command.run()
-
-    assert result == 0
-
-
-@patch("command_line_assistant.commands.shell.ShellOperationFactory")
-def test_shell_command_run_error(mock_factory):
-    """Test shell command execution with error"""
-    args = Namespace(
-        enable_interactive=True,
-        disable_interactive=False,
-        enable_persistent_capture=False,
-        disable_persistent_capture=False,
-        enable_capture=False,
-    )
-    mock_operation = MagicMock()
-    mock_operation.execute.side_effect = Exception("Test error")
-    mock_factory.return_value.create_operation.return_value = mock_operation
-
-    command = ShellCommand(args)
-    result = command.run()
-
+    captured = capsys.readouterr()
     assert result == 1
-
-
-# Test Individual Operations
-@patch("pathlib.Path.exists")
-@patch("pathlib.Path.write_text")
-def test_enable_interactive_mode(mock_write, mock_exists, mock_text_renderer):
-    """Test enable interactive mode operation"""
-    mock_exists.return_value = False
-    operation = EnableInteractiveMode(mock_text_renderer, mock_text_renderer)
-    operation.execute()
-    mock_write.assert_called_once()
-
-
-@patch("pathlib.Path.exists")
-@patch("pathlib.Path.unlink")
-def test_disable_interactive_mode(mock_unlink, mock_exists, mock_text_renderer):
-    """Test disable interactive mode operation"""
-    mock_exists.return_value = True
-    operation = DisableInteractiveMode(mock_text_renderer, mock_text_renderer)
-    operation.execute()
-    mock_unlink.assert_called_once()
-
-
-@patch("command_line_assistant.commands.shell.start_capturing")
-def test_enable_terminal_capture(mock_start_capturing, mock_text_renderer):
-    """Test enable terminal capture operation"""
-    operation = EnableTerminalCapture(mock_text_renderer, mock_text_renderer)
-    operation.execute()
-    mock_start_capturing.assert_called_once()
+    assert expected_msg in captured.err
 
 
 def test_register_subcommand():
-    """Test subcommand registration"""
-    mock_parser = MagicMock()
-    from command_line_assistant.commands.shell import register_subcommand
+    """Test register_subcommand function"""
+    parser = ArgumentParser()
+    subparsers = parser.add_subparsers()
 
-    register_subcommand(mock_parser)
-    mock_parser.add_parser.assert_called_once()
+    # Register the subcommand
+    register_subcommand(subparsers)
+
+    # Parse a test command
+    args = parser.parse_args(["shell", "--enable-interactive"])
+
+    assert args.enable_interactive
+    assert hasattr(args, "func")
+
+
+@pytest.mark.parametrize(
+    ("namespace",),
+    (
+        (
+            Namespace(
+                enable_capture=False,
+                enable_persistent_capture=True,
+                disable_persistent_capture=False,
+                enable_interactive=False,
+                disable_interactive=False,
+            ),
+        ),
+    ),
+)
+def test_command_factory(namespace):
+    """Test _command_factory function"""
+    command = _command_factory(namespace)
+
+    assert isinstance(command, ShellCommand)
+    assert command._args.enable_capture is False
+    assert command._args.enable_persistent_capture is True
+    assert command._args.disable_persistent_capture is False
+    assert command._args.enable_interactive is False
+    assert command._args.disable_interactive is False
+
+
+def test_enable_terminal_capture(monkeypatch, default_kwargs, capsys):
+    default_kwargs["text_renderer"] = create_text_renderer()
+    monkeypatch.setattr(shell, "start_capturing", mock.Mock())
+    EnableTerminalCapture(**default_kwargs).execute()
+
+    captured = capsys.readouterr()
+    assert (
+        "Starting terminal reader. Press Ctrl + D to stop the capturing."
+        in captured.out
+    )

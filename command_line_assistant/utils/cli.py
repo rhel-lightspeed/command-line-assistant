@@ -9,7 +9,6 @@ import getpass
 import os
 import select
 import sys
-from abc import ABC, abstractmethod
 from argparse import SUPPRESS, ArgumentParser, _SubParsersAction
 from pathlib import Path
 from typing import Optional
@@ -61,19 +60,6 @@ class CommandContext:
                 self.os_release[key] = value
         except FileNotFoundError as e:
             raise ValueError("OS Release file not found.") from e
-
-
-class BaseCLICommand(ABC):
-    """Absctract class to define a CLI Command."""
-
-    def __init__(self) -> None:
-        """Constructor for the base class."""
-        self._context: CommandContext = CommandContext()
-        super().__init__()
-
-    @abstractmethod
-    def run(self) -> int:
-        """Entrypoint method for all CLI commands."""
 
 
 def add_default_command(stdin: Optional[str], argv: list[str]):

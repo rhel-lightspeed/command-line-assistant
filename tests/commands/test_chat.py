@@ -4,60 +4,53 @@ from unittest.mock import patch
 
 import pytest
 
+from command_line_assistant.commands import chat
 from command_line_assistant.commands.chat import (
+    ALWAYS_LEGAL_MESSAGE,
+    BaseChatOperation,
     ChatCommand,
+    InteractiveChatOperation,
+    SingleQuestionOperation,
     _command_factory,
+    _get_input_source,
     _parse_attachment_file,
+    _read_last_terminal_output,
     register_subcommand,
 )
 from command_line_assistant.dbus.exceptions import (
     ChatNotFoundError,
-    CorruptedHistoryError,
-    MissingHistoryFileError,
-    RequestFailedError,
 )
 from command_line_assistant.dbus.structures.chat import ChatEntry, ChatList, Response
+from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
+from command_line_assistant.utils.renderers import (
+    create_error_renderer,
+)
+
+
+@pytest.fixture
+def base_chat_question_operation(default_kwargs):
+    return BaseChatOperation(**default_kwargs)
 
 
 @pytest.fixture
 def default_namespace():
     return Namespace(
-        query_string=None,
-        stdin=None,
-        attachment=None,
-        interactive=None,
-        list=None,
-        delete=None,
-        delete_all=None,
-        name=None,
-        description=None,
+        query_string="",
+        stdin="",
+        attachment="",
+        interactive=False,
+        list="",
+        delete="",
+        delete_all=False,
+        name="test",
+        description="test",
+        last_output=-1,
     )
 
 
-# Mock the entire DBus service/constants module
-@pytest.fixture(autouse=True)
-def mock_dbus_service(mock_proxy):
-    """Fixture to mock DBus service and automatically use it for all tests"""
-    with (
-        patch("command_line_assistant.commands.chat.CHAT_IDENTIFIER") as mock_service,
-        patch("command_line_assistant.commands.chat.HISTORY_IDENTIFIER"),
-        patch("command_line_assistant.commands.chat.USER_IDENTIFIER"),
-    ):
-        # Create a mock proxy that will be returned by get_proxy()
-        mock_service.get_proxy.return_value = mock_proxy
-
-        # Setup default mock response
-        mock_output = Response("default mock response")
-        mock_proxy.RetrieveAnswer = lambda: mock_output.structure()
-
-        yield mock_proxy
-
-
-def test_query_command_initialization(default_namespace):
-    """Test QueryCommand initialization"""
-    default_namespace.query_string = "test query"
+def test_chat_command_initialization(default_namespace):
     command = ChatCommand(default_namespace)
-    assert command._query == default_namespace.query_string
+    assert command._args == default_namespace
 
 
 @pytest.mark.parametrize(
@@ -71,53 +64,25 @@ def test_query_command_initialization(default_namespace):
         ("test!@#$%^&*()_+ query", "response with special chars !@#%"),
     ],
 )
-def test_query_command_run(
-    mock_dbus_service, test_input, expected_output, capsys, default_namespace
+def test_chat_command_run_single_question(
+    mock_dbus_service,
+    test_input,
+    expected_output,
+    capsys,
+    default_namespace,
+    command_context,
 ):
-    """Test QueryCommand run method with different inputs"""
-    # Setup mock response for this specific test
-    mock_output = Response(expected_output)
-    mock_dbus_service.AskQuestion = lambda user_id, mock_input: mock_output.structure()
+    mock_dbus_service.GetUserId.return_value = "test-user"
+    mock_dbus_service.CreateChat.return_value = "test-chat"
+    mock_dbus_service.AskQuestion.return_value = Response(expected_output).structure()
+
     default_namespace.query_string = test_input
     command = ChatCommand(default_namespace)
-    command.run()
-
-    # Verify output was printed
-    captured = capsys.readouterr()
-    assert expected_output in captured.out.strip()
-
-
-def test_query_command_empty_response(mock_dbus_service, capsys, default_namespace):
-    """Test QueryCommand handling empty response"""
-    # Setup empty response
-    mock_output = Response("")
-    mock_dbus_service.AskQuestion = lambda user_id, mock_input: mock_output.structure()
-    default_namespace.query_string = "test query"
-    command = ChatCommand(default_namespace)
+    command._context = command_context
     command.run()
 
     captured = capsys.readouterr()
-    assert "Requesting knowledge from AI" in captured.out.strip()
-
-
-@pytest.mark.parametrize(
-    ("test_args",),
-    [
-        ("",),
-        ("   ",),
-    ],
-)
-def test_query_command_invalid_inputs(test_args, capsys, default_namespace):
-    """Test QueryCommand with invalid inputs"""
-    default_namespace.query_string = test_args
-    command = ChatCommand(default_namespace)
-    command.run()
-
-    captured = capsys.readouterr()
-    assert (
-        "\x1b[31m🙁 No input provided. Please provide input via file, stdin, or direct\nquery.\x1b[0m"
-        in captured.err
-    )
+    assert expected_output in captured.out
 
 
 def test_register_subcommand():
@@ -160,25 +125,27 @@ def test_command_factory(query_string, stdin, attachment, default_namespace):
     command = _command_factory(default_namespace)
 
     assert isinstance(command, ChatCommand)
-    assert command._query == query_string
-    assert command._stdin == stdin
+    assert command._args.query_string == query_string
+    assert command._args.stdin == stdin
 
 
 @pytest.mark.parametrize(
-    ("query_string", "stdin", "attachment", "expected"),
+    ("query_string", "stdin", "attachment", "last_output", "expected"),
     (
-        ("test query", None, None, "test query"),
-        (None, "stdin", None, "stdin"),
-        ("query", "stdin", None, "query stdin"),
-        (None, None, "file query", "file query"),
-        ("query", None, "file query", "query file query"),
-        (None, "stdin", "file query", "stdin file query"),
+        ("test query", None, None, "", "test query"),
+        (None, "stdin", None, "", "stdin"),
+        ("query", "stdin", None, "", "query stdin"),
+        (None, None, "file query", "", "file query"),
+        ("query", None, "file query", "", "query file query"),
+        (None, "stdin", "file query", "", "stdin file query"),
+        (None, None, None, "last output", "last output"),
+        ("query", None, "attachment", "last output", "query attachment last output"),
         # Stdin in this case is ignored.
-        ("test query", "test stdin", "file query", "test query file query"),
+        ("test query", "test stdin", "file query", "", "test query file query"),
     ),
 )
 def test_get_input_source(
-    query_string, stdin, attachment, expected, tmp_path, default_namespace
+    query_string, stdin, attachment, last_output, expected, tmp_path, default_namespace
 ):
     """Test _command_factory function"""
     file_attachment = None
@@ -188,60 +155,41 @@ def test_get_input_source(
         file_attachment.write_text(attachment)
         file_attachment = open(file_attachment, "r")
 
-    default_namespace.query_string = query_string
-    default_namespace.stdin = stdin
-    default_namespace.attachment = file_attachment
-    command = ChatCommand(default_namespace)
-
-    output = command._get_input_source()
+    output = _get_input_source(query_string, stdin, attachment, last_output)
 
     assert output == expected
 
 
-def test_get_inout_source_all_values_warning_message(
-    capsys, tmp_path, default_namespace
-):
+def test_get_inout_source_all_values_warning_message(tmp_path, caplog):
     file_attachment = tmp_path / "test.txt"
     file_attachment.write_text("file")
     file_attachment = open(file_attachment, "r")
-    default_namespace.query_string = "query"
-    default_namespace.stdin = "stdin"
-    default_namespace.attachment = file_attachment
-    command = ChatCommand(default_namespace)
+    query_string = "query"
+    stdin = "stdin"
+    attachment = file_attachment.read()
 
-    output = command._get_input_source()
+    output = _get_input_source(query_string, stdin, attachment, "last_output")
 
     assert output == "query file"
-    captured = capsys.readouterr()
     assert (
-        "\x1b[33m🤔 Using positional query and file input. Stdin will be ignored.\x1b[0m\n"
-        in captured.err
+        "Using positional query and file input. Stdin will be ignored."
+        in caplog.records[-1].message
     )
 
 
-def test_get_input_source_value_error(default_namespace):
-    command = ChatCommand(default_namespace)
-
+def test_get_input_source_value_error():
     with pytest.raises(
         ValueError,
         match="No input provided. Please provide input via file, stdin, or direct query.",
     ):
-        command._get_input_source()
+        _get_input_source("", "", "", "")
 
 
 @pytest.mark.parametrize(
     ("exception", "expected"),
     (
         (
-            RequestFailedError("Test DBus Error"),
-            "Test DBus Error",
-        ),
-        (
-            MissingHistoryFileError("Test DBus Error"),
-            "Test DBus Error",
-        ),
-        (
-            CorruptedHistoryError("Test DBus Error"),
+            ChatCommandException("Test DBus Error"),
             "Test DBus Error",
         ),
     ),
@@ -250,7 +198,7 @@ def test_dbus_error_handling(
     exception, expected, mock_dbus_service, capsys, default_namespace
 ):
     """Test handling of DBus errors"""
-    # Make ProcessQuery raise a DBus error
+    # Make AskQuestion raise a DBus error
     mock_dbus_service.AskQuestion.side_effect = exception
     default_namespace.query_string = "test query"
     command = ChatCommand(default_namespace)
@@ -370,14 +318,109 @@ def test_chat_management_delete_all_exception(
     assert "chat not found" in captured.err
 
 
-def test_create_chat_session(mock_dbus_service, default_namespace):
+def test_create_chat_session(mock_dbus_service, base_chat_question_operation):
     mock_dbus_service.GetChatId = lambda user_id, name: "1"
-    default_namespace.name = "test"
-    assert ChatCommand(default_namespace)._create_chat_session("1") == "1"
+    assert (
+        base_chat_question_operation._create_chat_session("1", "test", "test2") == "1"
+    )
 
 
-def test_create_chat_session_exception(mock_dbus_service, default_namespace):
+def test_create_chat_session_exception(
+    mock_dbus_service, default_namespace, base_chat_question_operation
+):
+    # This exception is swalloed because we will create a new chat for the user.
     mock_dbus_service.GetChatId.side_effect = ChatNotFoundError("no chat available")
     mock_dbus_service.CreateChat = lambda user_id, name, description: "1"
-    default_namespace.name = "test"
-    assert ChatCommand(default_namespace)._create_chat_session("1") == "1"
+    assert (
+        base_chat_question_operation._create_chat_session("1", "test", "test2") == "1"
+    )
+
+
+def test_interactive_mode_execution(default_namespace, default_kwargs):
+    """Test interactive mode operation"""
+    default_kwargs["args"] = default_namespace
+    default_kwargs["user_proxy"].GetUserId.return_value = 1000
+    default_kwargs["chat_proxy"].GetChatId.return_value = "1"
+    default_kwargs["chat_proxy"].AskQuestion.return_value = Response("test").structure()
+    with patch(
+        "command_line_assistant.commands.chat.create_interactive_renderer"
+    ) as mock_renderer:
+        mock_renderer.return_value.render.side_effect = [None, StopInteractiveMode()]
+        mock_renderer.return_value.output = "test"
+        interactive_operation = InteractiveChatOperation(**default_kwargs)
+        with pytest.raises(ChatCommandException):
+            interactive_operation.execute()
+
+
+def test_interactive_mode_empty_question(default_namespace, default_kwargs, capsys):
+    """Test interactive mode with empty question"""
+    default_kwargs["args"] = default_namespace
+    default_kwargs["user_proxy"].GetUserId.return_value = 1000
+    default_kwargs["chat_proxy"].GetChatId.return_value = "1"
+    default_kwargs["error_renderer"] = create_error_renderer()
+    with patch(
+        "command_line_assistant.commands.chat.create_interactive_renderer"
+    ) as mock_renderer:
+        interactive_operation = InteractiveChatOperation(**default_kwargs)
+        mock_renderer.return_value.render.side_effect = [None, StopInteractiveMode()]
+        mock_renderer.return_value.output = ""
+        with pytest.raises(ChatCommandException):
+            interactive_operation.execute()
+
+        captured = capsys.readouterr()
+        assert "Your question can't be empty" in captured.err
+
+
+@pytest.mark.parametrize(
+    ("last_output_index", "expected_output"),
+    [
+        (-1, "last output"),
+        (0, "first output"),
+        (1, "middle output"),
+    ],
+)
+def test_read_last_terminal_output(last_output_index, expected_output):
+    """Test reading last terminal output"""
+    with patch(
+        "command_line_assistant.commands.chat.parse_terminal_output"
+    ) as mock_parse:
+        mock_parse.return_value = [
+            {"command": "test", "output": "first output"},
+            {"command": "test", "output": "middle output"},
+            {"command": "test", "output": "last output"},
+        ]
+        result = _read_last_terminal_output(last_output_index)
+        assert result == expected_output
+
+
+def test_read_last_terminal_output_no_contents():
+    with patch(
+        "command_line_assistant.commands.chat.parse_terminal_output"
+    ) as mock_parse:
+        mock_parse.return_value = []
+        result = _read_last_terminal_output(0)
+        assert not result
+
+
+def test_display_response(default_kwargs, capsys):
+    """Test response display with legal notices"""
+    base_chat_operation = BaseChatOperation(**default_kwargs)
+    base_chat_operation._display_response("test response")
+
+    captured = capsys.readouterr()
+    # assert LEGAL_NOTICE in captured.out
+    # assert "test response" in captured.out
+    assert ALWAYS_LEGAL_MESSAGE in captured.out
+
+
+def test_single_question_operation_with_exception(
+    monkeypatch, default_kwargs, default_namespace
+):
+    default_kwargs["args"] = default_namespace
+    monkeypatch.setattr(
+        chat, "_read_last_terminal_output", mock.Mock(side_effect=ValueError("test"))
+    )
+    with pytest.raises(
+        ChatCommandException, match="Failed to get a response from LLM. test"
+    ):
+        SingleQuestionOperation(**default_kwargs).execute()

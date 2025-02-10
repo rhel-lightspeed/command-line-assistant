@@ -1,31 +1,31 @@
 """Module to handle the chat command."""
 
 import argparse
+import logging
 from argparse import Namespace
-from dataclasses import dataclass
 from enum import auto
 from io import TextIOWrapper
 from typing import ClassVar, Optional
 
 from command_line_assistant.commands.base import (
+    BaseCLICommand,
     BaseOperation,
     CommandOperationFactory,
     CommandOperationType,
 )
-from command_line_assistant.dbus.constants import (
-    CHAT_IDENTIFIER,
-    HISTORY_IDENTIFIER,
-    USER_IDENTIFIER,
-)
 from command_line_assistant.dbus.exceptions import (
     ChatNotFoundError,
 )
+from command_line_assistant.dbus.interfaces.chat import ChatInterface
+from command_line_assistant.dbus.interfaces.history import HistoryInterface
+from command_line_assistant.dbus.interfaces.user import UserInterface
 from command_line_assistant.dbus.structures.chat import (
     AttachmentInput,
     ChatList,
     Question,
     Response,
     StdinInput,
+    TerminalInput,
 )
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
@@ -36,12 +36,12 @@ from command_line_assistant.rendering.renders.interactive import InteractiveRend
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.parser import (
-    clean_ansi_sequences,
+    clean_parsed_text,
     find_output_by_index,
     parse_terminal_output,
 )
 from command_line_assistant.utils.cli import (
-    BaseCLICommand,
+    CommandContext,
     SubParsersAction,
 )
 from command_line_assistant.utils.files import guess_mimetype
@@ -51,6 +51,8 @@ from command_line_assistant.utils.renderers import (
     create_spinner_renderer,
     create_text_renderer,
 )
+
+logger = logging.getLogger(__name__)
 
 #: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
@@ -63,13 +65,21 @@ ALWAYS_LEGAL_MESSAGE = "Always review AI generated content prior to use."
 
 
 def _read_last_terminal_output(index: int) -> str:
+    """Internal function to handle reading the last terminal output.
+
+    Arguments:
+        index (int): The index to grab the output from the list
+
+    Returns:
+        str: The data read or an empty string
+    """
     contents = parse_terminal_output()
 
     if not contents:
         return ""
 
     last_output = find_output_by_index(index=index, output=contents)
-    return clean_ansi_sequences(last_output)
+    return clean_parsed_text(last_output)
 
 
 def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
@@ -92,7 +102,79 @@ def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
         ) from e
 
 
+def _get_input_source(query: str, stdin: str, attachment: str, last_output: str) -> str:
+    """
+    Determine and return the appropriate input source based on combination rules.
+
+    Arguments:
+        query (str): The question to be asked
+        stdin (str): The input redirect via stdin
+        attachment (str): The attachment contents
+        attachment_mimetype (str): The mimetype of the attachment
+        last_output (str): The last out read from the terminal
+
+    Warning:
+        This is set to be deprecated in the future when we normalize the API
+        backend to accept the context and works with it.
+
+    Rules:
+    1. Positional query only -> use positional query
+    2. Stdin query only -> use stdin query
+    3. File query only -> use file query
+    4. Stdin + positional query -> combine as "{positional_query} {stdin}"
+    5. Stdin + file query -> combine as "{stdin} {file_query}"
+    6. Positional + file query -> combine as "{positional_query} {file_query}"
+    7. Positional + last output -> combine as "{positional_query} {last_output}"
+    8. Positional + attachment + last output -> combine as "{positional_query} {attachment} {last_output}"
+    99. All three sources -> use only positional and file as "{positional_query} {file_query}"
+
+    Raises:
+        ValueError: If no input source is provided
+
+    Returns:
+        str: The query string from the selected input source(s)
+    """
+    # Rule 99: All present - positional and file take precedence
+    if all([query, stdin, attachment, last_output]):
+        logger.debug("Using positional query and file input. Stdin will be ignored.")
+        return f"{query} {attachment}"
+
+    # Rule 8: positional + attachment + last output
+    if query and attachment and last_output:
+        return f"{query} {attachment} {last_output}"
+
+    # Rule 7: positional + last_output
+    if query and last_output:
+        return f"{query} {last_output}"
+
+    # Rule 6: Positional + file
+    if query and attachment:
+        return f"{query} {attachment}"
+
+    # Rule 5: Stdin + file
+    if stdin and attachment:
+        return f"{stdin} {attachment}"
+
+    # Rule 4: Stdin + positional
+    if stdin and query:
+        return f"{query} {stdin}"
+
+    # Rules 1-3: Single source - return first non-empty source
+    source = next(
+        (src for src in [query, stdin, attachment, last_output] if src),
+        None,
+    )
+    if source:
+        return source
+
+    raise ValueError(
+        "No input provided. Please provide input via file, stdin, or direct query."
+    )
+
+
 class ChatOperationType(CommandOperationType):
+    """Enum to control the operations for the command"""
+
     LIST_CHATS = auto()
     DELETE_CHAT = auto()
     DELETE_ALL_CHATS = auto()
@@ -116,34 +198,69 @@ class ChatOperationFactory(CommandOperationFactory):
     }
 
 
-@dataclass
 class BaseChatOperation(BaseOperation):
-    # Proxy objects
-    chat_proxy = CHAT_IDENTIFIER.get_proxy()
-    history_proxy = HISTORY_IDENTIFIER.get_proxy()
-    user_proxy = USER_IDENTIFIER.get_proxy()
+    """Base class for handling chat operations
 
-    def _get_user_id(self, effective_user_id: int) -> str:
-        return self.user_proxy.GetUserId(effective_user_id)
+    Attributes:
+        spinner_renderer (SpinnerRenderer): The instance of a spinner renderer
+        legal_renderer (TextRenderer): Instance of text renderer to show legal message
+        notice_renderer (TextRenderer): Instance of text renderer to show notice message
+        interactive_renderer (InteractiveRenderer): Instance of interactive renderer to handle interactive mode
+    """
 
+    def __init__(
+        self,
+        text_renderer: TextRenderer,
+        warning_renderer: TextRenderer,
+        error_renderer: TextRenderer,
+        args: Namespace,
+        context: CommandContext,
+        chat_proxy: ChatInterface,
+        history_proxy: HistoryInterface,
+        user_proxy: UserInterface,
+    ) -> None:
+        """Constructor of the class.
 
-@dataclass
-class BaseChatQuestionOperation(BaseChatOperation):
-    spinner_renderer: SpinnerRenderer = create_spinner_renderer(
-        message="Asking RHEL Lightspeed",
-    )
-    legal_renderer: TextRenderer = create_text_renderer(
-        decorators=[
-            ColorDecorator(foreground="lightyellow"),
-            WriteOnceDecorator(state_filename="legal"),
-        ]
-    )
-    notice_renderer: TextRenderer = create_text_renderer(
-        decorators=[ColorDecorator(foreground="lightyellow")]
-    )
-    interactive_renderer: InteractiveRenderer = create_interactive_renderer()
+        Arguments:
+            text_renderer (TextRenderer): Instance of text renderer class
+            warning_renderer (TextRenderer): Instance of text renderer class
+            error_renderer (TextRenderer): Instance of text renderer class
+            args (Namespace): The arguments from CLI
+            context (CommandContext): Context for the commands
+            chat_proxy (ChatInterface): The proxy object for dbus chat
+            history_proxy (HistoryInterface): The proxy object for dbus history
+            user_proxy (HistoryInterface): The proxy object for dbus user
+        """
+        super().__init__(
+            text_renderer,
+            warning_renderer,
+            error_renderer,
+            args,
+            context,
+            chat_proxy,
+            history_proxy,
+            user_proxy,
+        )
+        self.spinner_renderer: SpinnerRenderer = create_spinner_renderer(
+            message="Asking RHEL Lightspeed",
+        )
+        self.legal_renderer: TextRenderer = create_text_renderer(
+            decorators=[
+                ColorDecorator(foreground="lightyellow"),
+                WriteOnceDecorator(state_filename="legal"),
+            ]
+        )
+        self.notice_renderer: TextRenderer = create_text_renderer(
+            decorators=[ColorDecorator(foreground="lightyellow")]
+        )
+        self.interactive_renderer: InteractiveRenderer = create_interactive_renderer()
 
     def _display_response(self, response: str) -> None:
+        """Internal method to display message to the terminal
+
+        Arguments:
+            response(str): The message to be displayed
+        """
         self.legal_renderer.render(LEGAL_NOTICE)
         self.text_renderer.render(response)
         self.notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
@@ -162,86 +279,28 @@ class BaseChatQuestionOperation(BaseChatOperation):
 
         Arguments:
             user_id (str): The unique identifier for the user
+            chat_id (str): The unique identifier for the chat
             question (str): The question to be asked
+            stdin (str): The input redirect via stdin
+            attachment (str): The attachment contents
+            attachment_mimetype (str): The mimetype of the attachment
+            last_output (str): The last out read from the terminal
 
         Returns:
             str: The response from the backend server
         """
-        final_question = self._get_input_source(
-            question, stdin, attachment, last_output
-        )
+        final_question = _get_input_source(question, stdin, attachment, last_output)
         with self.spinner_renderer:
             response = self._get_response(
-                user_id, final_question, stdin, attachment, attachment_mimetype
+                user_id,
+                final_question,
+                stdin,
+                attachment,
+                attachment_mimetype,
+                last_output,
             )
             self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
             return response
-
-    def _get_input_source(
-        self, query: str, stdin: str, attachment: str, last_output: str
-    ) -> str:
-        """
-        Determine and return the appropriate input source based on combination rules.
-
-        Warning:
-            This is set to be deprecated in the future when we normalize the API
-            backend to accept the context and works with it.
-
-        Rules:
-        1. Positional query only -> use positional query
-        2. Stdin query only -> use stdin query
-        3. File query only -> use file query
-        4. Stdin + positional query -> combine as "{positional_query} {stdin}"
-        5. Stdin + file query -> combine as "{stdin} {file_query}"
-        6. Positional + file query -> combine as "{positional_query} {file_query}"
-        7. Positional + last output -> combine as "{positional_query} {last_output}"
-        8. Positional + attachment + last output -> combine as "{positional_query} {attachment} {last_output}"
-        99. All three sources -> use only positional and file as "{positional_query} {file_query}"
-
-        Raises:
-            ValueError: If no input source is provided
-
-        Returns:
-            str: The query string from the selected input source(s)
-        """
-        # Rule 99: All three present - positional and file take precedence
-        if all([query, stdin, attachment, last_output]):
-            self.warning_renderer.render(
-                "Using positional query and file input. Stdin will be ignored."
-            )
-            return f"{query} {attachment}"
-
-        # Rule 8: positional + attachment + last output
-        if query and attachment and last_output:
-            return f"{query} {attachment} {last_output}"
-
-        # Rule 7: positional + last_output
-        if query and last_output:
-            return f"{query} {last_output}"
-
-        # Rule 6: Positional + file
-        if query and attachment:
-            return f"{query} {attachment}"
-
-        # Rule 5: Stdin + file
-        if stdin and attachment:
-            return f"{stdin} {attachment}"
-
-        # Rule 4: Stdin + positional
-        if stdin and query:
-            return f"{query} {stdin}"
-
-        # Rules 1-3: Single source - return first non-empty source
-        source = next(
-            (src for src in [query, stdin, attachment, last_output] if src),
-            None,
-        )
-        if source:
-            return source
-
-        raise ValueError(
-            "No input provided. Please provide input via file, stdin, or direct query."
-        )
 
     def _get_response(
         self,
@@ -250,6 +309,7 @@ class BaseChatQuestionOperation(BaseChatOperation):
         stdin: str,
         attachment: str,
         attachment_mimetype: str,
+        last_output: str,
     ) -> str:
         """Get the response from the chat session.
 
@@ -257,6 +317,10 @@ class BaseChatQuestionOperation(BaseChatOperation):
             user_id (str): The user identifier
             chat_id (str): The chat session identifier
             question (str): The question to be asked
+            stdin (str): The input redirect via stdin
+            attachment (str): The attachment contents
+            attachment_mimetype (str): The mimetype of the attachment
+            last_output (str): The last out read from the terminal
 
         Returns:
             str: The response from the chat session
@@ -267,6 +331,7 @@ class BaseChatQuestionOperation(BaseChatOperation):
             attachment=AttachmentInput(
                 contents=attachment, mimetype=attachment_mimetype
             ),
+            terminal=TerminalInput(output=last_output),
         )
         response = self.chat_proxy.AskQuestion(
             user_id,
@@ -280,6 +345,8 @@ class BaseChatQuestionOperation(BaseChatOperation):
 
         Arguments:
             user_id (str): The user identifier
+            name (str): The name of the chat
+            description (str): The description of the chat
 
         Returns:
             str: The identifier of the chat session.
@@ -306,8 +373,11 @@ class BaseChatQuestionOperation(BaseChatOperation):
 
 @ChatOperationFactory.register(ChatOperationType.LIST_CHATS)
 class ListChatsOperation(BaseChatOperation):
+    """Class that holds the list operation"""
+
     def execute(self) -> None:
-        user_id = self._get_user_id(self.context.effective_user_id)
+        """Default method to execute the operation"""
+        user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
         all_chats = ChatList.from_structure(self.chat_proxy.GetAllChatFromUser(user_id))
         if not all_chats.chats:
             self.text_renderer.render("No chats available.")
@@ -321,9 +391,12 @@ class ListChatsOperation(BaseChatOperation):
 
 @ChatOperationFactory.register(ChatOperationType.DELETE_CHAT)
 class DeleteChatOperation(BaseChatOperation):
+    """Class that holds the delete operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         try:
-            user_id = self._get_user_id(self.context.effective_user_id)
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             self.chat_proxy.DeleteChatForUser(user_id, self.args.delete)
             self.text_renderer.render(f"Chat {self.args.delete} deleted successfully.")
         except ChatNotFoundError as e:
@@ -334,9 +407,12 @@ class DeleteChatOperation(BaseChatOperation):
 
 @ChatOperationFactory.register(ChatOperationType.DELETE_ALL_CHATS)
 class DeleteAllChatsOperation(BaseChatOperation):
+    """Class that holds the delete all operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         try:
-            user_id = self._get_user_id(self.context.effective_user_id)
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             self.chat_proxy.DeleteAllChatForUser(user_id)
             self.text_renderer.render("Deleted all chats successfully.")
         except ChatNotFoundError as e:
@@ -346,10 +422,13 @@ class DeleteAllChatsOperation(BaseChatOperation):
 
 
 @ChatOperationFactory.register(ChatOperationType.INTERACTIVE_CHAT)
-class InteractiveChatOperation(BaseChatQuestionOperation):
+class InteractiveChatOperation(BaseChatOperation):
+    """Class that initiates the interactive mode"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         try:
-            user_id = self._get_user_id(self.context.effective_user_id)
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             chat_id = self._create_chat_session(
                 user_id, self.args.name, self.args.description
             )
@@ -365,7 +444,6 @@ class InteractiveChatOperation(BaseChatQuestionOperation):
                         "Your question can't be empty. Please, try again."
                     )
                     continue
-                # TODO(r0x0d): Figure out how we want to do this.
                 response = self._submit_question(
                     user_id=user_id,
                     chat_id=chat_id,
@@ -382,16 +460,19 @@ class InteractiveChatOperation(BaseChatQuestionOperation):
 
 
 @ChatOperationFactory.register(ChatOperationType.SINGLE_QUESTION)
-class SingleQuestionOperation(BaseChatQuestionOperation):
+class SingleQuestionOperation(BaseChatOperation):
+    """Class that holds the single question ask operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         try:
             last_terminal_output = _read_last_terminal_output(self.args.last_output)
             attachment = _parse_attachment_file(self.args.attachment)
             attachment_mimetype = guess_mimetype(self.args.attachment)
-            stdin = self.args.stdin
-            question = self.args.query_string
+            stdin = self.args.stdin.strip()
+            question = self.args.query_string.strip()
 
-            user_id = self._get_user_id(self.context.effective_user_id)
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             chat_id = self._create_chat_session(
                 user_id, self.args.name, self.args.description
             )
@@ -408,28 +489,12 @@ class SingleQuestionOperation(BaseChatQuestionOperation):
             self._display_response(response)
         except ValueError as e:
             raise ChatCommandException(
-                f"Failed to get a response from LLM {str(e)}"
+                f"Failed to get a response from LLM. {str(e)}"
             ) from e
 
 
 class ChatCommand(BaseCLICommand):
     """Class that represents the chat command."""
-
-    def __init__(self, args: Namespace) -> None:
-        """Constructor of the class.
-
-        Args:
-            args (Namespace): The argparse namespace object
-        """
-        self._args = args
-
-        self._error_renderer: TextRenderer = create_error_renderer()
-
-        self._operation_factory = ChatOperationFactory(
-            create_text_renderer(decorators=[ColorDecorator(foreground="green")]),
-        )
-
-        super().__init__()
 
     def run(self) -> int:
         """Main entrypoint for the command to run.
@@ -437,15 +502,22 @@ class ChatCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution
         """
+        error_renderer = create_error_renderer()
+        operation_factory = ChatOperationFactory()
         try:
-            operation = self._operation_factory.create_operation(
-                self._args, self._context
+            operation = operation_factory.create_operation(
+                self._args,
+                self._context,
+                text_renderer=create_text_renderer(
+                    decorators=[ColorDecorator(foreground="green")],
+                ),
+                error_renderer=error_renderer,
             )
             if operation:
                 operation.execute()
             return 0
         except ChatCommandException as e:
-            self._error_renderer.render(str(e))
+            error_renderer.render(str(e))
             return 1
 
 

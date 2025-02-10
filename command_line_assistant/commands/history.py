@@ -1,26 +1,24 @@
 """Module to handle the history command."""
 
 from argparse import Namespace
-from dataclasses import dataclass
 from enum import auto
 from typing import ClassVar
 
 from command_line_assistant.commands.base import (
+    BaseCLICommand,
     BaseOperation,
     CommandOperationFactory,
     CommandOperationType,
 )
-from command_line_assistant.dbus.constants import (
-    CHAT_IDENTIFIER,
-    HISTORY_IDENTIFIER,
-    USER_IDENTIFIER,
-)
+from command_line_assistant.dbus.interfaces.chat import ChatInterface
+from command_line_assistant.dbus.interfaces.history import HistoryInterface
+from command_line_assistant.dbus.interfaces.user import UserInterface
 from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.exceptions import HistoryCommandException
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.utils.cli import (
-    BaseCLICommand,
+    CommandContext,
     SubParsersAction,
     create_subparser,
 )
@@ -31,6 +29,8 @@ from command_line_assistant.utils.renderers import (
 
 
 class HistoryOperationType(CommandOperationType):
+    """Enum to control the operations for the command"""
+
     CLEAR = auto()
     FIRST = auto()
     LAST = auto()
@@ -50,18 +50,60 @@ class HistoryOperationFactory(CommandOperationFactory):
     }
 
 
-@dataclass
 class BaseHistoryOperation(BaseOperation):
-    chat_proxy = CHAT_IDENTIFIER.get_proxy()
-    history_proxy = HISTORY_IDENTIFIER.get_proxy()
-    user_proxy = USER_IDENTIFIER.get_proxy()
+    """Base history operation common to all operations
 
-    q_renderer: TextRenderer = create_text_renderer(
-        decorators=[ColorDecorator("lightgreen")]
-    )
-    a_renderer: TextRenderer = create_text_renderer(
-        decorators=[ColorDecorator("lightblue")]
-    )
+    Warning:
+        The proxy attributes in this class are not really mapping to interface.
+        It maps to internal dasbus ObjectProxy, but to avoid pyright syntax
+        errors, we type then as their respective interfaces. The objective of
+        the `ObjectProxy` is to serve as a proxy for the real interfaces.
+
+    Attributes:
+        q_renderer (TextRenderer): Instance of a text renderer to render questions
+        a_renderer (TextRenderer): Instance of a text renderer to render answers
+    """
+
+    def __init__(
+        self,
+        text_renderer: TextRenderer,
+        warning_renderer: TextRenderer,
+        error_renderer: TextRenderer,
+        args: Namespace,
+        context: CommandContext,
+        chat_proxy: ChatInterface,
+        history_proxy: HistoryInterface,
+        user_proxy: UserInterface,
+    ):
+        """Constructor of the class.
+
+        Arguments:
+            text_renderer (TextRenderer): Instance of text renderer class
+            warning_renderer (TextRenderer): Instance of text renderer class
+            error_renderer (TextRenderer): Instance of text renderer class
+            args (Namespace): The arguments from CLI
+            context (CommandContext): Context for the commands
+            chat_proxy (ChatInterface): The proxy object for dbus chat
+            history_proxy (HistoryInterface): The proxy object for dbus history
+            user_proxy (HistoryInterface): The proxy object for dbus user
+        """
+        super().__init__(
+            text_renderer,
+            warning_renderer,
+            error_renderer,
+            args,
+            context,
+            chat_proxy,
+            history_proxy,
+            user_proxy,
+        )
+
+        self.q_renderer: TextRenderer = create_text_renderer(
+            decorators=[ColorDecorator("lightgreen")]
+        )
+        self.a_renderer: TextRenderer = create_text_renderer(
+            decorators=[ColorDecorator("lightblue")]
+        )
 
     def _show_history(self, entries: HistoryList) -> None:
         """Internal method to show the history in a standardized way
@@ -69,6 +111,10 @@ class BaseHistoryOperation(BaseOperation):
         Args:
             entries (list[HistoryItem]): The list of entries in the history
         """
+        if not entries.histories:
+            self.text_renderer.render("No history entries found")
+            return
+
         is_separator_needed = len(entries.histories) > 1
         for entry in entries.histories:
             self.q_renderer.render(f"Question: {entry.question}")
@@ -84,7 +130,10 @@ class BaseHistoryOperation(BaseOperation):
 
 @HistoryOperationFactory.register(HistoryOperationType.CLEAR)
 class ClearHistoryOperation(BaseHistoryOperation):
+    """Class to hold the clean operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
         self.text_renderer.render("Cleaning the history.")
         self.history_proxy.ClearHistory(user_id)
@@ -92,7 +141,10 @@ class ClearHistoryOperation(BaseHistoryOperation):
 
 @HistoryOperationFactory.register(HistoryOperationType.FIRST)
 class FirstHistoryOperation(BaseHistoryOperation):
+    """Class to hold the first history operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self.text_renderer.render("Getting first conversation from history.")
         user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
         response = self.history_proxy.GetFirstConversation(user_id)
@@ -104,7 +156,10 @@ class FirstHistoryOperation(BaseHistoryOperation):
 
 @HistoryOperationFactory.register(HistoryOperationType.LAST)
 class LastHistoryOperation(BaseHistoryOperation):
+    """Class to hold the last history operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self.text_renderer.render("Getting last conversation from history.")
         user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
         response = self.history_proxy.GetLastConversation(user_id)
@@ -116,10 +171,13 @@ class LastHistoryOperation(BaseHistoryOperation):
 
 @HistoryOperationFactory.register(HistoryOperationType.FILTER)
 class FilteredHistoryOperation(BaseHistoryOperation):
+    """Class to hold the filtering history operation"""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self.text_renderer.render("Filtering conversation history.")
         user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-        response = self.history_proxy.GetFilteredConversation(user_id, filter)
+        response = self.history_proxy.GetFilteredConversation(user_id, self.args.filter)
 
         # Handle and display the response
         history = HistoryList.from_structure(response)
@@ -130,7 +188,10 @@ class FilteredHistoryOperation(BaseHistoryOperation):
 
 @HistoryOperationFactory.register(HistoryOperationType.ALL)
 class AllHistoryOperation(BaseHistoryOperation):
+    """Class to hold the reading of all history operation."""
+
     def execute(self) -> None:
+        """Default method to execute the operation"""
         self.text_renderer.render("Getting all conversations from history.")
         user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
         response = self.history_proxy.GetHistory(user_id)
@@ -143,42 +204,23 @@ class AllHistoryOperation(BaseHistoryOperation):
 class HistoryCommand(BaseCLICommand):
     """Class that represents the history command."""
 
-    def __init__(self, args: Namespace) -> None:
-        """Constructor of the class.
-
-        Note:
-            If none of the above is specified, the command will retrieve all
-            user history.
-
-        Args:
-            clear (bool): If the history should be cleared
-            first (bool): Retrieve only the first conversation from history
-            last (bool): Retrieve only last conversation from history
-            filter (Optional[str], optional): Keyword to filter in the user history
-        """
-        self._args = args
-
-        self._error_renderer: TextRenderer = create_error_renderer()
-
-        self._operation_factory = HistoryOperationFactory()
-
-        super().__init__()
-
     def run(self) -> int:
         """Main entrypoint for the command to run.
 
         Returns:
             int: Status code of the execution.
         """
+        error_renderer: TextRenderer = create_error_renderer()
+        operation_factory = HistoryOperationFactory()
         try:
-            operation = self._operation_factory.create_operation(
-                self._args, self._context
+            operation = operation_factory.create_operation(
+                self._args, self._context, error_renderer=error_renderer
             )
             if operation:
                 operation.execute()
             return 0
         except HistoryCommandException as e:
-            self._error_renderer.render(str(e))
+            error_renderer.render(str(e))
             return 1
 
 

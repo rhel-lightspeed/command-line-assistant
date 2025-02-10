@@ -1,6 +1,8 @@
 import copy
 import logging
+from argparse import Namespace
 from pathlib import Path
+from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,9 +13,46 @@ from command_line_assistant.config.schemas.database import DatabaseSchema
 from command_line_assistant.config.schemas.history import HistorySchema
 from command_line_assistant.config.schemas.logging import LoggingSchema
 from command_line_assistant.config.schemas.output import OutputSchema
+from command_line_assistant.dbus import constants as dbus_constants
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
+from command_line_assistant.utils.cli import CommandContext
+from command_line_assistant.utils.renderers import (
+    create_error_renderer,
+    create_text_renderer,
+    create_warning_renderer,
+)
 from tests.helpers import MockStream
+
+
+@pytest.fixture
+def default_kwargs(mock_dbus_service, command_context):
+    return {
+        "text_renderer": create_text_renderer(),
+        "warning_renderer": create_warning_renderer(),
+        "error_renderer": create_error_renderer(),
+        "args": Namespace(),
+        "context": command_context,
+        "user_proxy": mock_dbus_service,
+        "chat_proxy": mock_dbus_service,
+        "history_proxy": mock_dbus_service,
+    }
+
+
+# Mock the entire DBus service/constants module
+@pytest.fixture(autouse=True)
+def mock_dbus_service(monkeypatch):
+    """Fixture to mock DBus service and automatically use it for all tests"""
+    internal_mock = mock.MagicMock()
+    monkeypatch.setattr(
+        dbus_constants.DBusServiceIdentifier, "get_proxy", internal_mock
+    )
+    return internal_mock.return_value
+
+
+@pytest.fixture
+def command_context():
+    return CommandContext(effective_user_id=1000)
 
 
 @pytest.fixture(autouse=True)
@@ -79,13 +118,6 @@ def mock_config(tmp_path):
 def mock_dbus_session():
     """Create a mock DBus session."""
     return MagicMock()
-
-
-@pytest.fixture
-def mock_proxy():
-    """Create a mock proxy for testing."""
-    proxy = MagicMock()
-    return proxy
 
 
 @pytest.fixture

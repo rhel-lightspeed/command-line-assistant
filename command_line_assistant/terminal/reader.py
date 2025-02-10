@@ -1,4 +1,4 @@
-"""..."""
+"""Module to hold the reader part of the terminal module."""
 
 import json
 import os
@@ -9,7 +9,7 @@ from typing import IO
 from typing_extensions import Any
 
 from command_line_assistant.utils.environment import get_xdg_state_path
-from command_line_assistant.utils.files import create_folder
+from command_line_assistant.utils.files import create_folder, write_file
 
 #: Special prompt marker to help us figure out when we should capture a new command/output.
 PROMPT_MARKER: str = "%c"
@@ -19,7 +19,14 @@ OUTPUT_FILE_NAME: Path = Path(get_xdg_state_path(), "terminal.log")
 
 
 class TerminalRecorder:
-    def __init__(self, handler: IO[Any]):
+    """Class that controls how the terminal is being read"""
+
+    def __init__(self, handler: IO[Any]) -> None:
+        """Constructor of the class.
+
+        Arguments:
+            handler (IO[Any]): The file handler opened during the screen reader.
+        """
         self._handler = handler
         self._in_command: bool = True
         self._current_command: bytes = b""
@@ -27,17 +34,26 @@ class TerminalRecorder:
         self._prompt_marker: bytes = PROMPT_MARKER.encode()
 
     def write_json_block(self):
+        """Write a json block to the file once it's read."""
         if self._current_command:
             block = {
                 "command": self._current_command.decode().strip(),
                 "output": self._current_output.decode().strip(),
             }
-            self._handler.write(json.dumps(block, indent=2).encode() + b"\n")
+            self._handler.write(json.dumps(block).encode() + b"\n")
             self._handler.flush()
             self._current_command = b""
             self._current_output = b""
 
-    def read(self, fd):
+    def read(self, fd: int) -> bytes:
+        """Callback method that is used to read data from pty.
+
+        Arguments:
+            fd (int): File description used in read operation
+
+        Returns:
+            bytes: The data read from the terminal
+        """
         data = os.read(fd, 1024)
 
         if self._prompt_marker in data:
@@ -87,6 +103,9 @@ def start_capturing() -> None:
 
     # The create_folder function will silently fail in case the folder exists.
     create_folder(OUTPUT_FILE_NAME.parent)
+
+    # Initialize the file
+    write_file("", OUTPUT_FILE_NAME)
 
     with OUTPUT_FILE_NAME.open(mode="wb") as handler:
         # Instantiate the TerminalRecorder and spawn a new shell with pty.

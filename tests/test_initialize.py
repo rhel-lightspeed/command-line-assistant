@@ -1,10 +1,11 @@
+from argparse import Namespace
 from unittest.mock import Mock, patch
 
 import pytest
 
+from command_line_assistant.commands.base import BaseCLICommand
 from command_line_assistant.constants import VERSION
 from command_line_assistant.initialize import initialize
-from command_line_assistant.utils.cli import BaseCLICommand
 
 
 class MockCommand(BaseCLICommand):
@@ -38,7 +39,7 @@ def test_initialize_with_no_args(capsys):
 )
 def test_initialize_with_query_command(argv, stdin):
     """Test initialize with query command"""
-    mock_command = Mock(return_value=MockCommand())
+    mock_command = Mock(return_value=MockCommand(Namespace()))
 
     with (
         patch("sys.argv", argv),
@@ -56,7 +57,7 @@ def test_initialize_with_query_command(argv, stdin):
 
 def test_initialize_with_history_command():
     """Test initialize with history command"""
-    mock_command = Mock(return_value=MockCommand())
+    mock_command = Mock(return_value=MockCommand(Namespace()))
 
     with (
         patch("sys.argv", ["c", "history", "--clear"]),
@@ -74,7 +75,7 @@ def test_initialize_with_history_command():
 
 def test_initialize_with_shell_command():
     """Test initialize with shell command"""
-    mock_command = Mock(return_value=MockCommand())
+    mock_command = Mock(return_value=MockCommand(Namespace()))
 
     with (
         patch("sys.argv", ["c", "shell", "--enable-integration"]),
@@ -140,13 +141,14 @@ def test_initialize_bad_stdin(capsys):
 )
 def test_initialize_command_selection(argv, expected_command):
     """Test command selection logic"""
-    mock_command = Mock(return_value=MockCommand())
+    mock_command = Mock(return_value=MockCommand(Namespace()))
 
     with (
         patch("sys.argv", argv),
         patch("command_line_assistant.initialize.read_stdin", lambda: None),
         patch("command_line_assistant.commands.chat.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
+        patch("command_line_assistant.commands.shell.register_subcommand"),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
