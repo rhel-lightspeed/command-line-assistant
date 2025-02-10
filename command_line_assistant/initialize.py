@@ -5,7 +5,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 
 from command_line_assistant.commands import chat, history, shell
-from command_line_assistant.logger import setup_logging
+from command_line_assistant.logger import setup_client_logging
 from command_line_assistant.utils.cli import (
     add_default_command,
     create_argument_parser,
@@ -59,7 +59,7 @@ def initialize() -> int:
 
         # In case the uder specify the --debug, we will enable the logging here.
         if args.debug:
-            setup_logging()
+            setup_client_logging()
 
         service = args.func(args)
         return service.run()

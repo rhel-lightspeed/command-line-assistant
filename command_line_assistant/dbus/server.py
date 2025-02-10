@@ -32,9 +32,6 @@ def _dbus_setup(objects: list[tuple]) -> None:
         SYSTEM_BUS.register_service(obj.service_name)
 
 
-logger = logging.getLogger(__name__)
-
-
 def serve(config: Config):
     """Main function to serve and start the daemon server.
 
@@ -42,6 +39,7 @@ def serve(config: Config):
         config (Config): An instance of the configuration class.
     """
     try:
+        logger.info("Setting up service and object names for dbus.")
         _dbus_setup(
             [
                 (CHAT_IDENTIFIER, ChatInterface(DaemonContext(config))),

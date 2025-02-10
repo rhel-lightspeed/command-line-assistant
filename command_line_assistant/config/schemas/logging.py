@@ -42,3 +42,6 @@ class LoggingSchema:
             )
 
         self.level = level
+
+        if isinstance(self.audit, dict):
+            self.audit = AuditSchema(**self.audit)

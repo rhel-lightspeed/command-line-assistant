@@ -26,7 +26,7 @@ def setup_logger(request):
     with patch(
         "command_line_assistant.logger.LOGGING_CONFIG_DICTIONARY", logging_configuration
     ):
-        logger.setup_logging(config.Config(logging=config.LoggingSchema(level="DEBUG")))
+        logger._setup_logging(logging_level="DEBUG", handlers=[])
 
         # get root logger
         root_logger = logging.getLogger()
