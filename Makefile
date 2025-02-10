@@ -41,19 +41,19 @@ install: install-tools ## Sync all required dependencies for Command Line Assist
 
 unit-test: ## Unit test cla
 	@echo "Running tests..."
-	@pytest
+	@poetry run pytest
 	@echo "Tests completed."
 
 unit-test-coverage: ## Unit test cla with coverage
 	@echo "Running tests..."
-	@pytest --cov --junitxml=junit.xml -o junit_family=legacy
+	@poetry run pytest --cov --junitxml=junit.xml -o junit_family=legacy
 	@echo "Tests completed."
 
 coverage: ## Generate coverage report from unit-tests
-	@coverage xml
+	@poetry run coverage xml
 
 coverage-html: ## Generate coverage report from unit-tests as html
-	@coverage html
+	@poetry run coverage html
 
 help: ## Show available make commands
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
