@@ -247,7 +247,6 @@ def register_subcommand(parser: SubParsersAction):
         help="Get the last conversation from history.",
     )
     filtering_options.add_argument(
-        "-fi",
         "--filter",
         help="Search for a specific keyword of text in the history.",
     )

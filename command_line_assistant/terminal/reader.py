@@ -99,7 +99,10 @@ def start_capturing() -> None:
     os.environ["PROMPT_COMMAND"] = f"{user_prompt_command}{PROMPT_MARKER}"
 
     # Get the current user SHELL environment variable, if not set, use sh.
-    shell = os.environ.get("SHELL", "sh")
+    shell = os.environ.get("SHELL", "/usr/bin/sh")
+
+    # Set up proper shell environment variables for job control
+    os.environ["TERM"] = os.environ.get("TERM", "xterm")
 
     # The create_folder function will silently fail in case the folder exists.
     create_folder(OUTPUT_FILE_NAME.parent)
@@ -110,7 +113,7 @@ def start_capturing() -> None:
     with OUTPUT_FILE_NAME.open(mode="wb") as handler:
         # Instantiate the TerminalRecorder and spawn a new shell with pty.
         recorder = TerminalRecorder(handler)
-        pty.spawn(shell, recorder.read)
+        pty.spawn([shell, "-i", "--login"], recorder.read)
 
         # Write the final json block if it exists.
         recorder.write_json_block()

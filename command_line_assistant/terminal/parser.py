@@ -17,8 +17,8 @@ def parse_terminal_output() -> list[dict[str, str]]:
     """Parse collected terminal output.
 
     Returns:
-        list[dict[str, str]]: A list containing the parsed data. If no file was found, we
-        just return empty list.
+        list[dict[str, str]]: A reversed list containing the parsed data. If no
+        file was found, we just return empty list.
     """
     result = []
 
@@ -45,6 +45,8 @@ def parse_terminal_output() -> list[dict[str, str]]:
                 return result
 
     logger.debug("Final result json list: %s", result)
+    # Reverse the list before returning
+    result.reverse()
     return result
 
 

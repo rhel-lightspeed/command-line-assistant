@@ -550,7 +550,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
         help="Command to ask a question to the LLM.",
     )
 
-    question_group = chat_parser.add_argument_group("Question options")
+    question_group = chat_parser.add_argument_group("Question Options")
     # Positional argument, required only if no optional arguments are provided
     question_group.add_argument(
         "query_string", nargs="?", help="The question that will be sent to the LLM"
@@ -569,16 +569,17 @@ def register_subcommand(parser: SubParsersAction) -> None:
         help="Start interactive chat session",
     )
     question_group.add_argument(
-        "-lo",
-        "--last-output",
+        "-o",
+        "--with-output",
         nargs="?",
         type=int,
         # In case nothing is supplied
-        const=-1,
+        const=1,
+        default=1,
         help="Read last output from terminal. Default to last entry collected.",
     )
 
-    chat_arguments = chat_parser.add_argument_group("Chat options")
+    chat_arguments = chat_parser.add_argument_group("Chat Options")
     chat_arguments.add_argument(
         "-l", "--list", action="store_true", help="List all chats"
     )
@@ -590,7 +591,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
         help="Delete a chat session",
     )
     chat_arguments.add_argument(
-        "-da", "--delete-all", action="store_true", help="Delete all chats"
+        "--delete-all", action="store_true", help="Delete all chats"
     )
     chat_arguments.add_argument(
         "-n",
