@@ -26,7 +26,7 @@ def get_session(config: Config) -> Session:
 
     For now, we only mount the TLS information to the endpoint.
 
-    Args:
+    Arguments:
         config (Config): Instance of the config class
 
     Returns:

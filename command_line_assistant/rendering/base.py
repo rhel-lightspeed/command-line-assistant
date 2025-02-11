@@ -11,7 +11,7 @@ class BaseDecorator(ABC):
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is
             being set from a renderer class.
 
@@ -26,7 +26,7 @@ class BaseStream:
     def __init__(self, stream: TextIO, end: str = "\n") -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             stream (TextIO): The stream to use (stdout or stderr).
             end (str, optional): How the line should end in the stream. Defaults to newline.
         """
@@ -37,7 +37,7 @@ class BaseStream:
     def write(self, text: str) -> None:
         """Write the text to the output stream
 
-        Args:
+        Arguments:
             text (str): The text to be written
         """
 
@@ -52,7 +52,7 @@ class BaseStream:
         """
         Write the text to the output stream and flush it immediately.
 
-        Args:
+        Arguments:
             text (str): The text to be written
         """
 
@@ -67,7 +67,7 @@ class BaseRenderer(ABC):
     def __init__(self, stream: BaseStream) -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             stream (OutputStreamWritter): The instance of a stream writer (either stdout or stderr).
         """
 
@@ -77,7 +77,7 @@ class BaseRenderer(ABC):
     def update(self, decorators: list[BaseDecorator]) -> None:
         """Update or add a decorator of the same type.
 
-        Args:
+        Arguments:
             decorator (list[BaseDecorator]): An instance of a rendering
             decorator to be applied.
         """
@@ -90,7 +90,7 @@ class BaseRenderer(ABC):
     def _apply_decorators(self, text: str) -> str:
         """Apply all decorators to the text.
 
-        Args:
+        Arguments:
             text (str): The text to be apply the decorator customization
 
         Returns:
@@ -108,6 +108,6 @@ class BaseRenderer(ABC):
 
         It uses the `self._decorators` property to apply the decorators.
 
-        Args:
+        Arguments:
             text (str): The text to be rendered.
         """

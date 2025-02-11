@@ -26,7 +26,7 @@ class EmojiDecorator(BaseDecorator):
     def __init__(self, emoji: Union[str, int]) -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             emoji (Union[str, int]): The emoji in either the unicode or hex value.
         """
         self._emoji = self._normalize_emoji(emoji)
@@ -34,7 +34,7 @@ class EmojiDecorator(BaseDecorator):
     def _normalize_emoji(self, emoji: Union[str, int]) -> str:
         """Internal function to normalize the emoji from either hex or unicode.
 
-        Args:
+        Arguments:
             emoji (Union[str, int]): The emoji in either the unicode or hex value.
 
         Raises:
@@ -60,7 +60,7 @@ class EmojiDecorator(BaseDecorator):
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is being set from a renderer class.
 
         Returns:
@@ -90,7 +90,7 @@ class TextWrapDecorator(BaseDecorator):
     def __init__(self, width: Optional[int] = None, indent: str = "") -> None:
         """Constructor of the class
 
-        Args:
+        Arguments:
             width (Optional[int], optional): The width of the terminal. Defaults to `shutil.get_terminal_size().columns`.
             indent (str, optional): Indentation mode for the string. Defaults to "".
         """
@@ -100,7 +100,7 @@ class TextWrapDecorator(BaseDecorator):
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is being set from a renderer class.
 
         Returns:
@@ -132,7 +132,7 @@ class WriteOnceDecorator(BaseDecorator):
     def __init__(self, state_filename: str = "written") -> None:
         """Constructor of the class
 
-        Args:
+        Arguments:
             state_filename (str): Name of the state file to create/check. Defaults to "written"
         """
         self._state_dir = get_xdg_state_path()
@@ -157,7 +157,7 @@ class WriteOnceDecorator(BaseDecorator):
     def decorate(self, text: str) -> str:
         """Write the text only if it hasn't been written before.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is being set from a renderer class.
 
         Returns:

@@ -9,7 +9,7 @@ class DaemonContext:
     def __init__(self, config: Config) -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             config (Config): Instance of the configuration class.
         """
         self._config = config

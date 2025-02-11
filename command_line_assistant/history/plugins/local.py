@@ -25,7 +25,7 @@ class LocalHistory(BaseHistoryPlugin):
     def __init__(self, config: Config) -> None:
         """Default constructor for class
 
-        Args:
+        Arguments:
             config (Config): Configuration class
         """
         super().__init__(config)
@@ -76,7 +76,7 @@ class LocalHistory(BaseHistoryPlugin):
     def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
         """Write history to the database.
 
-        Args:
+        Arguments:
             chat_id (str): The chat id
             user_id (str): The user id
             query (str): The user question
@@ -111,15 +111,18 @@ class LocalHistory(BaseHistoryPlugin):
                     "question": query,
                     "response": response,
                     "history_id": history_id,
-                    "os_info": {},
                 }
             )
+            logger.info("Wrote a new interaction for user '%s'.", user_id)
             logger.info(
-                "Wrote a new interaction '%s' for user '%s' in history '%s' that belongs to chat '%s'",
-                interaction_id,
-                user_id,
-                history_id,
-                chat_id,
+                "New interaction '%s' for user '%s' in history '%s' that belongs to chat '%s'",
+                extra={
+                    "audit": True,
+                    "interaction_id": interaction_id,
+                    "user_id": user_id,
+                    "history_id": history_id,
+                    "chat_id": chat_id,
+                },
             )
         except Exception as e:
             logger.error("Failed to write to database: %s", e)

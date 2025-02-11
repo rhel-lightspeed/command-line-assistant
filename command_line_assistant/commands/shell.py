@@ -204,7 +204,7 @@ def register_subcommand(parser: SubParsersAction):
     """
     Register this command to argparse so it's available for the root parser.
 
-    Args:
+    Arguments:
         parser (SubParsersAction): Root parser to register command-specific arguments
     """
     shell_parser = create_subparser(parser, "shell", "Manage shell integrations")
@@ -249,7 +249,7 @@ def register_subcommand(parser: SubParsersAction):
 def _command_factory(args: Namespace) -> ShellCommand:
     """Internal command factory to create the command class
 
-    Args:
+    Arguments:
         args (Namespace): The arguments processed with argparse.
 
     Returns:

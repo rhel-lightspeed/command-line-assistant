@@ -58,7 +58,7 @@ def create_spinner_renderer(
     Note:
         `py:TextWrapDecorator` is applied automatically to the renderer.
 
-    Args:
+    Arguments:
         message (str): The message to show while spinning
         decorators (list[BaseDecorator]): List of decorators that can be
         applied to the spinner renderer.
@@ -94,11 +94,10 @@ def create_text_renderer(
     Note:
         `py:TextWrapDecorator` is applied automatically to the renderer.
 
-    Note:
         If no `stream` is provided in the arguments, it will default to the
         `py:StdoutStream()`.
 
-    Args:
+    Arguments:
         decorators (Optional[list[BaseDecorator]], optional): List of
         decorators that can be applied to the text renderer. Defaults to None.
         stream (Optional[BaseStream], optional): Apply a different stream other

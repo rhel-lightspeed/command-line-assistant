@@ -15,7 +15,7 @@ class BaseHistoryPlugin(ABC):
     def __init__(self, config: Config) -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             config (Config): Instance of config.
         """
         self._config = config
@@ -35,7 +35,7 @@ class BaseHistoryPlugin(ABC):
     def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
         """Abstract method to represent a write operation
 
-        Args:
+        Arguments:
             chat_id (str): The chat identifier
             user_id (str): The user's identifier
             query (str): The user question

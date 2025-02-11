@@ -39,7 +39,7 @@ class HistoryEntry(BaseDataMixin, DBusData):
     def question(self, value: Str) -> None:
         """Set a new question
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._question = value
@@ -57,7 +57,7 @@ class HistoryEntry(BaseDataMixin, DBusData):
     def response(self, value: Str) -> None:
         """Set a new response
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._response = value
@@ -75,7 +75,7 @@ class HistoryEntry(BaseDataMixin, DBusData):
     def created_at(self, value: Str) -> None:
         """Set a new created_at
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._created_at = value
@@ -106,7 +106,7 @@ class HistoryList(BaseDataMixin, DBusData):
     def histories(self, value: List[HistoryEntry]) -> None:
         """Set new entries
 
-        Args:
+        Arguments:
             value (List[HistoryItem]): List of values to be set to the internal property
         """
         # This handles setting from DBus structure

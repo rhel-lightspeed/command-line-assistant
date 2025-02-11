@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def guess_mimetype(attachment: Optional[TextIOWrapper]) -> str:
     """Guess the mimetype of a given attachment.
 
-    Args:
+    Arguments:
         attachment (Optional[TextIOWrapper]): The attachment to be checked for mimetype.
 
     Returns:

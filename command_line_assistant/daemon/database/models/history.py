@@ -1,6 +1,6 @@
 """Module containing SQLAlchemy models for the history."""
 
-from sqlalchemy import JSON, Column, ForeignKey, Text
+from sqlalchemy import Column, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from command_line_assistant.daemon.database.models.base import GUID, BaseModel
@@ -23,6 +23,5 @@ class InteractionModel(BaseModel):
     __tablename__ = "interaction"
 
     history_id = Column(GUID(), ForeignKey("history.id"), nullable=False)
-    os_info = Column(JSON, nullable=False)
     question = Column(Text, nullable=False)
     response = Column(Text, nullable=False)

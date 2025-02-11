@@ -65,7 +65,7 @@ class CommandContext:
 def add_default_command(stdin: Optional[str], argv: list[str]):
     """Add the default command when none is given
 
-    Args:
+    Arguments:
         stdin (str): The input string coming from stdin
         argv (list[str]): List of arguments from CLI
     """

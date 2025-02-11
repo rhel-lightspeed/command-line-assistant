@@ -31,7 +31,7 @@ class StyleDecorator(BaseDecorator):
     def __init__(self, style: Optional[str] = None) -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             style (Optional[str], optional): Name of a style to be applied ("dim", "normal", "bright"). Defaults to None.
         """
         self.style = self._get_style(style) if style else None
@@ -39,7 +39,7 @@ class StyleDecorator(BaseDecorator):
     def _get_style(self, style: str) -> str:
         """Get the appropriate style unicode representation.
 
-        Args:
+        Arguments:
             style (str): The name of the style that matches the values in `self.STYLES`
 
         Raises:
@@ -58,7 +58,7 @@ class StyleDecorator(BaseDecorator):
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is being set from a renderer class.
 
         Returns:

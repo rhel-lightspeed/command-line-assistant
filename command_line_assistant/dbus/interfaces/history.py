@@ -153,7 +153,7 @@ class HistoryInterface(InterfaceTemplate):
 def _parse_interactions(interactions: list[InteractionModel]) -> HistoryList:
     """Parse the history interactions in a common format for all methods
 
-    Args:
+    Arguments:
         interactions (list[InteractionModel]): List of entries in a dictionary format
         with only the necessary information.
 

@@ -52,7 +52,7 @@ class ChatEntry(BaseDataMixin, DBusData):
     def id(self, value: Str) -> None:
         """Set a new id
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._id = value
@@ -70,7 +70,7 @@ class ChatEntry(BaseDataMixin, DBusData):
     def name(self, value: Str) -> None:
         """Set a new name
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._name = value
@@ -88,7 +88,7 @@ class ChatEntry(BaseDataMixin, DBusData):
     def description(self, value: Str) -> None:
         """Set a new description
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._description = value
@@ -106,7 +106,7 @@ class ChatEntry(BaseDataMixin, DBusData):
     def created_at(self, value: Str) -> None:
         """Set a new created_at
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._created_at = value
@@ -124,7 +124,7 @@ class ChatEntry(BaseDataMixin, DBusData):
     def updated_at(self, value: Str) -> None:
         """Set a new updated_at
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._updated_at = value
@@ -142,7 +142,7 @@ class ChatEntry(BaseDataMixin, DBusData):
     def deleted_at(self, value: Str) -> None:
         """Set a new deleted_at
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._deleted_at = value
@@ -173,7 +173,7 @@ class ChatList(BaseDataMixin, DBusData):
     def chats(self, value: List[ChatEntry]) -> None:
         """Set a new chats
 
-        Args:
+        Arguments:
             value (List[ChatEntry]): Value to be set to the internal property
         """
         self._chats = value
@@ -205,7 +205,7 @@ class AttachmentInput(BaseDataMixin, DBusData):
     def contents(self, value: Str) -> None:
         """Set a new contents
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._contents = value
@@ -223,7 +223,7 @@ class AttachmentInput(BaseDataMixin, DBusData):
     def mimetype(self, value: Str) -> None:
         """Set a new mimetype
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._mimetype = value
@@ -253,7 +253,7 @@ class StdinInput(BaseDataMixin, DBusData):
     def stdin(self, value: Str) -> None:
         """Set a new stdin
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._stdin = value
@@ -283,7 +283,7 @@ class TerminalInput(BaseDataMixin, DBusData):
     def output(self, value: Str) -> None:
         """Set a new output
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._output = value
@@ -327,7 +327,7 @@ class Question(BaseDataMixin, DBusData):
     def message(self, value: Str) -> None:
         """Set a new message
 
-        Args:
+        Arguments:
             value (Str): Question to be set to the internal property
         """
         self._message = value
@@ -345,7 +345,7 @@ class Question(BaseDataMixin, DBusData):
     def stdin(self, value: StdinInput) -> None:
         """Set a new stdin
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._stdin = value
@@ -363,7 +363,7 @@ class Question(BaseDataMixin, DBusData):
     def attachment(self, value: AttachmentInput) -> None:
         """Set a new attachment_contents
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._attachment = value
@@ -381,7 +381,7 @@ class Question(BaseDataMixin, DBusData):
     def terminal(self, value: TerminalInput) -> None:
         """Set a new terminal_contents
 
-        Args:
+        Arguments:
             value (Str): Value to be set to the internal property
         """
         self._terminal = value
@@ -412,7 +412,7 @@ class Response(BaseDataMixin, DBusData):
     def message(self, value: Str) -> None:
         """Set a new message
 
-        Args:
+        Arguments:
             value (Str): Message to be set to the internal property
         """
         self._message = value
