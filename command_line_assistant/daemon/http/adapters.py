@@ -20,7 +20,7 @@ class SSLAdapter(HTTPAdapter):
     def __init__(self, cert_file: Path, key_file: Path, ssl_context=None, **kwargs):
         """Constructor of the class
 
-        Args:
+        Arguments:
             cert_file (Path): The path to the cert file on the system
             key_file (Path): The path to the key file on the system
             ssl_context: Any additional ssl context that needs to be used. Defaults to None.
@@ -50,7 +50,7 @@ class RetryAdapter(HTTPAdapter):
     ) -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             pool_connections (int, optional): The total amount of pool connections. Defaults to 10.
             pool_maxsize (int, optional): The max size of the pool. Defaults to 10.
             max_retries (Union[Retry, int, None], optional): The maximum number of retires. Defaults to 3.

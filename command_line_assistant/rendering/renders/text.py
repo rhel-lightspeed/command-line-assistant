@@ -19,7 +19,7 @@ class TextRenderer(BaseRenderer):
                 >>> text_renderer = TextRenderer()
                 >>> text_renderer.render("Hello, world!")
 
-        Args:
+        Arguments:
             stream (Optional[OutputStreamWritter], optional): The stream to where the output will be. Can be either `py:StdoutStream` or `py:StderrStream`. Defaults to StdoutStream().
         """
         super().__init__(stream or StdoutStream())
@@ -27,7 +27,7 @@ class TextRenderer(BaseRenderer):
     def render(self, text: str) -> None:
         """The main function to render thext.
 
-        Args:
+        Arguments:
             text (str): The textual value that will be represented in the terminal.
         """
         lines = text.splitlines()

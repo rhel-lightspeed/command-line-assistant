@@ -35,7 +35,7 @@ def _dbus_setup(objects: list[tuple]) -> None:
 def serve(config: Config):
     """Main function to serve and start the daemon server.
 
-    Args:
+    Arguments:
         config (Config): An instance of the configuration class.
     """
     try:

@@ -90,7 +90,7 @@ def _read_last_terminal_output(index: int) -> str:
 def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
     """Parse the attachment file and read its contents.
 
-    Args:
+    Arguments:
         attachment (Optional[TextIOWrapper], optional): The attachment that will be parsed
 
     Returns:
@@ -542,7 +542,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
     """
     Register this command to argparse so it's available for the root parser.
 
-    Args:
+    Arguments:
         parser (SubParsersAction): Root parser to register command-specific arguments
     """
     chat_parser = parser.add_parser(
@@ -612,7 +612,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
 def _command_factory(args: Namespace) -> ChatCommand:
     """Internal command factory to create the command class
 
-    Args:
+    Arguments:
         args (Namespace): The arguments processed with argparse.
 
     Returns:

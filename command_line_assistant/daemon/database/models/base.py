@@ -36,7 +36,7 @@ class GUID(TypeDecorator):
     def load_dialect_impl(self, dialect: Dialect) -> TypeEngine[Any]:
         """Load the dialect implementation
 
-        Args:
+        Arguments:
             dialect (Dialect): Instance of a dialect class to be used.
 
         Returns:
@@ -48,7 +48,7 @@ class GUID(TypeDecorator):
     def process_bind_param(self, value: Any, dialect: Dialect) -> Any:
         """Receive a literal parameter value to be rendered inline within a statement.
 
-        Args:
+        Arguments:
             value (Any): The parameter value
             dialect (Dialect): Instance of a dialect class to be used.
 
@@ -70,7 +70,7 @@ class GUID(TypeDecorator):
     def _uuid_value(self, value: Any) -> Any:
         """Internal method to convert to UUID value.
 
-        Args:
+        Arguments:
             value (Any): The parameter value
 
         Returns:
@@ -87,7 +87,7 @@ class GUID(TypeDecorator):
     def process_result_value(self, value: Any, dialect: Dialect) -> Any:
         """Process the resulting value
 
-        Args:
+        Arguments:
             value (Any): The parameter value
             dialect (Dialect): Instance of a dialect class to be used.
 

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def submit(payload: dict, config: Config) -> str:
     """Method to submit the query to the backend.
 
-    Args:
+    Arguments:
         payload (dict): User query config (Config): Instance of a config class
 
     Raises:

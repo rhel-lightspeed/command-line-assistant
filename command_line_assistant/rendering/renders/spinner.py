@@ -100,7 +100,7 @@ class SpinnerRenderer(BaseRenderer):
     ) -> None:
         """Constructor of the class
 
-        Args:
+        Arguments:
             message (str): The static message that will be shown in every frame
             stream (Optional[OutputStreamWritter], optional): The stream to where the output will be. Can be either `py:StdoutStream` or `py:StderrStream`. Defaults to StdoutStream().
             frames (Iterator[str], optional): A Frame object that will be updated every second. Defaults to ANIMATIONS["default"] in utf-8 capable locales and ANIMATIONS["dash"] otherwise.
@@ -140,7 +140,7 @@ class SpinnerRenderer(BaseRenderer):
         Note:
             You should not use this method. Instead, check the class examples.
 
-        Args:
+        Arguments:
             text (str): The textual value that will be represented in the terminal.
 
         Raises:

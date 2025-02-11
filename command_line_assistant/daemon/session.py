@@ -52,7 +52,7 @@ class UserSessionManager:
     def get_user_id(self, effective_user_id: int) -> str:
         """Get the user ID based on the effective user ID.
 
-        Args:
+        Arguments:
             effective_user_id (int): The effective user ID
 
         Returns:

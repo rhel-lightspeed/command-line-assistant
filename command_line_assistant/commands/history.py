@@ -108,7 +108,7 @@ class BaseHistoryOperation(BaseOperation):
     def _show_history(self, entries: HistoryList) -> None:
         """Internal method to show the history in a standardized way
 
-        Args:
+        Arguments:
             entries (list[HistoryItem]): The list of entries in the history
         """
         if not entries.histories:
@@ -228,7 +228,7 @@ def register_subcommand(parser: SubParsersAction):
     """
     Register this command to argparse so it's available for the root parser.
 
-    Args:
+    Arguments:
         parser (SubParsersAction): Root parser to register command-specific arguments
     """
     history_parser = create_subparser(parser, "history", "Manage conversation history")
@@ -269,7 +269,7 @@ def register_subcommand(parser: SubParsersAction):
 def _command_factory(args: Namespace) -> HistoryCommand:
     """Internal command factory to create the command class
 
-    Args:
+    Arguments:
         args (Namespace): The arguments processed with argparse.
 
     Returns:

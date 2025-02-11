@@ -33,7 +33,7 @@ class DatabaseManager:
     def __init__(self, config: Config, echo: bool = False) -> None:
         """Initialize database connection.
 
-        Args:
+        Arguments:
             database (Path): Path to the SQLite database file
             echo (bool): Enable SQL query logging if True
         """
@@ -46,7 +46,7 @@ class DatabaseManager:
     def _create_engine(self, echo: bool) -> Engine:
         """Create SQLAlchemy engine with proper settings.
 
-        Args:
+        Arguments:
             echo (bool): Enable SQL query logging if True
 
         Returns:

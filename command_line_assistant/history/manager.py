@@ -29,7 +29,7 @@ class HistoryManager:
     ) -> None:
         """Initialize the history manager.
 
-        Args:
+        Arguments:
             config (Config): Instance of configuration class
             user_id (int): The effective user id who asked for the history.
             plugin (Optional[Type[BaseHistory]], optional): Optional history implementation class
@@ -55,7 +55,7 @@ class HistoryManager:
     def plugin(self, plugin_cls: Type[BaseHistoryPlugin]) -> None:
         """Set and initialize a new plugin.
 
-        Args:
+        Arguments:
             plugin_cls (Type[BaseHistory]): History implementation class to use
 
         Raises:

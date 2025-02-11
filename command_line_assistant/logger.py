@@ -89,7 +89,7 @@ class AuditFilter(logging.Filter):
     def filter(self, record: LogRecord) -> bool:
         """Filter records based on the presence of audit attribute.
 
-        Args:
+        Arguments:
             record (LogRecord): The log record to check
 
         Returns:
@@ -104,7 +104,7 @@ class NonAuditFilter(logging.Filter):
     def filter(self, record: LogRecord) -> bool:
         """Filter records based on the absence of audit attribute.
 
-        Args:
+        Arguments:
             record (LogRecord): The log record to check
 
         Returns:
@@ -119,7 +119,7 @@ class AuditFormatter(logging.Formatter):
     def __init__(self, fmt: Optional[str] = None, datefmt: Optional[str] = None):
         """Initialize the formatter with config.
 
-        Args:
+        Arguments:
             config (Config): The application configuration
             fmt (Optional[str], optional): Format string. Defaults to None.
             datefmt (Optional[str], optional): Date format string. Defaults to None.
@@ -129,7 +129,7 @@ class AuditFormatter(logging.Formatter):
     def format(self, record: LogRecord) -> str:
         """Format the record as JSON for journald consumption.
 
-        Args:
+        Arguments:
             record (logging.LogRecord): The log record to format
 
         Returns:
@@ -163,7 +163,7 @@ class AuditFormatter(logging.Formatter):
     def _get_syslog_priority(self, levelno: int) -> int:
         """Convert Python logging levels to syslog priorities.
 
-        Args:
+        Arguments:
             levelno (int): Python logging level number
 
         Returns:
@@ -181,7 +181,7 @@ class AuditFormatter(logging.Formatter):
     def _get_extra_fields(self, record: LogRecord) -> dict[str, Any]:
         """Extract additional fields from the record.
 
-        Args:
+        Arguments:
             record (LogRecord): The log record
 
         Returns:
