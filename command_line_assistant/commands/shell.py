@@ -211,19 +211,16 @@ def register_subcommand(parser: SubParsersAction):
 
     terminal_capture_group = shell_parser.add_argument_group("Terminal Capture Options")
     terminal_capture_group.add_argument(
-        "-ec",
         "--enable-capture",
         action="store_true",
         help="Enable terminal capture for the current terminal session.",
     )
     terminal_capture_group.add_argument(
-        "-epc",
         "--enable-persistent-capture",
         action="store_true",
         help="Enable persistent terminal capture for the terminal session.",
     )
     terminal_capture_group.add_argument(
-        "-dpc",
         "--disable-persistent-capture",
         action="store_true",
         help="Disable persistent terminal capture for the terminal session.",
@@ -231,13 +228,11 @@ def register_subcommand(parser: SubParsersAction):
 
     interactive_mode = shell_parser.add_argument_group("Interactive Mode Options")
     interactive_mode.add_argument(
-        "-ei",
         "--enable-interactive",
         action="store_true",
         help="Enable the shell integration for interactive mode on the system. Currently, only BASH is supported.",
     )
     interactive_mode.add_argument(
-        "-di",
         "--disable-interactive",
         action="store_true",
         help="Disable the shell integrationfor interactive mode on the system.",
