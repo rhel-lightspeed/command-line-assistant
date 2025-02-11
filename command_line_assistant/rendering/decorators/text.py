@@ -1,12 +1,15 @@
 """Module to track all *text* decorations applied to renderers"""
 
+import logging
 import shutil
 import textwrap
-from pathlib import Path
 from typing import Optional, Union
 
 from command_line_assistant.rendering.base import BaseDecorator
 from command_line_assistant.utils.environment import get_xdg_state_path
+from command_line_assistant.utils.files import create_folder, write_file
+
+logger = logging.getLogger(__name__)
 
 
 class EmojiDecorator(BaseDecorator):
@@ -132,7 +135,7 @@ class WriteOnceDecorator(BaseDecorator):
         Args:
             state_filename (str): Name of the state file to create/check. Defaults to "written"
         """
-        self._state_dir = Path(get_xdg_state_path(), "command-line-assistant")
+        self._state_dir = get_xdg_state_path()
         self._state_file = self._state_dir / state_filename
 
     def _should_write(self) -> bool:
@@ -142,14 +145,13 @@ class WriteOnceDecorator(BaseDecorator):
             bool: In Return a boolean value if the state file can be written.
         """
         if self._state_file.exists():
+            logger.info(
+                "The state file already exists. Skipping writting it a second time."
+            )
             return False
-
-        if not self._state_dir.exists():
-            # Create directory if it doesn't exist
-            self._state_dir.mkdir(parents=True)
-
+        create_folder(self._state_dir)
         # Write state file
-        self._state_file.write_text("1")
+        write_file("1", self._state_file)
         return True
 
     def decorate(self, text: str) -> str:

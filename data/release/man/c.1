@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Feb 05, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Feb 06, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -57,7 +57,7 @@ Command to ask a question to the LLM.
 .INDENT 3.5
 .sp
 .EX
-c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
+c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-lo [LAST_OUTPUT]] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
        [\-\-description [DESCRIPTION]]
        [query_string]
 .EE
@@ -76,6 +76,8 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
 \fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
 .IP \(bu 2
 \fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start interactive chat session
+.IP \(bu 2
+\fI\%\-lo\fP \fBLAST_OUTPUT\fP, \fI\%\-\-last\-output\fP \fBLAST_OUTPUT\fP \- Read last output from terminal. It goes drecreasing (default: \fBNone\fP)
 .UNINDENT
 .SS c chat Chat options
 .INDENT 0.0
@@ -92,7 +94,7 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
 .UNINDENT
 .SS c history
 .sp
-Manage user conversation history
+Manage conversation history
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -104,9 +106,9 @@ c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-c]
 .SS c history options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
 .UNINDENT
-.SS c history Filtering options
+.SS c history Filtering Options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-f\fP, \fI\%\-\-first\fP \- Get the first conversation from history. If no \-\-from is specified, this will get the first conversation across all chats.
@@ -115,7 +117,7 @@ c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-c]
 .IP \(bu 2
 \fI\%\-fi\fP \fBFILTER\fP, \fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. If no \-\-from is specified, this will filter conversations across all chats. (default: \fBNone\fP)
 .UNINDENT
-.SS c history Management options
+.SS c history Management Options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-c\fP, \fI\%\-\-clear\fP \- Clear the entire history. If no \-\-from is specified, it will clear all history from all chats.
@@ -127,18 +129,30 @@ Manage shell integrations
 .INDENT 3.5
 .sp
 .EX
-c shell [\-h] [\-ei] [\-di]
+c shell [\-h] [\-ec] [\-epc] [\-dpc] [\-ei] [\-di]
 .EE
 .UNINDENT
 .UNINDENT
 .SS c shell options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+.UNINDENT
+.SS c shell Terminal Capture Options
+.INDENT 0.0
 .IP \(bu 2
-\fI\%\-ei\fP, \fI\%\-\-enable\-integration\fP \- Enable the shell integrations on the system. Currently, only BASH is supported.
+\fI\%\-ec\fP, \fI\%\-\-enable\-capture\fP \- Enable terminal capture for the current terminal session.
 .IP \(bu 2
-\fI\%\-di\fP, \fI\%\-\-disable\-integration\fP \- Disable the shell integrations on the system.
+\fI\%\-epc\fP, \fI\%\-\-enable\-persistent\-capture\fP \- Enable persistent terminal capture for the terminal session.
+.IP \(bu 2
+\fI\%\-dpc\fP, \fI\%\-\-disable\-persistent\-capture\fP \- Disable persistent terminal capture for the terminal session.
+.UNINDENT
+.SS c shell Interactive Mode Options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-ei\fP, \fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported.
+.IP \(bu 2
+\fI\%\-di\fP, \fI\%\-\-disable\-interactive\fP \- Disable the shell integrationfor interactive mode on the system.
 .UNINDENT
 .SH DESCRIPTION
 .sp
@@ -159,12 +173,6 @@ Assistant can help with several tasks such as:
 .sp
 The Command Line Assistant provides a natural language interface, and can
 incorporate information from resources such as the RHEL documentation.
-.SH FILES
-.INDENT 0.0
-.TP
-.B \fI~/.bashrc.d/cla\-interactive.bashrc\fP
-Bash script to add keyboard binding to enable interactive mode.
-.UNINDENT
 .SH EXAMPLES
 .sp
 Example 1. Asking a simple question
@@ -414,6 +422,18 @@ order to maintain a correct order of querying. The rules can be seen here:
 7. All three sources \-> use only positional and file as \(dq{positional_query} {file_query}\(dq
 .EE
 .UNINDENT
+.UNINDENT
+.SH FILES
+.INDENT 0.0
+.TP
+.B \fI~/.bashrc.d/cla\-interactive.bashrc\fP
+Bash script to add keyboard binding to enable interactive mode.
+.TP
+.B \fI~/.bashrc.d/clad\-exports.bashrc\fP
+Bash script to export necessary environment variables for command\-line\-assistant.
+.TP
+.B \fI~/.local/state/command\-line\-assistant/terminal.log\fP
+State file that captures the terminal screen and store it as json.
 .UNINDENT
 .SH REFERENCE
 .INDENT 0.0

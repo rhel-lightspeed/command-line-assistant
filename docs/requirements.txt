@@ -8,3 +8,4 @@ sphinx-argparse-cli>=1.17.0
 dasbus
 requests
 PyGObject
+sqlalchemy

@@ -9,10 +9,10 @@ from pathlib import Path
 WANTED_XDG_PATH = Path("/etc/xdg")
 
 #: The wanted xdg state path in case $XDG_STATE_HOME is not defined.
-WANTED_XDG_STATE_PATH = Path("~/.local/state").expanduser()
+WANTED_XDG_STATE_PATH = Path("~/.local/state/command-line-assistant").expanduser()
 
 #: The wanted xdg data path in case $XDG_DATA_HOME is not defined.
-WANTED_XDG_DATA_PATH = Path("~/.local/share").expanduser()
+WANTED_XDG_DATA_PATH = Path("~/.local/share/command-line-assistant").expanduser()
 
 
 def get_xdg_state_path() -> Path:
@@ -28,7 +28,9 @@ def get_xdg_state_path() -> Path:
 
     # We call expanduser() for the xdg_state_home in case someone do "~/"
     return (
-        Path(xdg_state_home).expanduser() if xdg_state_home else WANTED_XDG_STATE_PATH
+        Path(xdg_state_home, "command-line-assistant").expanduser()
+        if xdg_state_home
+        else WANTED_XDG_STATE_PATH
     )
 
 

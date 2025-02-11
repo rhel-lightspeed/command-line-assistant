@@ -157,6 +157,12 @@ Files
 *~/.bashrc.d/cla-interactive.bashrc*
     Bash script to add keyboard binding to enable interactive mode.
 
+*~/.bashrc.d/clad-exports.bashrc*
+    Bash script to export necessary environment variables for command-line-assistant.
+
+*~/.local/state/command-line-assistant/terminal.log*
+    State file that captures the terminal screen and store it as json.
+
 Reference
 ---------
 1. Command Line Assistant source code: https://github.com/rhel-lightspeed/command-line-assistant

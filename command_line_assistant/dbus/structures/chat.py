@@ -259,6 +259,36 @@ class StdinInput(BaseDataMixin, DBusData):
         self._stdin = value
 
 
+class TerminalInput(BaseDataMixin, DBusData):
+    """Represents an terminal input"""
+
+    def __init__(self, output: Str = "") -> None:
+        """Constructor of the class
+
+        Arguments:
+            _output (Str): Ouptut fromm terminal if any
+        """
+        self._output: Str = output
+
+    @property
+    def output(self) -> Str:
+        """Property for internal stdin attribute.
+
+        Returns:
+            Str: Value of stdin
+        """
+        return self._output
+
+    @output.setter
+    def output(self, value: Str) -> None:
+        """Set a new output
+
+        Args:
+            value (Str): Value to be set to the internal property
+        """
+        self._output = value
+
+
 class Question(BaseDataMixin, DBusData):
     """Represents the input message to be sent to the backend"""
 
@@ -267,6 +297,7 @@ class Question(BaseDataMixin, DBusData):
         message: Str = "",
         stdin: Optional[StdinInput] = None,
         attachment: Optional[AttachmentInput] = None,
+        terminal: Optional[TerminalInput] = None,
     ) -> None:
         """Constructor of the class.
 
@@ -274,10 +305,12 @@ class Question(BaseDataMixin, DBusData):
             message (Str): The user message
             stdin (Optional[StdinInput], optional): The stdin object if any
             attachment (Optional[AttachmentInput], optional): The attachment input if any
+            terminal (Optional[TerminalInput], optional): The terminal input if any
         """
         self._message: Str = message
         self._stdin: StdinInput = stdin or StdinInput()
         self._attachment: AttachmentInput = attachment or AttachmentInput()
+        self._terminal: TerminalInput = terminal or TerminalInput()
 
         super().__init__()
 
@@ -334,6 +367,24 @@ class Question(BaseDataMixin, DBusData):
             value (Str): Value to be set to the internal property
         """
         self._attachment = value
+
+    @property
+    def terminal(self) -> TerminalInput:
+        """Property for internal terminal_contents attribute.
+
+        Returns:
+            Str: Value of terminal
+        """
+        return self._terminal
+
+    @terminal.setter
+    def terminal(self, value: TerminalInput) -> None:
+        """Set a new terminal_contents
+
+        Args:
+            value (Str): Value to be set to the internal property
+        """
+        self._terminal = value
 
 
 class Response(BaseDataMixin, DBusData):

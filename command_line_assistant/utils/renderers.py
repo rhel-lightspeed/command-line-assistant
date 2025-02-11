@@ -51,7 +51,7 @@ def create_warning_renderer() -> TextRenderer:
 
 
 def create_spinner_renderer(
-    message: str, decorators: list[BaseDecorator]
+    message: str, decorators: Optional[list[BaseDecorator]] = None
 ) -> SpinnerRenderer:
     """Create a new instance of a spinner renderer.
 
@@ -67,6 +67,7 @@ def create_spinner_renderer(
         SpinnerRenderer: Instance of a SpinnerRenderer with decorators applied.
     """
     spinner = SpinnerRenderer(message, stream=StdoutStream(end=""))
+    decorators = decorators or []
     decorators.append(TextWrapDecorator())
     spinner.update(decorators)
     return spinner
