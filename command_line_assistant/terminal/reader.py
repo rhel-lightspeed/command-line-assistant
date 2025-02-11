@@ -113,7 +113,7 @@ def start_capturing() -> None:
     with OUTPUT_FILE_NAME.open(mode="wb") as handler:
         # Instantiate the TerminalRecorder and spawn a new shell with pty.
         recorder = TerminalRecorder(handler)
-        pty.spawn([shell, "-i", "--login"], recorder.read)
+        pty.spawn([shell, "-i"], recorder.read)
 
         # Write the final json block if it exists.
         recorder.write_json_block()
