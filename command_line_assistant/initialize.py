@@ -22,9 +22,6 @@ def register_subcommands() -> ArgumentParser:
     """
     parser, commands_parser = create_argument_parser()
 
-    # TODO: add autodetection of BaseCLICommand classes in the future so we can
-    # just drop new subcommand python modules into the directory and then loop
-    # and call `register_subcommand()` on each one.
     chat.register_subcommand(commands_parser)  # type: ignore
     history.register_subcommand(commands_parser)  # type: ignore
     shell.register_subcommand(commands_parser)  # type: ignore

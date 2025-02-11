@@ -34,7 +34,7 @@ class BackendSchema:
         auth (Union[dict, AuthSchema]): The authentication information
     """
 
-    endpoint: str = "http://0.0.0.0:8080"
+    endpoint: str = "https://0.0.0.0:8080"
     auth: AuthSchema = dataclasses.field(default_factory=AuthSchema)
 
     proxies: dict[str, str] = dataclasses.field(default_factory=dict)

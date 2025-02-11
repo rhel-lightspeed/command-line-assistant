@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional, Union
 
 
-# TODO(r0x0d): Abstract this in the future to be it's own config and not tied to History.
 @dataclasses.dataclass
 class DatabaseSchema:
     """This class represents the [history.database] section of our config.toml file.
