@@ -1,7 +1,6 @@
 import copy
 import logging
 from argparse import Namespace
-from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
@@ -12,7 +11,6 @@ from command_line_assistant.config.schemas.backend import AuthSchema, BackendSch
 from command_line_assistant.config.schemas.database import DatabaseSchema
 from command_line_assistant.config.schemas.history import HistorySchema
 from command_line_assistant.config.schemas.logging import LoggingSchema
-from command_line_assistant.config.schemas.output import OutputSchema
 from command_line_assistant.dbus import constants as dbus_constants
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
@@ -93,11 +91,6 @@ def mock_config(tmp_path):
     key_file.write_text("key")
     with patch("pwd.getpwnam", return_value=MockPwnam()):
         return config.Config(
-            output=OutputSchema(
-                enforce_script=False,
-                file=Path("/tmp/test_output.txt"),
-                prompt_separator="$",
-            ),
             backend=BackendSchema(
                 endpoint="http://localhost",
                 auth=AuthSchema(

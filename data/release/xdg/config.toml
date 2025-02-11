@@ -1,15 +1,3 @@
-# ------------------ experimental
-# Experimental settings for output. Not yet working.
-[output]
-# otherwise recording via script session will be enforced
-enforce_script = false
-# file with output(s) of regular commands (e.g. ls, echo, etc.)
-file = "/tmp/command-line-assistant/output.txt"
-# Keep non-empty if your file contains only output of commands (not prompt itself)
-prompt_separator = "$"
-# ------------------ experimental
-
-
 # History Database settings. By default, sqlite is used.
 [database]
 # Available types for databases are: sqlite, postgresql and mysql. Mariadb can

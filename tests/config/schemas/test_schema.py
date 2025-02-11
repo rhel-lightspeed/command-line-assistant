@@ -4,14 +4,12 @@ from command_line_assistant.config.schemas.backend import AuthSchema, BackendSch
 from command_line_assistant.config.schemas.database import DatabaseSchema
 from command_line_assistant.config.schemas.history import HistorySchema
 from command_line_assistant.config.schemas.logging import LoggingSchema
-from command_line_assistant.config.schemas.output import OutputSchema
 
 
 @pytest.mark.parametrize(
     ("schema",),
     (
         (LoggingSchema,),
-        (OutputSchema,),
         (BackendSchema,),
         (HistorySchema,),
         (AuthSchema,),
