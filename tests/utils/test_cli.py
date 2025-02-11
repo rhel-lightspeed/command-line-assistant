@@ -32,8 +32,9 @@ REDHAT_SUPPORT_PRODUCT_VERSION="10.0 Beta"
 
 def test_command_context_initialization():
     command_context = cli.CommandContext()
-    assert command_context.username
-    assert command_context.effective_user_id
+    assert isinstance(command_context.username, str)
+    assert isinstance(command_context.effective_user_id, int)
+    assert isinstance(command_context.os_release, dict)
     assert command_context.os_release
 
 
