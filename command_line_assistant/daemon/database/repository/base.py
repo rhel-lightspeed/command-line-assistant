@@ -36,7 +36,6 @@ class BaseRepository:
 
         with self._manager.session() as session:
             result = session.execute(statement=statement)
-            # TODO(r0x0d): see how this will return in RHEL 9
             return result.inserted_primary_key  # type: ignore
 
     def select(self) -> Any:

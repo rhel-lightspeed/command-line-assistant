@@ -6,6 +6,9 @@ from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.models.history import HistoryModel
 from command_line_assistant.history.base import BaseHistoryPlugin
 
+#: Default history plugin error message.
+HISTORY_PLUGIN_ERROR_MESSAGE = "No history plugin set. Set plugin before operations."
+
 
 class HistoryManager:
     """Manages history operations by delegating to a specific history implementation.
@@ -79,7 +82,7 @@ class HistoryManager:
             Union[list, Sequence[Any]]: List of history entries
         """
         if not self._instance:
-            raise RuntimeError("No history plugin set. Set plugin before operations.")
+            raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
         return self._instance.read(user_id)
 
@@ -96,7 +99,7 @@ class HistoryManager:
             RuntimeError: If no plugin is set
         """
         if not self._instance:
-            raise RuntimeError("No history plugin set. Set plugin before operations.")
+            raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
         self._instance.write(chat_id, user_id, query, response)
 
@@ -110,6 +113,6 @@ class HistoryManager:
             RuntimeError: If no plugin is set
         """
         if not self._instance:
-            raise RuntimeError("No history plugin set. Set plugin before operations.")
+            raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
         self._instance.clear(user_id)

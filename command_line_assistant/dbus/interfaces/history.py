@@ -23,6 +23,10 @@ from command_line_assistant.history.plugins.local import LocalHistory
 logger = logging.getLogger(__name__)
 
 
+#: Default message in case a history chat is not available.
+HISTORY_CHAT_NOT_AVAILABLE = "Unfortunately, no history was found."
+
+
 @dbus_interface(HISTORY_IDENTIFIER.interface_name)
 class HistoryInterface(InterfaceTemplate):
     """The DBus interface of a history"""
@@ -50,7 +54,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailable("Unfortunately, no history was found.")
+            raise HistoryNotAvailable(HISTORY_CHAT_NOT_AVAILABLE)
 
         history_entry = _parse_interactions(history_entries[0].interactions)
         return history_entry.structure()
@@ -69,7 +73,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailable("Unfortunately, no history was found.")
+            raise HistoryNotAvailable(HISTORY_CHAT_NOT_AVAILABLE)
 
         history_entry = _parse_interactions(history_entries[0].interactions[:1])
         return history_entry.structure()
@@ -87,7 +91,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailable("Unfortunately, no history was found.")
+            raise HistoryNotAvailable(HISTORY_CHAT_NOT_AVAILABLE)
 
         history_entry = _parse_interactions(history_entries[0].interactions[-1:])
         return history_entry.structure()
@@ -105,7 +109,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailable("Unfortunately, no history was found.")
+            raise HistoryNotAvailable(HISTORY_CHAT_NOT_AVAILABLE)
 
         logger.info(
             "Filtering the user history with keyword '%s' for user '%s'",

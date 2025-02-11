@@ -95,7 +95,7 @@ class ChatInterface(InterfaceTemplate):
             ChatNotFoundError: In case no chat was found with the given name for the current user.
         """
         logger.info(
-            "Looking for chat '%s' on user '%s'",
+            "Looking for chat associated with the user.",
             extra={"audit": True, "chat_name": name, "user_id": user_id},
         )
         chat = self._chat_repository.select_by_name(user_id, name)
