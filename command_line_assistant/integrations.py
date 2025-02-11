@@ -3,7 +3,7 @@
 #: Bash interactive session for c.
 BASH_INTERACTIVE: str = r"""
 # Command Line Assistant Interactive Mode Integration
-c_interactive() {
+__c_interactive() {
     # Save current terminal state
     local old_tty=$(stty -g)
     local c_binary=/usr/bin/c
@@ -34,7 +34,7 @@ c_interactive() {
 }
 
 # Bind Ctrl+J to the interactive function
-bind -x '"\C-j": c_interactive'
+bind -x '"\C-j": __c_interactive'
 """
 
 #: Exports the $PROMPT_COMMAND variable to an internal variable managed by CLA.
