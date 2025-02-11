@@ -291,6 +291,7 @@ class BaseChatOperation(BaseOperation):
         attachment: str,
         attachment_mimetype: str,
         last_output: str,
+        skip_spinner: Optional[bool] = False,
     ) -> str:
         """Submit the question over dbus.
 
@@ -302,12 +303,15 @@ class BaseChatOperation(BaseOperation):
             attachment (str): The attachment contents
             attachment_mimetype (str): The mimetype of the attachment
             last_output (str): The last out read from the terminal
+            skip_spinner (Optional[bool], optional): Skip the spinner renderer. Defaults to False.
 
         Returns:
             str: The response from the backend server
         """
         final_question = _get_input_source(question, stdin, attachment, last_output)
-        with self.spinner_renderer:
+        response = None
+
+        if skip_spinner:
             response = self._get_response(
                 user_id,
                 final_question,
@@ -316,8 +320,19 @@ class BaseChatOperation(BaseOperation):
                 attachment_mimetype,
                 last_output,
             )
-            self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
-            return response
+        else:
+            with self.spinner_renderer:
+                response = self._get_response(
+                    user_id,
+                    final_question,
+                    stdin,
+                    attachment,
+                    attachment_mimetype,
+                    last_output,
+                )
+
+        self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
+        return response
 
     def _get_response(
         self,
@@ -470,6 +485,7 @@ class InteractiveChatOperation(BaseChatOperation):
                     attachment_mimetype=attachment_mimetype,
                     # For now, we won't deal with last output in interactive mode.
                     last_output="",
+                    skip_spinner=self.args.raw,
                 )
                 self._display_response(response)
         except StopInteractiveMode as e:
@@ -501,6 +517,7 @@ class SingleQuestionOperation(BaseChatOperation):
                 attachment=attachment,
                 attachment_mimetype=attachment_mimetype,
                 last_output=last_terminal_output,
+                skip_spinner=self.args.raw,
             )
 
             self._display_response(response)
@@ -577,6 +594,12 @@ def register_subcommand(parser: SubParsersAction) -> None:
         const=1,
         default=1,
         help="Read last output from terminal. Default to last entry collected.",
+    )
+    question_group.add_argument(
+        "-r",
+        "--raw",
+        action="store_true",
+        help="Interact with the backend in raw mode. No spinners, emojis or anything.",
     )
 
     chat_arguments = chat_parser.add_argument_group("Chat Options")

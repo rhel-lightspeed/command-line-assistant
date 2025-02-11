@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "CLAD" "8" "Feb 06, 2025" "0.1.0" "Command Line Assistant"
+.TH "CLAD" "8" "Feb 11, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 clad \- Command Line Assistant Daemon
 .SH SYNOPSIS
@@ -68,13 +68,13 @@ System configuration file
 .B \fI/var/lib/command\-line\-assistant/history.db\fP
 SQlite3 history database
 .TP
-.B \fI/etc/dbus\-1/systemd/com.redhat.lightspeed.conf\fP
+.B \fI/etc/dbus\-1/system.d/com.redhat.lightspeed.conf\fP
 D\-Bus conf to control access of bus activation
 .TP
-.B \fI/usr/share/dbus\-1/system\-services/com.redhat.lightspeed.chat.srvice\fP
+.B \fI/usr/share/dbus\-1/system\-services/com.redhat.lightspeed.chat.service\fP
 Service to enable dbus activation from chat endpoint
 .TP
-.B \fI/usr/share/dbus\-1/system\-services/com.redhat.lightspeed.history.srvice\fP
+.B \fI/usr/share/dbus\-1/system\-services/com.redhat.lightspeed.history.service\fP
 Service to enable dbus activation from history endpoint
 .TP
 .B \fI/usr/lib/systemd/system/clad.service\fP

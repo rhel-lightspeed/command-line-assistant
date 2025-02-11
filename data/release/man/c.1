@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Feb 06, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Feb 11, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -57,8 +57,8 @@ Command to ask a question to the LLM.
 .INDENT 3.5
 .sp
 .EX
-c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-lo [LAST_OUTPUT]] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
-       [\-\-description [DESCRIPTION]]
+c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-lo [LAST_OUTPUT]] [\-r] [\-l] [\-d [DELETE]] [\-da]
+       [\-n [NAME]] [\-\-description [DESCRIPTION]]
        [query_string]
 .EE
 .UNINDENT
@@ -77,7 +77,9 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-lo [LAST_OUTPUT]] [\-l] [\-d [DELETE]] 
 .IP \(bu 2
 \fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start interactive chat session
 .IP \(bu 2
-\fI\%\-lo\fP \fBLAST_OUTPUT\fP, \fI\%\-\-last\-output\fP \fBLAST_OUTPUT\fP \- Read last output from terminal. It goes drecreasing (default: \fBNone\fP)
+\fI\%\-lo\fP \fBLAST_OUTPUT\fP, \fI\%\-\-last\-output\fP \fBLAST_OUTPUT\fP \- Read last output from terminal. Default to last entry collected. (default: \fBNone\fP)
+.IP \(bu 2
+\fI\%\-r\fP, \fI\%\-\-raw\fP \- Interact with the backend in raw mode. No spinners, emojis or anything.
 .UNINDENT
 .SS c chat Chat options
 .INDENT 0.0
@@ -99,7 +101,7 @@ Manage conversation history
 .INDENT 3.5
 .sp
 .EX
-c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-c]
+c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-a] [\-c]
 .EE
 .UNINDENT
 .UNINDENT
@@ -111,11 +113,13 @@ c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-c]
 .SS c history Filtering Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-f\fP, \fI\%\-\-first\fP \- Get the first conversation from history. If no \-\-from is specified, this will get the first conversation across all chats.
+\fI\%\-f\fP, \fI\%\-\-first\fP \- Get the first conversation from history.
 .IP \(bu 2
-\fI\%\-l\fP, \fI\%\-\-last\fP \- Get the last conversation from history. If no \-\-from is specified, this will get the last conversation across all chats.
+\fI\%\-l\fP, \fI\%\-\-last\fP \- Get the last conversation from history.
 .IP \(bu 2
-\fI\%\-fi\fP \fBFILTER\fP, \fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. If no \-\-from is specified, this will filter conversations across all chats. (default: \fBNone\fP)
+\fI\%\-fi\fP \fBFILTER\fP, \fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. (default: \fBNone\fP)
+.IP \(bu 2
+\fI\%\-a\fP, \fI\%\-\-all\fP \- Get all conversation from history.
 .UNINDENT
 .SS c history Management Options
 .INDENT 0.0
