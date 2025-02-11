@@ -24,8 +24,8 @@ unit-tests:
   stage: tests
   image: docker.io/library/python:3.9
   script:
-    - sudo apt update -y
-    - sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
+    - apt update -y
+    - apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
     - make install
     - make unit-test-coverage
     - make coverage
