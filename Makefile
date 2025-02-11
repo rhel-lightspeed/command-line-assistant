@@ -32,7 +32,7 @@ XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
 default: help
 
 install-tools: ## Install required utilities/tools
-	@command -v poetry > /dev/null || { echo >&2 "poetry is not installed. Installing..."; pipx install poetry; }
+	@command -v poetry > /dev/null || { echo >&2 "poetry is not installed. Installing..."; pip install -q poetry; }
 	@poetry --version
 
 install: install-tools ## Sync all required dependencies for Command Line Assistant to work
