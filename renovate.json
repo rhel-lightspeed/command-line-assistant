@@ -2,5 +2,12 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
-  ]
+  ],
+  "poetry": {
+    "enabled": true,
+    "schedule": [
+        "after 5am"
+    ]
+},
+"dependencyDashboard": true
 }
