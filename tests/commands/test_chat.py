@@ -44,7 +44,7 @@ def default_namespace():
         delete_all=False,
         name="test",
         description="test",
-        last_output=-1,
+        with_output=-1,
     )
 
 

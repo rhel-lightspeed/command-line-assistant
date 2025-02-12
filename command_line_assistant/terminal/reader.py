@@ -4,9 +4,7 @@ import json
 import os
 import pty
 from pathlib import Path
-from typing import IO
-
-from typing_extensions import Any
+from typing import IO, Any
 
 from command_line_assistant.utils.environment import get_xdg_state_path
 from command_line_assistant.utils.files import create_folder, write_file
