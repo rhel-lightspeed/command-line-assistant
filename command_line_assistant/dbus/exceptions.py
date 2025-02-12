@@ -6,16 +6,10 @@ from command_line_assistant.dbus.constants import (
     CHAT_NAMESAPCE,
     ERROR_MAPPER,
     HISTORY_NAMESPACE,
-    SERVICE_NAMESPACE,
 )
 
 #: Special decorator for mapping exceptions to dbus style exceptions
 dbus_error = get_error_decorator(ERROR_MAPPER)
-
-
-@dbus_error("NotAuthorizedUser", namespace=SERVICE_NAMESPACE)
-class NotAuthorizedUser(DBusError):
-    """The current user is not authenticated to issue queries."""
 
 
 @dbus_error("RequestFailedError", namespace=CHAT_NAMESAPCE)
@@ -33,8 +27,8 @@ class MissingHistoryFileError(DBusError):
     """Missing history file in the destination"""
 
 
-@dbus_error("HistoryNotAvailable", namespace=HISTORY_NAMESPACE)
-class HistoryNotAvailable(DBusError):
+@dbus_error("HistoryNotAvailableError", namespace=HISTORY_NAMESPACE)
+class HistoryNotAvailableError(DBusError):
     """History for that particular user is not available."""
 
 

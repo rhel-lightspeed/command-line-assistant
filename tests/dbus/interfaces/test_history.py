@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from dasbus.server.template import InterfaceTemplate
 
-from command_line_assistant.dbus.exceptions import HistoryNotAvailable
+from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
 from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.history.manager import HistoryManager
@@ -48,7 +48,7 @@ def test_history_interface_get_history_exception(history_interface):
     """Test getting all history through history interface."""
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
     with pytest.raises(
-        HistoryNotAvailable, match="Unfortunately, no history was found."
+        HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
         history_interface.GetHistory(uid)
 
@@ -76,7 +76,7 @@ def test_history_interface_get_first_conversation(
 def test_history_interface_get_first_conversation_exception(history_interface):
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
     with pytest.raises(
-        HistoryNotAvailable, match="Unfortunately, no history was found."
+        HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
         history_interface.GetFirstConversation(uid)
 
@@ -101,7 +101,7 @@ def test_history_interface_get_last_conversation(history_interface, mock_history
 def test_history_interface_get_last_conversation_exception(history_interface):
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
     with pytest.raises(
-        HistoryNotAvailable, match="Unfortunately, no history was found."
+        HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
         history_interface.GetLastConversation(uid)
 
@@ -127,7 +127,7 @@ def test_history_interface_get_filtered_conversation(
 def test_history_interface_get_filtered_conversation_exception(history_interface):
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
     with pytest.raises(
-        HistoryNotAvailable, match="Unfortunately, no history was found."
+        HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
         history_interface.GetFilteredConversation(uid, filter="test")
 
