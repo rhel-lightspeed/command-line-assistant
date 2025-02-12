@@ -211,7 +211,7 @@ class ChatOperationFactory(CommandOperationFactory):
         "query_string": ChatOperationType.SINGLE_QUESTION,
         "stdin": ChatOperationType.SINGLE_QUESTION,
         "attachment": ChatOperationType.SINGLE_QUESTION,
-        "last_output": ChatOperationType.SINGLE_QUESTION,
+        "with_output": ChatOperationType.SINGLE_QUESTION,
     }
 
 
@@ -483,7 +483,7 @@ class SingleQuestionOperation(BaseChatOperation):
     def execute(self) -> None:
         """Default method to execute the operation"""
         try:
-            last_terminal_output = _read_last_terminal_output(self.args.last_output)
+            last_terminal_output = _read_last_terminal_output(self.args.with_output)
             attachment = _parse_attachment_file(self.args.attachment)
             attachment_mimetype = guess_mimetype(self.args.attachment)
             stdin = self.args.stdin.strip()
