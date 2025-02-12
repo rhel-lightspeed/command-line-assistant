@@ -47,6 +47,7 @@ class HistoryOperationFactory(CommandOperationFactory):
         "first": HistoryOperationType.FIRST,
         "last": HistoryOperationType.LAST,
         "filter": HistoryOperationType.FILTER,
+        "all": HistoryOperationType.ALL,
     }
 
 
@@ -216,6 +217,7 @@ class HistoryCommand(BaseCLICommand):
             operation = operation_factory.create_operation(
                 self._args, self._context, error_renderer=error_renderer
             )
+
             if operation:
                 operation.execute()
             return 0
