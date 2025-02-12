@@ -29,7 +29,7 @@ clean-local:
 
 test:
 	# https://access.redhat.com/articles/6999267
-	sudo semodule -i clad.pp
+	semodule -i clad.pp
 
 %.cil: %.pp
 	cat clad.pp | /usr/libexec/selinux/hll/pp > clad.cil

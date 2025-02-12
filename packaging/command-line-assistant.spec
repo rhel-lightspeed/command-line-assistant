@@ -76,6 +76,12 @@ pushd data/release/selinux
 %{__make} %{modulename}.pp.bz2
 popd
 
+%test
+# Test selinux policy file
+pushd data/release/selinux
+%{__make} test
+popd
+
 %install
 %py3_install_wheel %{python_package_src}-%{version}-py3-none-any.whl
 
