@@ -11,6 +11,8 @@
 	reload-clad \
 	manpages \
 	docs \
+	distribution-tarball \
+	html-docs
 
 # Project directory path - /home/<user>/.../command-line-assistant
 PROJECT_DIR := $(shell pwd)
@@ -28,6 +30,9 @@ CLAD_SYSTEMD_USER_PATH := $(DATA_DEVELOPMENT_PATH)/systemd/clad-user.service
 SYSTEMD_USER_UNITS := ~/.config/systemd/user
 # Path to local XDG_CONFIG_DIRS to load config file
 XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
+
+PKGNAME := command-line-assistant
+VERSION := 0.2.2
 
 default: help
 
@@ -77,7 +82,8 @@ clean: ## Clean project files
 	   dist \
 	   .tox \
 	   junit.xml \
-	   coverage.xml
+	   coverage.xml \
+	   $(PKGNAME)-$(VERSION).tar.gz
 	$(MAKE) -C docs clean
 	$(MAKE) -C data/release/selinux
 
@@ -113,3 +119,22 @@ man: ## Build manpages
 
 html-docs: ## Build html docs
 	$(MAKE) -C docs html
+
+distribution-tarball: clean ## Generate distribution tarball
+	tar --create \
+		--gzip \
+		--file /tmp/$(PKGNAME)-$(VERSION).tar.gz \
+		--exclude=.git \
+		--exclude=.vscode \
+		--exclude=.github \
+		--exclude=.gitignore \
+		--exclude=.copr \
+		--exclude=.venv \
+		--exclude=.ruff_cache \
+		--exclude=data/development \
+		--exclude=scripts \
+		--exclude=docs \
+		--exclude=tests \
+		--exclude=.roproject \
+		--transform s/^\./$(PKGNAME)-$(VERSION)/ \
+		. && mv /tmp/$(PKGNAME)-$(VERSION).tar.gz .

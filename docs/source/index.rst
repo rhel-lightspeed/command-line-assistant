@@ -19,7 +19,6 @@ Welcome to Command Line Assistant documentation
    terminal/index
    utils/index
    constants
-   handlers
    initialize
    logger
    meta

@@ -7,5 +7,4 @@ Schemas
    backend
    history
    logging
-   output
    database
