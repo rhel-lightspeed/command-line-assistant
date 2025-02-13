@@ -14,10 +14,9 @@ dependencies = [
     'tomli; python_version<"3.11"',
     "requests",
     "dasbus",
-    "PyGObject",
-    "sqlalchemy>=2.0.37",
+    "sqlalchemy==2.0.37",
 ]
-requires-python = ">=3.9" # RHEL 9 and 10
+requires-python = ">=3.9,<4.0" # RHEL 9 and 10
 readme = "README.md"
 license = { file = "LICENSE" }
 classifiers = ["Programming Language :: Python :: 3"]
@@ -25,30 +24,36 @@ urls = { Repository = "https://github.com/rhel-lightspeed/command-line-assistant
 scripts = { c = "command_line_assistant.initialize:initialize", clad = "command_line_assistant.daemon.clad:daemonize" }
 
 [build-system]
-# pdm build is not available in rhel baseos repositories
+# poetry build is not available in rhel baseos repositories
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
-db = ["psycopg2>=2.9.10", "mysqlclient>=2.2.7"]
-dev = [
+db = ["psycopg2==2.9.10", "mysqlclient==2.2.7"]
+tests = [
     "pytest==8.3.4",
     "pytest-cov==6.0.0",
     "pytest-randomly==3.16.0",
     "coverage==7.6.10",
     "pytest-sugar==1.0.0",
     "pytest-clarity==1.0.1",
-    "tox>=4.23.2",
-    "tox-pdm>=0.7.2",
-    "responses>=0.25.3",
-    "sphinx>=7.4.7",
-    "sphinx-autodoc-typehints>=2.3.0",
-    "sphinx-rtd-theme>=3.0.2",
-    "sphinx-argparse-cli>=1.17.0",
+    "tox==4.23.2",
+    "responses==0.25.3",
+]
+dev = [
+    "PyGObject==3.50.0",
+    # added here mainly for editor happines
+    "ruff==0.9.4"
+]
+docs = [
+    "sphinx==7.4.7",
+    "sphinx-autodoc-typehints==2.3.0",
+    "sphinx-rtd-theme==3.0.2",
+    "sphinx-argparse-cli==1.17.0",
+    "sphinx-autodoc-typehints==2.3.0",
 ]
 
 # ----- Tooling specifics
-
 [tool.setuptools.packages.find]
 include = ["command_line_assistant*"]
 namespaces = false
@@ -70,12 +75,8 @@ lint.ignore = [
     "E501", # Ignore line length (similar to flake8's max-line-length)
 ]
 
-[tool.pdm]
-distribution = true
-
-[tool.pdm.scripts]
-unit-test = "make unit-test"
-unit-test-coverage = "make unit-test-coverage"
+[tool.poetry]
+package-mode = false
 
 [tool.pytest.init_options]
 testpaths = ["tests"]

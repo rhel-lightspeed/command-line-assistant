@@ -13,14 +13,14 @@ Command Line Assistant
 Description
 -----------
 
-The Command Line Assistant powered by RHEL Lightspeed is a optional generative
+The Command Line Assistant powered by RHEL Lightspeed is an optional generative
 AI assistant available within the RHEL command line interface. The Command Line
 Assistant can help with several tasks such as::
 
-    1. answering RHEL related questions
-    2. assisting with troubleshooting
-    3. assisting with deciphering log entries
-    3. and many other tasks.
+    *. Answering RHEL related questions
+    *. Assisting with troubleshooting
+    *. Assisting with understanding log entries
+    *. And many other tasks.
 
 The Command Line Assistant provides a natural language interface, and can
 incorporate information from resources such as the RHEL documentation.
@@ -37,11 +37,15 @@ Example 1. Asking a simple question
 
     Alternatively, you can strictly specify that you want a query with::
 
-        $ c query "What is RHEL?"
+        $ c chat "What is RHEL?"
 
     In case `query` is not placed, the program will assume that anything that
-    comes after is a potential query. That includes the options for `query`
+    comes after is a potential query. That includes the options for `chat`
     as well.
+
+    Alternativelly, you can also use `--interactive` to start an interactive session::
+
+        $ c --interactive
 
 Example 2. Redirecting output to `c`
 
@@ -56,7 +60,7 @@ Example 2. Redirecting output to `c`
 
         $ my-command | c
 
-    Sometimes, only providing the error output may not be enough. For that, you
+    Sometimes, only providing the error output might not be enough. For that, you
     can combine your redirect output with a question like this::
 
         $ $ cat log_with_error.log | c "how do I solve this?"
@@ -68,11 +72,11 @@ Example 3. Attaching a file with your question
 
         $ c --attachment log_with_error.log
 
-    Or, with it's short version::
+    Optionally, you can use the short version::
 
         $ c -a log_with_error.log
 
-    You can also combine the attachemtn with a question::
+    You can also combine the attachment with a question::
 
         $ c -a log_with_error.log "how do I solve this?"
 
@@ -80,22 +84,21 @@ Example 3. Attaching a file with your question
 
         echo "how do I solve this?" | c -a log_with_error.log
 
-    However, if you specify a redirect output and a query at the same you have
+    However, if you specify a redirect output and a query at the same time that you have
     an attachment, only the attachment plus the query will be used. The
     redirect output will be ignored::
 
-        # The redirection here will be ignored as the query has precedence over redirection in this scenario.
+        # The redirection output here will be ignored, as the query has precedence over redirection in this scenario.
         echo "how do I solve this?" | c -a log_with_error.log "please?"
 
 Example 4. History management
 
-    With Command Line Assistant, you can also check your conversation history.
-    To do so, one can issue the following command to retrieve all user
-    history:: Check all history entries::
+    With Command Line Assistant, you can also check your conversation history. For that, use the following command to retrieve all user
+    history::
 
         $ c history
 
-    If you don't want all history, you can filter either for the first, or last
+    If you don't want all history, you can filter it for either the first or last
     result with::
 
         $ c history --first
@@ -107,9 +110,31 @@ Example 4. History management
         # This will retrieve all questions/responses that contain the work "selinux"
         $ c history --filter "selinux"
 
-    And lastly, to start a clean history, you can clear all of it with::
+    And finally, to start a clean history, you can clear all the user history with::
 
         $ c history --clear
+
+Example 5. Shell integrations
+
+    With Command Line Assistant, you can also enable shell integrations to help
+    in your experience::
+
+        $ c shell --enable-integration
+
+
+    The above command will place a file under ~/.bashrc.d folder that will
+    be sourced by bash after the next time you open up your terminal.
+    Currently, we only have one integration that aims to start the
+    interactive mode with a keybind, like the following::
+
+        $ c shell --enable-integration
+        # After enabling the integration, restart your terminal or run
+        $ source ~/.bashrc
+        # After the integration was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
+
+    If you wish to disable the integration, that can be done with::
+
+        $ c shell --disabled-integration
 
 Notes
 -----
@@ -125,6 +150,18 @@ order to maintain a correct order of querying. The rules can be seen here::
     5. Stdin + file query -> combine as "{stdin} {file_query}"
     6. Positional + file query -> combine as "{positional_query} {file_query}"
     7. All three sources -> use only positional and file as "{positional_query} {file_query}"
+
+Files
+-----
+
+*~/.bashrc.d/cla-interactive.bashrc*
+    Bash script to add keyboard binding to enable interactive mode.
+
+*~/.bashrc.d/clad-exports.bashrc*
+    Bash script to export necessary environment variables for command-line-assistant.
+
+*~/.local/state/command-line-assistant/terminal.log*
+    State file that captures the terminal screen and store it as json.
 
 Reference
 ---------

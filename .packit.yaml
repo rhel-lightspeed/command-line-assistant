@@ -80,7 +80,7 @@ jobs:
     manual_trigger: false
     trigger: pull_request
     fmf_url: "https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/cla-tests"
-    fmf_ref: main
+    fmf_ref: develop
     tmt_plan: "/plans/deterministic"
     use_internal_tf: True
     targets:

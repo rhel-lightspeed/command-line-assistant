@@ -15,19 +15,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Setup PDM
-        uses: pdm-project/setup-pdm@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: true
 
       - name: Install dependencies
         run: |
@@ -35,13 +26,18 @@ jobs:
           sudo apt update -y
           sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
           make install
-          echo "$(pdm venv --path in-project)/bin" >> $GITHUB_PATH
 
       - name: Run unit tests
-        run: pdm run unit-test-coverage
+        run: |
+          make unit-test-coverage
+          make coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
+        with:
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 

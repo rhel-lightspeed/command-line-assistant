@@ -3,8 +3,9 @@ sphinx-autodoc-typehints>=2.3.0
 sphinx-rtd-theme>=3.0.2
 sphinx-argparse-cli>=1.17.0
 
-# Only here because readthedocs can't build the docs properly without it.
-# We don't want to introduce pdm and the other tooling in the CI.
+# Only here becasue readthedocs can't build the docs properly without it.
+# We don't want to introduce poetry and the other tooling in the CI.
 dasbus
 requests
 PyGObject
+sqlalchemy

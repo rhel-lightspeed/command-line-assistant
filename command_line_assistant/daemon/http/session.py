@@ -26,13 +26,16 @@ def get_session(config: Config) -> Session:
 
     For now, we only mount the TLS information to the endpoint.
 
-    Args:
+    Arguments:
         config (Config): Instance of the config class
 
     Returns:
         Session: A mounted session with the necessary adapters.
     """
     session = Session()
+
+    # Include the proxies defined by the user. By default, nothing is loaded.
+    session.proxies.update(config.backend.proxies)
 
     # Set up the necessary headers for every session.
     session.headers["User-Agent"] = USER_AGENT

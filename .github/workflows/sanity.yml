@@ -11,35 +11,26 @@ jobs:
     runs-on: ubuntu-latest
     name: Sanity - ${{ matrix.python-version }}
     strategy:
-      fail-fast: true
       matrix:
-        python-version:
-          - '3.9'
-          - '3.12'
+        python-version: ['3.9', '3.12']
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup PDM
-        uses: pdm-project/setup-pdm@v4
+      - uses: actions/setup-python@v5
         with:
-          version: 2.20.1
           python-version: ${{ matrix.python-version }}
-          cache: true
 
       - name: Install dependencies
         run: |
           # TODO(r0x0d): Refactor this https://issues.redhat.com/browse/RSPEED-339
           sudo apt update -y
           sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
-          pdm install -v
-          pdm info
-          echo "$(pdm venv --path in-project)/bin" >> $GITHUB_PATH
+          make install
+          echo "$(poetry env info -p)/bin" >> $GITHUB_PATH
 
       - name: Run pyright
         uses: jakebailey/pyright-action@v2
         with:
-          version: 1.1.389
           python-version: ${{ matrix.python-version }}
           annotate: errors

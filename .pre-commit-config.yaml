@@ -1,14 +1,18 @@
 ci:
-  autoupdate_schedule: quarterly
   skip:
     # https://github.com/pre-commit-ci/issues/issues/55
     - pyright
 
-minimum_pre_commit_version: "2.9.0"
+minimum_pre_commit_version: "3.8.0"
 repos:
+  - repo: https://github.com/rpm-software-management/rpmlint
+    rev: 2.7.0
+    hooks:
+      - id: rpmlint
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.8.6
+    rev: v0.9.4
     hooks:
       # Run the linter.
       - id: ruff
@@ -40,7 +44,7 @@ repos:
         stages: [manual, pre-push]
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.391
+    rev: v1.1.393
     hooks:
     - id: pyright
       additional_dependencies:
@@ -55,10 +59,11 @@ repos:
         - sqlalchemy
 
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.22.1
+    rev: v8.23.3
     hooks:
       - id: gitleaks
         stages: [manual, pre-push]
+
   - repo: https://github.com/econchick/interrogate
     rev: 1.7.0
     hooks:

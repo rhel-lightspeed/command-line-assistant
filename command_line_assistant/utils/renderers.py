@@ -8,6 +8,7 @@ from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
     TextWrapDecorator,
 )
+from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.rendering.stream import StderrStream, StdoutStream
@@ -50,14 +51,14 @@ def create_warning_renderer() -> TextRenderer:
 
 
 def create_spinner_renderer(
-    message: str, decorators: list[BaseDecorator]
+    message: str, decorators: Optional[list[BaseDecorator]] = None
 ) -> SpinnerRenderer:
     """Create a new instance of a spinner renderer.
 
     Note:
         `py:TextWrapDecorator` is applied automatically to the renderer.
 
-    Args:
+    Arguments:
         message (str): The message to show while spinning
         decorators (list[BaseDecorator]): List of decorators that can be
         applied to the spinner renderer.
@@ -66,9 +67,22 @@ def create_spinner_renderer(
         SpinnerRenderer: Instance of a SpinnerRenderer with decorators applied.
     """
     spinner = SpinnerRenderer(message, stream=StdoutStream(end=""))
+    decorators = decorators or []
     decorators.append(TextWrapDecorator())
     spinner.update(decorators)
     return spinner
+
+
+def create_interactive_renderer() -> InteractiveRenderer:
+    """Create a new instance of the interactive rendering.
+
+    Returns:
+        InteractiveRenderer: A new instance of the interactive renderer.
+    """
+    interactive = InteractiveRenderer(
+        banner="Welcome to the interactive mode for command line assistant! To exit, press Ctrl + C or type '.exit'."
+    )
+    return interactive
 
 
 def create_text_renderer(
@@ -80,11 +94,10 @@ def create_text_renderer(
     Note:
         `py:TextWrapDecorator` is applied automatically to the renderer.
 
-    Note:
         If no `stream` is provided in the arguments, it will default to the
         `py:StdoutStream()`.
 
-    Args:
+    Arguments:
         decorators (Optional[list[BaseDecorator]], optional): List of
         decorators that can be applied to the text renderer. Defaults to None.
         stream (Optional[BaseStream], optional): Apply a different stream other

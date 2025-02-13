@@ -16,12 +16,14 @@ Welcome to Command Line Assistant documentation
    dbus/index
    history/index
    rendering/index
+   terminal/index
    utils/index
    constants
-   handlers
    initialize
    logger
    meta
+   exceptions
+   integrations
 
 .. toctree::
    :maxdepth: 1

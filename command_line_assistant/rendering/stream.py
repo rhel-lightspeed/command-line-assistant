@@ -13,7 +13,7 @@ class StderrStream(BaseStream):
     def __init__(self, end: str = "\n") -> None:
         """Constructor of class.
 
-        Args:
+        Arguments:
             end (str): The string to append after the text. Defaults to newline.
         """
 
@@ -26,7 +26,7 @@ class StdoutStream(BaseStream):
     def __init__(self, end: str = "\n") -> None:
         """Constructor of class.
 
-        Args:
+        Arguments:
             end (str): The string to append after the text. Defaults to newline.
         """
 

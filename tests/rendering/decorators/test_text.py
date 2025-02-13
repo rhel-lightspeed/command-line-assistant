@@ -219,7 +219,7 @@ class TestWriteOnceDecorator:
         """Test state file permissions"""
         decorator.decorate("Test text")
         assert decorator._state_file.exists()
-        assert oct(decorator._state_file.stat().st_mode)[-3:] == "644"
+        assert oct(decorator._state_file.stat().st_mode)[-3:] == "600"
 
     @pytest.mark.parametrize(
         "filename",

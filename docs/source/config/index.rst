@@ -5,4 +5,4 @@ Configuration
    :maxdepth: 2
 
    config
-   schemas
+   schemas/index

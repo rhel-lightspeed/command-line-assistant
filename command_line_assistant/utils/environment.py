@@ -5,11 +5,14 @@ Utilitary module to interact with environment variables.
 import os
 from pathlib import Path
 
-# The wanted xdg path where the configuration files will live.
+#: The wanted xdg path where the configuration files will live.
 WANTED_XDG_PATH = Path("/etc/xdg")
 
-# The wanted xdg state path in case $XDG_STATE_HOME is not defined.
-WANTED_XDG_STATE_PATH = Path("~/.local/state").expanduser()
+#: The wanted xdg state path in case $XDG_STATE_HOME is not defined.
+WANTED_XDG_STATE_PATH = Path("~/.local/state/command-line-assistant").expanduser()
+
+#: The wanted xdg data path in case $XDG_DATA_HOME is not defined.
+WANTED_XDG_DATA_PATH = Path("~/.local/share/command-line-assistant").expanduser()
 
 
 def get_xdg_state_path() -> Path:
@@ -25,8 +28,25 @@ def get_xdg_state_path() -> Path:
 
     # We call expanduser() for the xdg_state_home in case someone do "~/"
     return (
-        Path(xdg_state_home).expanduser() if xdg_state_home else WANTED_XDG_STATE_PATH
+        Path(xdg_state_home, "command-line-assistant").expanduser()
+        if xdg_state_home
+        else WANTED_XDG_STATE_PATH
     )
+
+
+def get_xdg_data_path() -> Path:
+    """Check for the existence of XDG_DATA_HOME environment variable.
+
+    In case it is not present, this function will return the default path that
+    is `~/.local/share`, which is where we want to place data files for
+    Command Line Assistant.
+
+    See: https://specifications.freedesktop.org/basedir-spec/latest/
+    """
+    xdg_data_home = os.getenv("XDG_DATA_HOME", "")
+
+    # We call expanduser() for the xdg_data_home in case someone do "~/"
+    return Path(xdg_data_home).expanduser() if xdg_data_home else WANTED_XDG_DATA_PATH
 
 
 def get_xdg_config_path() -> Path:

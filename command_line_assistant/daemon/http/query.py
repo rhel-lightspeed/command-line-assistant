@@ -12,11 +12,11 @@ from command_line_assistant.dbus.exceptions import RequestFailedError
 logger = logging.getLogger(__name__)
 
 
-def submit(query: str, config: Config) -> str:
+def submit(payload: dict, config: Config) -> str:
     """Method to submit the query to the backend.
 
-    Args:
-        query (str): User query config (Config): Instance of a config class
+    Arguments:
+        payload (dict): User query config (Config): Instance of a config class
 
     Raises:
         RequestFailedError: In case the request can't processed or there is an
@@ -26,17 +26,13 @@ def submit(query: str, config: Config) -> str:
         str: The response from the backend.
     """
     query_endpoint = f"{config.backend.endpoint}/infer"
-    payload = {"question": query}
 
     try:
-        logger.info("Waiting for response from AI...")
-        logger.debug("User query: %s", query)
-
         with get_session(config) as session:
             response = session.post(
                 query_endpoint, data=json.dumps(payload), timeout=30
             )
-
+        logger.info("Got response from LLM backend")
         response.raise_for_status()
         data = response.json()
         data = data.get("data", {})
