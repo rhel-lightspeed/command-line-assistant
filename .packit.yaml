@@ -80,18 +80,18 @@ jobs:
     manual_trigger: false
     trigger: pull_request
     fmf_url: "https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/cla-tests"
-    fmf_ref: develop
-    tmt_plan: "/plans/deterministic"
+    fmf_ref: "mlitwora/rspeed390_handle_secrets_in_github"
+    tmt_plan: "/plans/secret_handling"
     use_internal_tf: True
     targets:
       epel-9-x86_64:
-        distros: [RHEL-9-Nightly]
-      epel-10-x86_64:
-        distros: [RHEL-10-Nightly]
-      epel-9-aarch64:
-        distros: [RHEL-9-Nightly]
-      epel-10-aarch64:
-        distros: [RHEL-10-Nightly]
+        distros: [RHEL-9.6.0-Nightly]
+      # epel-10-x86_64:
+      #   distros: [RHEL-10-Nightly]
+      # epel-9-aarch64:
+      #   distros: [RHEL-9-Nightly]
+      # epel-10-aarch64:
+      #   distros: [RHEL-10-Nightly]
     tf_extra_params:
       environments:
         - settings:
