@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Feb 06, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Feb 12, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -57,8 +57,8 @@ Command to ask a question to the LLM.
 .INDENT 3.5
 .sp
 .EX
-c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-lo [LAST_OUTPUT]] [\-l] [\-d [DELETE]] [\-da] [\-n [NAME]]
-       [\-\-description [DESCRIPTION]]
+c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-o [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELETE]] [\-\-delete\-all]
+       [\-n [NAME]] [\-\-description [DESCRIPTION]]
        [query_string]
 .EE
 .UNINDENT
@@ -68,7 +68,7 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-lo [LAST_OUTPUT]] [\-l] [\-d [DELETE]] 
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
 .UNINDENT
-.SS c chat Question options
+.SS c chat Question Options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
@@ -77,16 +77,18 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-lo [LAST_OUTPUT]] [\-l] [\-d [DELETE]] 
 .IP \(bu 2
 \fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start interactive chat session
 .IP \(bu 2
-\fI\%\-lo\fP \fBLAST_OUTPUT\fP, \fI\%\-\-last\-output\fP \fBLAST_OUTPUT\fP \- Read last output from terminal. It goes drecreasing (default: \fBNone\fP)
+\fI\%\-o\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Read last output from terminal. Default to last entry collected. (default: \fB1\fP)
+.IP \(bu 2
+\fI\%\-r\fP, \fI\%\-\-raw\fP \- Interact with the backend in raw mode. No spinners, emojis or anything.
 .UNINDENT
-.SS c chat Chat options
+.SS c chat Chat Options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-l\fP, \fI\%\-\-list\fP \- List all chats
 .IP \(bu 2
 \fI\%\-d\fP \fBDELETE\fP, \fI\%\-\-delete\fP \fBDELETE\fP \- Delete a chat session (default: \fB\fP)
 .IP \(bu 2
-\fI\%\-da\fP, \fI\%\-\-delete\-all\fP \- Delete all chats
+\fI\%\-\-delete\-all\fP \- Delete all chats
 .IP \(bu 2
 \fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session (default: \fBdefault\fP)
 .IP \(bu 2
@@ -99,7 +101,7 @@ Manage conversation history
 .INDENT 3.5
 .sp
 .EX
-c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-c]
+c history [\-h] [\-f] [\-l] [\-\-filter FILTER] [\-a] [\-c]
 .EE
 .UNINDENT
 .UNINDENT
@@ -111,11 +113,13 @@ c history [\-h] [\-f] [\-l] [\-fi FILTER] [\-c]
 .SS c history Filtering Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-f\fP, \fI\%\-\-first\fP \- Get the first conversation from history. If no \-\-from is specified, this will get the first conversation across all chats.
+\fI\%\-f\fP, \fI\%\-\-first\fP \- Get the first conversation from history.
 .IP \(bu 2
-\fI\%\-l\fP, \fI\%\-\-last\fP \- Get the last conversation from history. If no \-\-from is specified, this will get the last conversation across all chats.
+\fI\%\-l\fP, \fI\%\-\-last\fP \- Get the last conversation from history.
 .IP \(bu 2
-\fI\%\-fi\fP \fBFILTER\fP, \fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. If no \-\-from is specified, this will filter conversations across all chats. (default: \fBNone\fP)
+\fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. (default: \fBNone\fP)
+.IP \(bu 2
+\fI\%\-a\fP, \fI\%\-\-all\fP \- Get all conversation from history.
 .UNINDENT
 .SS c history Management Options
 .INDENT 0.0
@@ -129,7 +133,8 @@ Manage shell integrations
 .INDENT 3.5
 .sp
 .EX
-c shell [\-h] [\-ec] [\-epc] [\-dpc] [\-ei] [\-di]
+c shell [\-h] [\-\-enable\-capture] [\-\-enable\-persistent\-capture] [\-\-disable\-persistent\-capture]
+        [\-\-enable\-interactive] [\-\-disable\-interactive]
 .EE
 .UNINDENT
 .UNINDENT
@@ -141,18 +146,18 @@ c shell [\-h] [\-ec] [\-epc] [\-dpc] [\-ei] [\-di]
 .SS c shell Terminal Capture Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-ec\fP, \fI\%\-\-enable\-capture\fP \- Enable terminal capture for the current terminal session.
+\fI\%\-\-enable\-capture\fP \- Enable terminal capture for the current terminal session.
 .IP \(bu 2
-\fI\%\-epc\fP, \fI\%\-\-enable\-persistent\-capture\fP \- Enable persistent terminal capture for the terminal session.
+\fI\%\-\-enable\-persistent\-capture\fP \- Enable persistent terminal capture for the terminal session.
 .IP \(bu 2
-\fI\%\-dpc\fP, \fI\%\-\-disable\-persistent\-capture\fP \- Disable persistent terminal capture for the terminal session.
+\fI\%\-\-disable\-persistent\-capture\fP \- Disable persistent terminal capture for the terminal session.
 .UNINDENT
 .SS c shell Interactive Mode Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-ei\fP, \fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported.
+\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported.
 .IP \(bu 2
-\fI\%\-di\fP, \fI\%\-\-disable\-interactive\fP \- Disable the shell integrationfor interactive mode on the system.
+\fI\%\-\-disable\-interactive\fP \- Disable the shell integrationfor interactive mode on the system.
 .UNINDENT
 .SH DESCRIPTION
 .sp

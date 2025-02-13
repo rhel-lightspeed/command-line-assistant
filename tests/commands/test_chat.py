@@ -24,6 +24,7 @@ from command_line_assistant.dbus.structures.chat import ChatEntry, ChatList, Res
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
+    create_text_renderer,
 )
 
 
@@ -44,7 +45,8 @@ def default_namespace():
         delete_all=False,
         name="test",
         description="test",
-        with_output=-1,
+        with_output=1,
+        raw=False,
     )
 
 
@@ -424,3 +426,47 @@ def test_single_question_operation_with_exception(
         ChatCommandException, match="Failed to get a response from LLM. test"
     ):
         SingleQuestionOperation(**default_kwargs).execute()
+
+
+def test_submit_question(mock_dbus_service, default_kwargs, capsys):
+    mock_dbus_service.WriteHistory.return_value = None
+    mock_dbus_service.AskQuestion.return_value = Response("test").structure()
+
+    default_kwargs["text_renderer"] = create_text_renderer()
+
+    chat_op = BaseChatOperation(**default_kwargs)
+    result = chat_op._submit_question(
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "test",
+        "",
+        "",
+        "",
+        "",
+        False,
+    )
+    assert result == "test"
+    captured = capsys.readouterr()
+    assert "Asking RHEL Lightspeed" in captured.out
+
+
+def test_submit_question_no_spinner(mock_dbus_service, default_kwargs, capsys):
+    mock_dbus_service.WriteHistory.return_value = None
+    mock_dbus_service.AskQuestion.return_value = Response("test").structure()
+
+    default_kwargs["text_renderer"] = create_text_renderer()
+
+    chat_op = BaseChatOperation(**default_kwargs)
+    result = chat_op._submit_question(
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "test",
+        "",
+        "",
+        "",
+        "",
+        True,
+    )
+    assert result == "test"
+    captured = capsys.readouterr()
+    assert "Asking RHEL Lightspeed" not in captured.out
