@@ -14,7 +14,7 @@ dependencies = [
     'tomli; python_version<"3.11"',
     "requests",
     "dasbus",
-    "sqlalchemy>=2.0.37",
+    "sqlalchemy==2.0.37",
 ]
 requires-python = ">=3.9,<4.0" # RHEL 9 and 10
 readme = "README.md"
@@ -29,7 +29,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
-db = ["psycopg2>=2.9.10", "mysqlclient>=2.2.7"]
+db = ["psycopg2==2.9.10", "mysqlclient==2.2.7"]
 tests = [
     "pytest==8.3.4",
     "pytest-cov==6.0.0",
@@ -37,13 +37,20 @@ tests = [
     "coverage==7.6.10",
     "pytest-sugar==1.0.0",
     "pytest-clarity==1.0.1",
-    "tox>=4.23.2",
-    "responses>=0.25.3",
+    "tox==4.23.2",
+    "responses==0.25.3",
 ]
 dev = [
-    "PyGObject>=3.50.0",
+    "PyGObject==3.50.0",
     # added here mainly for editor happines
-    "ruff>=0.9.4"
+    "ruff==0.9.4"
+]
+docs = [
+    "sphinx==7.4.7",
+    "sphinx-autodoc-typehints==2.3.0",
+    "sphinx-rtd-theme==3.0.2",
+    "sphinx-argparse-cli==1.17.0",
+    "sphinx-autodoc-typehints==2.3.0",
 ]
 
 # ----- Tooling specifics
