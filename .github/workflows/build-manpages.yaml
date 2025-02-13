@@ -5,8 +5,8 @@
 name: "Build manpages"
 
 on:
-  pull_request:
-    types: ["labeled"]
+  push:
+    branches: ["release/v*"]
 
 permissions:
   contents: write
@@ -15,12 +15,10 @@ jobs:
   build:
     name: Build manpage
     runs-on: ubuntu-latest
-    if: ${{ github.event.label.name == 'manpages' }}
-
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.ref }}
 
       - uses: actions/setup-python@v5
 
