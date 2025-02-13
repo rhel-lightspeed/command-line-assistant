@@ -1,5 +1,6 @@
 """Module to handle the history command."""
 
+import logging
 from argparse import Namespace
 from enum import auto
 from typing import ClassVar
@@ -10,6 +11,7 @@ from command_line_assistant.commands.base import (
     CommandOperationFactory,
     CommandOperationType,
 )
+from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
 from command_line_assistant.dbus.interfaces.chat import ChatInterface
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
 from command_line_assistant.dbus.interfaces.user import UserInterface
@@ -26,6 +28,8 @@ from command_line_assistant.utils.renderers import (
     create_error_renderer,
     create_text_renderer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class HistoryOperationType(CommandOperationType):
@@ -135,9 +139,15 @@ class ClearHistoryOperation(BaseHistoryOperation):
 
     def execute(self) -> None:
         """Default method to execute the operation"""
-        user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-        self.text_renderer.render("Cleaning the history.")
-        self.history_proxy.ClearHistory(user_id)
+        try:
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            self.text_renderer.render("Cleaning the history.")
+            self.history_proxy.ClearHistory(user_id)
+        except HistoryNotAvailableError as e:
+            logger.error("Failed to clear the history: %s", str(e))
+            raise HistoryCommandException(
+                "Something went wrong while clearing the history."
+            ) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.FIRST)
@@ -146,13 +156,19 @@ class FirstHistoryOperation(BaseHistoryOperation):
 
     def execute(self) -> None:
         """Default method to execute the operation"""
-        self.text_renderer.render("Getting first conversation from history.")
-        user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-        response = self.history_proxy.GetFirstConversation(user_id)
-        history = HistoryList.from_structure(response)
+        try:
+            self.text_renderer.render("Getting first conversation from history.")
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            response = self.history_proxy.GetFirstConversation(user_id)
+            history = HistoryList.from_structure(response)
 
-        # Display the conversation
-        self._show_history(history)
+            # Display the conversation
+            self._show_history(history)
+        except HistoryNotAvailableError as e:
+            logger.error("Failed to retrieve the first history entry: %s", str(e))
+            raise HistoryCommandException(
+                "Something went wrong while retrieving the first history entry"
+            ) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.LAST)
@@ -161,13 +177,19 @@ class LastHistoryOperation(BaseHistoryOperation):
 
     def execute(self) -> None:
         """Default method to execute the operation"""
-        self.text_renderer.render("Getting last conversation from history.")
-        user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-        response = self.history_proxy.GetLastConversation(user_id)
+        try:
+            self.text_renderer.render("Getting last conversation from history.")
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            response = self.history_proxy.GetLastConversation(user_id)
 
-        history = HistoryList.from_structure(response)
-        # Display the conversation
-        self._show_history(history)
+            history = HistoryList.from_structure(response)
+            # Display the conversation
+            self._show_history(history)
+        except HistoryNotAvailableError as e:
+            logger.error("Failed to retrieve the last history entry: %s", str(e))
+            raise HistoryCommandException(
+                "Something went wrong while retrieving the last history entry"
+            ) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.FILTER)
@@ -176,15 +198,27 @@ class FilteredHistoryOperation(BaseHistoryOperation):
 
     def execute(self) -> None:
         """Default method to execute the operation"""
-        self.text_renderer.render("Filtering conversation history.")
-        user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-        response = self.history_proxy.GetFilteredConversation(user_id, self.args.filter)
+        try:
+            self.text_renderer.render("Filtering conversation history.")
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            response = self.history_proxy.GetFilteredConversation(
+                user_id, self.args.filter
+            )
 
-        # Handle and display the response
-        history = HistoryList.from_structure(response)
+            # Handle and display the response
+            history = HistoryList.from_structure(response)
 
-        # Display the conversation
-        self._show_history(history)
+            # Display the conversation
+            self._show_history(history)
+        except HistoryNotAvailableError as e:
+            logger.error(
+                "Failed to retrieve entries with filter '%s': %s",
+                self.args.filter,
+                str(e),
+            )
+            raise HistoryCommandException(
+                "Something went wrong while retrieving filtered history entries"
+            ) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.ALL)
@@ -193,13 +227,19 @@ class AllHistoryOperation(BaseHistoryOperation):
 
     def execute(self) -> None:
         """Default method to execute the operation"""
-        self.text_renderer.render("Getting all conversations from history.")
-        user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-        response = self.history_proxy.GetHistory(user_id)
-        history = HistoryList.from_structure(response)
+        try:
+            self.text_renderer.render("Getting all conversations from history.")
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            response = self.history_proxy.GetHistory(user_id)
+            history = HistoryList.from_structure(response)
 
-        # Display the conversation
-        self._show_history(history)
+            # Display the conversation
+            self._show_history(history)
+        except HistoryNotAvailableError as e:
+            logger.error("Failed to retrieve the all history entries: %s", str(e))
+            raise HistoryCommandException(
+                "Something went wrong while retrieving all history entries"
+            ) from e
 
 
 class HistoryCommand(BaseCLICommand):

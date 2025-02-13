@@ -12,6 +12,7 @@ from command_line_assistant.commands.history import (
     LastHistoryOperation,
     _command_factory,
 )
+from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
 from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
 from command_line_assistant.exceptions import HistoryCommandException
 from command_line_assistant.utils.renderers import create_text_renderer
@@ -49,6 +50,18 @@ def test_retrieve_all_conversations_success(
     mock_dbus_service.GetHistory.assert_called_once()
 
 
+def test_retrieve_all_conversations_exception(mock_dbus_service, default_kwargs):
+    """Test retrieving all conversations successfully."""
+    mock_dbus_service.GetHistory.side_effect = HistoryNotAvailableError(
+        "History not found"
+    )
+    with pytest.raises(
+        HistoryCommandException,
+        match="Something went wrong while retrieving all history entries",
+    ):
+        AllHistoryOperation(**default_kwargs).execute()
+
+
 def test_retrieve_conversation_filtered_success(
     mock_dbus_service, sample_history_entry, capsys, default_kwargs, default_namespace
 ):
@@ -70,8 +83,27 @@ def test_retrieve_conversation_filtered_success(
     )
 
 
+def test_retrieve_conversation_filtered_exception(
+    mock_dbus_service, default_kwargs, default_namespace
+):
+    """Test catching filtered conversation successfully."""
+    default_namespace.filter = "missing"
+    default_kwargs["args"] = default_namespace
+    mock_dbus_service.GetFilteredConversation.side_effect = HistoryNotAvailableError(
+        "History not found"
+    )
+    with pytest.raises(
+        HistoryCommandException,
+        match="Something went wrong while retrieving filtered history entries",
+    ):
+        FilteredHistoryOperation(**default_kwargs).execute()
+
+
 def test_retrieve_first_conversation_success(
-    mock_dbus_service, sample_history_entry, capsys, default_kwargs
+    mock_dbus_service,
+    sample_history_entry,
+    capsys,
+    default_kwargs,
 ):
     """Test retrieving first conversation successfully."""
     mock_dbus_service.GetFirstConversation.return_value = (
@@ -85,6 +117,18 @@ def test_retrieve_first_conversation_success(
         "\x1b[92mQuestion: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
         in captured.out
     )
+
+
+def test_retrieve_first_conversation_exception(mock_dbus_service, default_kwargs):
+    """Test catching first conversation successfully."""
+    mock_dbus_service.GetFirstConversation.side_effect = HistoryNotAvailableError(
+        "Not found history"
+    )
+    with pytest.raises(
+        HistoryCommandException,
+        match="Something went wrong while retrieving the first history entry",
+    ):
+        FirstHistoryOperation(**default_kwargs).execute()
 
 
 def test_retrieve_last_conversation_success(
@@ -105,6 +149,18 @@ def test_retrieve_last_conversation_success(
     )
 
 
+def test_retrieve_last_conversation_exception(mock_dbus_service, default_kwargs):
+    """Test retrieving last conversation successfully."""
+    mock_dbus_service.GetLastConversation.side_effect = HistoryNotAvailableError(
+        "Not found history"
+    )
+    with pytest.raises(
+        HistoryCommandException,
+        match="Something went wrong while retrieving the last history entry",
+    ):
+        LastHistoryOperation(**default_kwargs).execute()
+
+
 def test_clear_history_success(mock_dbus_service, capsys, default_kwargs):
     """Test clearing history successfully."""
     default_kwargs["text_renderer"] = create_text_renderer()
@@ -112,6 +168,17 @@ def test_clear_history_success(mock_dbus_service, capsys, default_kwargs):
     captured = capsys.readouterr()
     assert "Cleaning the history" in captured.out
     mock_dbus_service.ClearHistory.assert_called_once()
+
+
+def test_clear_history_exception(mock_dbus_service, default_kwargs):
+    """Test clearing history successfully."""
+    mock_dbus_service.ClearHistory.side_effect = HistoryNotAvailableError(
+        "Not found history"
+    )
+    with pytest.raises(
+        HistoryCommandException, match="Something went wrong while clearing the history"
+    ):
+        ClearHistoryOperation(**default_kwargs).execute()
 
 
 @pytest.mark.parametrize(

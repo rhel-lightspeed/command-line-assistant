@@ -12,7 +12,7 @@ from command_line_assistant.daemon.database.models.history import (
 )
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
-from command_line_assistant.dbus.exceptions import HistoryNotAvailable
+from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
 from command_line_assistant.dbus.structures.history import (
     HistoryEntry,
     HistoryList,
@@ -54,7 +54,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailable(HISTORY_CHAT_NOT_AVAILABLE)
+            raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
 
         history_entry = _parse_interactions(history_entries[0].interactions)
         return history_entry.structure()
@@ -73,7 +73,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailable(HISTORY_CHAT_NOT_AVAILABLE)
+            raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
 
         history_entry = _parse_interactions(history_entries[0].interactions[:1])
         return history_entry.structure()
@@ -91,7 +91,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailable(HISTORY_CHAT_NOT_AVAILABLE)
+            raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
 
         history_entry = _parse_interactions(history_entries[0].interactions[-1:])
         return history_entry.structure()
@@ -109,7 +109,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailable(HISTORY_CHAT_NOT_AVAILABLE)
+            raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
 
         logger.info(
             "Filtering the user history with keyword '%s' for user '%s'",
