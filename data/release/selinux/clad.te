@@ -13,28 +13,22 @@ domain_type(clad_t)
 domain_entry_file(clad_t, clad_exec_t)
 role system_r types clad_t;
 
-type clad_etc_rw_t;
-files_config_file(clad_etc_rw_t)
+type clad_etc_r_t;
+files_config_file(clad_etc_r_t)
 
-type clad_tmp_t;
-files_tmp_file(clad_tmp_t)
-
-type clad_var_lib_t;
-files_type(clad_var_lib_t)
-
-type clad_log_t;
-logging_log_file(clad_log_t)
+type clad_var_lib_rw_t;
+files_type(clad_var_lib_rw_t)
 
 ########################################
 #
 # clad local policy
 #
 
-allow clad_t self:fifo_file rw_file_perms;
-allow clad_t self:unix_stream_socket create_stream_socket_perms;
+allow clad_t self:fifo_file rw_fifo_file_perms;
 
 # Network access
-allow clad_t self:tcp_socket { accept bind connect create getattr getopt listen read setopt shutdown write };
+allow clad_t self:unix_stream_socket create_stream_socket_perms;
+allow clad_t self:tcp_socket create_stream_socket_perms;
 
 # Network interfaces and nodes
 corenet_tcp_sendrecv_generic_if(clad_t)
@@ -56,24 +50,14 @@ allow clad_t self:dbus send_msg;
 
 # File access permissions
 # Config directory
-manage_dirs_pattern(clad_t, clad_etc_rw_t, clad_etc_rw_t)
-manage_files_pattern(clad_t, clad_etc_rw_t, clad_etc_rw_t)
-manage_lnk_files_pattern(clad_t, clad_etc_rw_t, clad_etc_rw_t)
-
-# Temp directory
-manage_dirs_pattern(clad_t, clad_tmp_t, clad_tmp_t)
-manage_files_pattern(clad_t, clad_tmp_t, clad_tmp_t)
-files_tmp_filetrans(clad_t, clad_tmp_t, { dir file })
+manage_dirs_pattern(clad_t, clad_etc_r_t, clad_etc_r_t)
+manage_files_pattern(clad_t, clad_etc_r_t, clad_etc_r_t)
+manage_lnk_files_pattern(clad_t, clad_etc_r_t, clad_etc_r_t)
 
 # Var lib directory
-manage_dirs_pattern(clad_t, clad_var_lib_t, clad_var_lib_t)
-manage_files_pattern(clad_t, clad_var_lib_t, clad_var_lib_t)
-files_var_lib_filetrans(clad_t, clad_var_lib_t, { dir file })
-
-# Log file permissions
-manage_dirs_pattern(clad_t, clad_log_t, clad_log_t)
-manage_files_pattern(clad_t, clad_log_t, clad_log_t)
-logging_log_filetrans(clad_t, clad_log_t, { dir file })
+manage_dirs_pattern(clad_t, clad_var_lib_rw_t, clad_var_lib_rw_t)
+manage_files_pattern(clad_t, clad_var_lib_rw_t, clad_var_lib_rw_t)
+files_var_lib_filetrans(clad_t, clad_var_lib_rw_t, { dir file })
 
 # System access
 auth_use_nsswitch(clad_t)
@@ -88,6 +72,3 @@ auth_read_passwd(clad_t)
 can_exec(clad_t, bin_t)
 corecmd_exec_bin(clad_t)
 domain_use_interactive_fds(clad_t)
-
-# Allow systemd to manage log files
-allow init_t clad_log_t:file { unlink };
