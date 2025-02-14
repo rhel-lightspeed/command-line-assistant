@@ -50,10 +50,10 @@ interface(`clad_exec',`
 #
 interface(`clad_search_conf',`
 	gen_require(`
-		type clad_etc_rw_t;
+		type clad_etc_r_t;
 	')
 
-	allow $1 clad_etc_rw_t:dir search_dir_perms;
+	allow $1 clad_etc_r_t:dir search_dir_perms;
 	files_search_etc($1)
 ')
 
@@ -69,11 +69,11 @@ interface(`clad_search_conf',`
 #
 interface(`clad_read_conf_files',`
 	gen_require(`
-		type clad_etc_rw_t;
+		type clad_etc_r_t;
 	')
 
-	allow $1 clad_etc_rw_t:dir list_dir_perms;
-	read_files_pattern($1, clad_etc_rw_t, clad_etc_rw_t)
+	allow $1 clad_etc_r_t:dir list_dir_perms;
+	read_files_pattern($1, clad_etc_r_t, clad_etc_r_t)
 	files_search_etc($1)
 ')
 
@@ -89,70 +89,11 @@ interface(`clad_read_conf_files',`
 #
 interface(`clad_manage_conf_files',`
 	gen_require(`
-		type clad_etc_rw_t;
+		type clad_etc_r_t;
 	')
 
-	manage_files_pattern($1, clad_etc_rw_t, clad_etc_rw_t)
+	manage_files_pattern($1, clad_etc_r_t, clad_etc_r_t)
 	files_search_etc($1)
-')
-
-########################################
-## <summary>
-##	Do not audit attempts to read,
-##	clad tmp files
-## </summary>
-## <param name="domain">
-##	<summary>
-##	Domain to not audit.
-##	</summary>
-## </param>
-#
-interface(`clad_dontaudit_read_tmp_files',`
-	gen_require(`
-		type clad_tmp_t;
-	')
-
-	dontaudit $1 clad_tmp_t:file read_file_perms;
-')
-
-########################################
-## <summary>
-##	Read clad tmp files
-## </summary>
-## <param name="domain">
-##	<summary>
-##	Domain allowed access.
-##	</summary>
-## </param>
-#
-interface(`clad_read_tmp_files',`
-	gen_require(`
-		type clad_tmp_t;
-	')
-
-	files_search_tmp($1)
-	read_files_pattern($1, clad_tmp_t, clad_tmp_t)
-')
-
-########################################
-## <summary>
-##	Manage clad tmp files
-## </summary>
-## <param name="domain">
-##	<summary>
-##	Domain allowed access.
-##	</summary>
-## </param>
-#
-interface(`clad_manage_tmp',`
-	gen_require(`
-		type clad_tmp_t;
-	')
-
-	files_search_tmp($1)
-	manage_dirs_pattern($1, clad_tmp_t, clad_tmp_t)
-	manage_files_pattern($1, clad_tmp_t, clad_tmp_t)
-	manage_lnk_files_pattern($1, clad_tmp_t, clad_tmp_t)
 ')
 
 ########################################
@@ -167,10 +108,10 @@ interface(`clad_manage_tmp',`
 #
 interface(`clad_search_lib',`
 	gen_require(`
-		type clad_var_lib_t;
+		type clad_var_lib_rw_t;
 	')
 
-	allow $1 clad_var_lib_t:dir search_dir_perms;
+	allow $1 clad_var_lib_rw_t:dir search_dir_perms;
 	files_search_var_lib($1)
 ')
 
@@ -186,11 +127,11 @@ interface(`clad_search_lib',`
 #
 interface(`clad_read_lib_files',`
 	gen_require(`
-		type clad_var_lib_t;
+		type clad_var_lib_rw_t;
 	')
 
 	files_search_var_lib($1)
-	read_files_pattern($1, clad_var_lib_t, clad_var_lib_t)
+	read_files_pattern($1, clad_var_lib_rw_t, clad_var_lib_rw_t)
 ')
 
 ########################################
@@ -205,11 +146,11 @@ interface(`clad_read_lib_files',`
 #
 interface(`clad_manage_lib_files',`
 	gen_require(`
-		type clad_var_lib_t;
+		type clad_var_lib_rw_t;
 	')
 
 	files_search_var_lib($1)
-	manage_files_pattern($1, clad_var_lib_t, clad_var_lib_t)
+	manage_files_pattern($1, clad_var_lib_rw_t, clad_var_lib_rw_t)
 ')
 
 ########################################
@@ -224,11 +165,11 @@ interface(`clad_manage_lib_files',`
 #
 interface(`clad_manage_lib_dirs',`
 	gen_require(`
-		type clad_var_lib_t;
+		type clad_var_lib_rw_t;
 	')
 
 	files_search_var_lib($1)
-	manage_dirs_pattern($1, clad_var_lib_t, clad_var_lib_t)
+	manage_dirs_pattern($1, clad_var_lib_rw_t, clad_var_lib_rw_t)
 ')
 
 ########################################
@@ -267,7 +208,7 @@ interface(`clad_connect_http',`
 		type clad_t;
 	')
 
-	allow $1 clad_t:tcp_socket { create connect };
+	allow $1 clad_t:tcp_socket create_stream_socket_perms;
 	corenet_tcp_connect_http_port($1)
 	corenet_tcp_connect_squid_port($1)
 	corenet_tcp_connect_http_cache_port($1)
@@ -288,8 +229,10 @@ interface(`clad_connect_https',`
 		type clad_t;
 	')
 
-	allow $1 clad_t:tcp_socket { create connect };
+	allow $1 clad_t:tcp_socket create_stream_socket_perms;
 	corenet_tcp_connect_https_port($1)
+	corenet_tcp_connect_squid_port($1)
+	corenet_tcp_connect_https_cache_port($1)
 ')
 
 ########################################
@@ -312,10 +255,8 @@ interface(`clad_connect_https',`
 interface(`clad_admin',`
 	gen_require(`
 		type clad_t;
-		type clad_etc_rw_t;
-		type clad_tmp_t;
-		type clad_var_lib_t;
-		type clad_log_t;
+		type clad_etc_r_t;
+		type clad_var_lib_rw_t;
 	')
 
 	allow $1 clad_t:process { signal_perms };
@@ -326,38 +267,12 @@ interface(`clad_admin',`
     ')
 
 	files_search_etc($1)
-	admin_pattern($1, clad_etc_rw_t)
-
-	files_search_tmp($1)
-	admin_pattern($1, clad_tmp_t)
+	admin_pattern($1, clad_etc_r_t)
 
 	files_search_var_lib($1)
-	admin_pattern($1, clad_var_lib_t)
+	admin_pattern($1, clad_var_lib_rw_t)
 	optional_policy(`
 		systemd_passwd_agent_exec($1)
 		systemd_read_fifo_file_passwd_run($1)
 	')
-
-	logging_search_logs($1)
-	admin_pattern($1, clad_log_t)
-')
-
-########################################
-## <summary>
-##	Manage clad log files.
-## </summary>
-## <param name="domain">
-##	<summary>
-##	Domain allowed access.
-##	</summary>
-## </param>
-#
-interface(`clad_manage_log',`
-	gen_require(`
-		type clad_log_t;
-	')
-
-	logging_search_logs($1)
-	manage_dirs_pattern($1, clad_log_t, clad_log_t)
-	manage_files_pattern($1, clad_log_t, clad_log_t)
 ')

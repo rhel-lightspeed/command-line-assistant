@@ -3,14 +3,6 @@
 %define binary_name c
 %define daemon_binary_name clad
 
-# SELinux specific
-%define relabel_files() \
-restorecon -R /usr/sbin/clad; \
-restorecon -R /etc/xdg/command-line-assistant/config.toml; \
-restorecon -R /etc/xdg/command-line-assistant; \
-restorecon -R /var/lib/command-line-assistant; \
-restorecon -R /var/log/command-line-assistant; \
-
 %define selinux_policyver 41.27-1
 
 %define selinuxtype targeted
