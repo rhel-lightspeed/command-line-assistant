@@ -73,9 +73,8 @@ popd
 
 # Create needed directories in buildroot
 %{__install} -d %{buildroot}/%{_sbindir}
-%{__install} -d %{buildroot}/%{_sysconfdir}/xdg/%{name}
-%{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
-%{__install} -d %{buildroot}/%{_localstatedir}/log/%{name}
+%{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/xdg/%{name}
+%{__install} -d -m 0755 %{buildroot}/%{_sharedstatedir}/%{name}
 %{__install} -d %{buildroot}/%{_mandir}/man1
 %{__install} -d %{buildroot}/%{_mandir}/man8
 %{__install} -d %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}
@@ -94,7 +93,7 @@ popd
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.user.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.user.service
 
 # Config file
-%{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
+%{__install} -D -m 0600 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
 
 # Manpages
 %{__install} -D -m 0644 data/release/man/%{binary_name}.1 %{buildroot}/%{_mandir}/man1/%{binary_name}.1
@@ -145,16 +144,17 @@ fi
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.user.service
 
-# Config file
-%config(noreplace) %{_sysconfdir}/xdg/%{name}/config.toml
-
 # Manpages
 %{_mandir}/man1/%{binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
 
+
 # Needed directories
-%dir %{_sharedstatedir}/%{name}
-%dir %{_localstatedir}/log/%{name}
+%dir %attr(0755, root, root) %{_sharedstatedir}/%{name}
+%dir %attr(0755, root, root) %{_sysconfdir}/xdg/%{name}
+
+# Config file
+%attr(0600, root, root) %config(noreplace) %{_sysconfdir}/xdg/%{name}/config.toml
 
 %files selinux
 %attr(0600,root,root) %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
