@@ -196,7 +196,6 @@ class CommandOperationFactory:
             ),
             None,
         )
-
         if not operation_type:
             return None
 

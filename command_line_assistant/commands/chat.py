@@ -590,10 +590,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "--with-output",
         nargs="?",
         type=int,
-        # In case nothing is supplied
-        const=1,
-        default=1,
-        help="Read last output from terminal. Default to last entry collected.",
+        help="Add output from terminal as context for the query. Use 0 to retrieve latest output.",
     )
     question_group.add_argument(
         "-r",
