@@ -1,12 +1,15 @@
 """Module to track all *text* decorations applied to renderers"""
 
+import logging
 import shutil
 import textwrap
-from pathlib import Path
 from typing import Optional, Union
 
 from command_line_assistant.rendering.base import BaseDecorator
 from command_line_assistant.utils.environment import get_xdg_state_path
+from command_line_assistant.utils.files import create_folder, write_file
+
+logger = logging.getLogger(__name__)
 
 
 class EmojiDecorator(BaseDecorator):
@@ -23,7 +26,7 @@ class EmojiDecorator(BaseDecorator):
     def __init__(self, emoji: Union[str, int]) -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             emoji (Union[str, int]): The emoji in either the unicode or hex value.
         """
         self._emoji = self._normalize_emoji(emoji)
@@ -31,7 +34,7 @@ class EmojiDecorator(BaseDecorator):
     def _normalize_emoji(self, emoji: Union[str, int]) -> str:
         """Internal function to normalize the emoji from either hex or unicode.
 
-        Args:
+        Arguments:
             emoji (Union[str, int]): The emoji in either the unicode or hex value.
 
         Raises:
@@ -57,7 +60,7 @@ class EmojiDecorator(BaseDecorator):
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is being set from a renderer class.
 
         Returns:
@@ -87,7 +90,7 @@ class TextWrapDecorator(BaseDecorator):
     def __init__(self, width: Optional[int] = None, indent: str = "") -> None:
         """Constructor of the class
 
-        Args:
+        Arguments:
             width (Optional[int], optional): The width of the terminal. Defaults to `shutil.get_terminal_size().columns`.
             indent (str, optional): Indentation mode for the string. Defaults to "".
         """
@@ -97,7 +100,7 @@ class TextWrapDecorator(BaseDecorator):
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is being set from a renderer class.
 
         Returns:
@@ -129,10 +132,10 @@ class WriteOnceDecorator(BaseDecorator):
     def __init__(self, state_filename: str = "written") -> None:
         """Constructor of the class
 
-        Args:
+        Arguments:
             state_filename (str): Name of the state file to create/check. Defaults to "written"
         """
-        self._state_dir = Path(get_xdg_state_path(), "command-line-assistant")
+        self._state_dir = get_xdg_state_path()
         self._state_file = self._state_dir / state_filename
 
     def _should_write(self) -> bool:
@@ -142,20 +145,19 @@ class WriteOnceDecorator(BaseDecorator):
             bool: In Return a boolean value if the state file can be written.
         """
         if self._state_file.exists():
+            logger.info(
+                "The state file already exists. Skipping writting it a second time."
+            )
             return False
-
-        if not self._state_dir.exists():
-            # Create directory if it doesn't exist
-            self._state_dir.mkdir(parents=True)
-
+        create_folder(self._state_dir)
         # Write state file
-        self._state_file.write_text("1")
+        write_file("1", self._state_file)
         return True
 
     def decorate(self, text: str) -> str:
         """Write the text only if it hasn't been written before.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is being set from a renderer class.
 
         Returns:

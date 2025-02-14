@@ -3,7 +3,7 @@
 import logging
 import uuid
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 #: Path to the machine ID file
 MACHINE_ID_PATH: Path = Path("/etc/machine-id")
@@ -14,13 +14,8 @@ logger = logging.getLogger(__name__)
 class UserSessionManager:
     """Manage user session information."""
 
-    def __init__(self, effective_user_id: Union[int, str]) -> None:
-        """Initialize the session manager.
-
-        Args:
-            effective_user_id (Union[int, str]): The effective user id
-        """
-        self._effective_user_id: Union[int, str] = effective_user_id
+    def __init__(self) -> None:
+        """Initialize the session manager."""
         self._machine_uuid: Optional[uuid.UUID] = None
         self._user_id: Optional[uuid.UUID] = None
 
@@ -54,18 +49,20 @@ class UserSessionManager:
 
         return self._machine_uuid
 
-    @property
-    def user_id(self) -> uuid.UUID:
-        """Property that generates a unique user ID combining machine and user effective id.
+    def get_user_id(self, effective_user_id: int) -> str:
+        """Get the user ID based on the effective user ID.
+
+        Arguments:
+            effective_user_id (int): The effective user ID
 
         Returns:
-            uuid.UUID: A unique session identifier
+            str: The user ID
         """
         if not self._user_id:
             # Combine machine ID and effective user to create a unique namespace
             namespace = self.machine_id
 
             # Generate a UUID using the effective username as name in the namespace
-            self._user_id = uuid.uuid5(namespace, str(self._effective_user_id))
+            self._user_id = uuid.uuid5(namespace, str(effective_user_id))
 
-        return self._user_id
+        return str(self._user_id)

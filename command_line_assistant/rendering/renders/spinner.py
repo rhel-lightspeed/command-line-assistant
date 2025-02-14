@@ -1,9 +1,10 @@
 """
-The spinner submodule for rendering show a spinning text to the terminal used
-for long running tasks.
+The spinner submodule for rendering shows a spinning text to the terminal.
+Used for long running tasks.
 """
 
 import itertools
+import locale
 import threading
 import time
 from dataclasses import dataclass
@@ -14,44 +15,65 @@ from command_line_assistant.rendering.stream import StdoutStream
 
 
 @dataclass
-class Frames:
+class Animation:
     """Dataclass to hold all possible values for spinner frames.
 
-    Example::
-        This is how each spinner will be represented as 1 character in the
-        terminal. Read from left to right.
-
-        >>> default = (["⠋", "⠙", "⠸", "⠴", "⠦", "⠇"]
-        >>> dash = ["-", "\\", "|", "/"]
-        >>> circular = ["◐", "◓", "◑", "◒"]
-        >>> dots = [".  ", ".. ", "...", " ..", "  .", "   "]
-        >>> arrows = ["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"
-        >>> moving = ["[   ]", "[=  ]", "[== ]", "[===]", "[ ==]", "[  =]", "[   ]"]
-
     Attributes:
-        default (Iterator[str]): The default spinner frame (braille)
-        dash (Iterator[str]): A spinner made with dashes (-)
-        circular (Iterator[str]): A spinner made with half-circles (◐)
-        dots (Iterator[str]): A spinner made with dots (.)
-        arrows (Iterator[str]): A spinner made with an arrow (←)
-        moving (Iterator[str]): A spinner made with equals ([=])
+        frames (Iterator[str]): The frames chosen
+        encoding (str): The default encoding.
     """
 
-    default: Iterator[str] = itertools.cycle(["⠋", "⠙", "⠸", "⠴", "⠦", "⠇"])
-    dash: Iterator[str] = itertools.cycle(["-", "\\", "|", "/"])
-    circular: Iterator[str] = itertools.cycle(["◐", "◓", "◑", "◒"])
-    dots: Iterator[str] = itertools.cycle([".  ", ".. ", "...", " ..", "  .", "   "])
-    arrows: Iterator[str] = itertools.cycle(["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"])
-    moving: Iterator[str] = itertools.cycle(
-        ["[   ]", "[=  ]", "[== ]", "[===]", "[ ==]", "[  =]", "[   ]"]
-    )
+    frames: Iterator[str]
+    encoding: str = "utf8"
+
+
+#: Constant containing the various configured spinners
+#:
+#: Elements::
+#:      default (Iterator[str]): The default spinner frame (star)
+#:      braille (Iterator[str]): A spinner made for braille (⠋)
+#:      dash (Iterator[str]): A spinner made with dashes (-)
+#:      circular (Iterator[str]): A spinner made with half-circles (◐)
+#:      dots (Iterator[str]): A spinner made with dots (.)
+#:      arrows (Iterator[str]): A spinner made with an arrow (←)
+#:      moving (Iterator[str]): A spinner made with equals signs ([=])
+ANIMATIONS = {
+    "default": Animation(
+        itertools.cycle(
+            [
+                "⁺₊+",
+                "⁻₊+",
+                "⁺₊+",
+                "⁺₊+",
+                "⁺₋+",
+                "⁺₊+",
+                "⁺₊+",
+                "⁺₊−",
+                "⁺₊+",
+            ]
+        )
+    ),
+    "braille": Animation(itertools.cycle(["⠋", "⠙", "⠸", "⠴", "⠦", "⠇"])),
+    "dash": Animation(itertools.cycle(["-", "\\", "|", "/"]), "ascii"),
+    "circular": Animation(itertools.cycle(["◐", "◓", "◑", "◒"])),
+    "dots": Animation(
+        itertools.cycle([".  ", ".. ", "...", " ..", "  .", "   "]), "ascii"
+    ),
+    "arrows": Animation(itertools.cycle(["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"])),
+    "moving": Animation(
+        itertools.cycle(
+            ["[   ]", "[=  ]", "[== ]", "[===]", "[ ==]", "[  =]", "[   ]"]
+        ),
+        "ascii",
+    ),
+}
 
 
 class SpinnerRenderer(BaseRenderer):
     """This is a specialized class to render output based on the `stream` parameter to the terminal.
 
     Example:
-        This class can be used as this:
+        This class can be used like this:
             >>> spinner_renderer = SpinnerRenderer()
             >>> with spinner_renderer:
             >>>     # your long running task
@@ -61,7 +83,7 @@ class SpinnerRenderer(BaseRenderer):
             >>> with spinner_renderer:
             >>>     # your long running task
 
-        Or you can make each frame to take longer to process:
+        Or you can make each frame take longer to process:
             >>> # The default delay is 0.1
             >>> spinner_renderer = SpinnerRenderer(delay=5.0)
             >>> with spinner_renderer:
@@ -72,34 +94,53 @@ class SpinnerRenderer(BaseRenderer):
         self,
         message: str,
         stream: Optional[BaseStream] = None,
-        frames: Iterator[str] = Frames.default,
+        frames: Animation = ANIMATIONS["default"],
         delay: float = 0.1,
         clear_message: bool = False,
     ) -> None:
         """Constructor of the class
 
-        Args:
+        Arguments:
             message (str): The static message that will be shown in every frame
             stream (Optional[OutputStreamWritter], optional): The stream to where the output will be. Can be either `py:StdoutStream` or `py:StderrStream`. Defaults to StdoutStream().
-            frames (Iterator[str], optional): The textual frame that will be updated every second. Defaults to Frames.default.
+            frames (Iterator[str], optional): A Frame object that will be updated every second. Defaults to ANIMATIONS["default"] in utf-8 capable locales and ANIMATIONS["dash"] otherwise.
             delay (float, optional): Interval of time between each frame. Defaults to 0.1.
             clear_message (bool, optional): If we should clear the message after the long running task finishes. Defaults to False.
         """
         self._message = message
-        self._frames = frames
         self._delay = delay
         self._clear_message = clear_message
+
+        # Normalize the frame encoding identifier
+        frames_encoding = frames.encoding.lower()
+        if frames_encoding.startswith("utf"):
+            frames_encoding = frames_encoding.replace("-", "")
+
+        # Only use spinners with characters compatible with the user's locale encoding.
+        if frames.encoding != "ascii":
+            locale_encoding = locale.getpreferredencoding().lower()
+            if locale_encoding.startswith("utf"):
+                locale_encoding = locale_encoding.replace("-", "")
+
+            # In non-utf encodings, set frames to an animation that only
+            # consists of ASCII characters to prevent sending bytes to the
+            # terminal that don't make sense.
+            if frames_encoding != locale_encoding:
+                frames = ANIMATIONS["dash"]
+
+        self._frames = frames.frames
+
         self._done = threading.Event()
         self._spinner_thread: Optional[threading.Thread] = None
         super().__init__(stream or StdoutStream())
 
     def render(self, text: str) -> None:
-        """The main function to render thext.
+        """The main function to render the text.
 
         Note:
             You should not use this method. Instead, check the class examples.
 
-        Args:
+        Arguments:
             text (str): The textual value that will be represented in the terminal.
 
         Raises:

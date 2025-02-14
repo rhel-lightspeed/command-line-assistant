@@ -27,87 +27,151 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Jan 15, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Feb 13, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
 .sp
-The Command Line Assistant powered by RHEL Lightspeed is a optional generative AI assistant available within the RHEL command line interface.
+The Command Line Assistant powered by RHEL Lightspeed is an optional generative AI assistant available within the RHEL command line interface.
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-c [\-h] [\-\-version] {query,history} ...
+c [\-\-debug] [\-h] [\-v] {chat,history,shell} ...
 .EE
 .UNINDENT
 .UNINDENT
 .SS c options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fI\%\-\-debug\fP \- Enable debug logging information
 .IP \(bu 2
-\fI\%\-\-version\fP \- Show program version
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+.IP \(bu 2
+\fI\%\-v\fP, \fI\%\-\-version\fP \- Show program version
 .UNINDENT
-.SS c query
+.SS c chat
 .sp
 Command to ask a question to the LLM.
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-c query [\-h] [\-a [ATTACHMENT]] [query_string]
+c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-o [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELETE]] [\-\-delete\-all]
+       [\-n [NAME]] [\-\-description [DESCRIPTION]]
+       [query_string]
 .EE
 .UNINDENT
 .UNINDENT
-.SS c query positional arguments
-.INDENT 0.0
-.IP \(bu 2
-\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
-.UNINDENT
-.SS c query options
+.SS c chat options
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+.UNINDENT
+.SS c chat Question Options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
 .IP \(bu 2
 \fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
+.IP \(bu 2
+\fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start interactive chat session
+.IP \(bu 2
+\fI\%\-o\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Read last output from terminal. Default to last entry collected. (default: \fB1\fP)
+.IP \(bu 2
+\fI\%\-r\fP, \fI\%\-\-raw\fP \- Interact with the backend in raw mode. No spinners, emojis or anything.
+.UNINDENT
+.SS c chat Chat Options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-l\fP, \fI\%\-\-list\fP \- List all chats
+.IP \(bu 2
+\fI\%\-d\fP \fBDELETE\fP, \fI\%\-\-delete\fP \fBDELETE\fP \- Delete a chat session (default: \fB\fP)
+.IP \(bu 2
+\fI\%\-\-delete\-all\fP \- Delete all chats
+.IP \(bu 2
+\fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session (default: \fBdefault\fP)
+.IP \(bu 2
+\fI\%\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session (default: \fBDefault Command Line Assistant Chat.\fP)
 .UNINDENT
 .SS c history
 .sp
-Manage user conversation history
+Manage conversation history
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-c history [\-h] [\-\-clear] [\-\-first] [\-\-last] [\-\-filter FILTER]
+c history [\-h] [\-f] [\-l] [\-\-filter FILTER] [\-a] [\-c]
 .EE
 .UNINDENT
 .UNINDENT
 .SS c history options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+.UNINDENT
+.SS c history Filtering Options
+.INDENT 0.0
 .IP \(bu 2
-\fI\%\-\-clear\fP \- Clear the entire history.
+\fI\%\-f\fP, \fI\%\-\-first\fP \- Get the first conversation from history.
 .IP \(bu 2
-\fI\%\-\-first\fP \- Get the first conversation from history.
-.IP \(bu 2
-\fI\%\-\-last\fP \- Get the last conversation from history.
+\fI\%\-l\fP, \fI\%\-\-last\fP \- Get the last conversation from history.
 .IP \(bu 2
 \fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. (default: \fBNone\fP)
+.IP \(bu 2
+\fI\%\-a\fP, \fI\%\-\-all\fP \- Get all conversation from history.
+.UNINDENT
+.SS c history Management Options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-c\fP, \fI\%\-\-clear\fP \- Clear the entire history. If no \-\-from is specified, it will clear all history from all chats.
+.UNINDENT
+.SS c shell
+.sp
+Manage shell integrations
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+c shell [\-h] [\-\-enable\-capture] [\-\-enable\-persistent\-capture] [\-\-disable\-persistent\-capture]
+        [\-\-enable\-interactive] [\-\-disable\-interactive]
+.EE
+.UNINDENT
+.UNINDENT
+.SS c shell options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+.UNINDENT
+.SS c shell Terminal Capture Options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-\-enable\-capture\fP \- Enable terminal capture for the current terminal session.
+.IP \(bu 2
+\fI\%\-\-enable\-persistent\-capture\fP \- Enable persistent terminal capture for the terminal session.
+.IP \(bu 2
+\fI\%\-\-disable\-persistent\-capture\fP \- Disable persistent terminal capture for the terminal session.
+.UNINDENT
+.SS c shell Interactive Mode Options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported.
+.IP \(bu 2
+\fI\%\-\-disable\-interactive\fP \- Disable the shell integrationfor interactive mode on the system.
 .UNINDENT
 .SH DESCRIPTION
 .sp
-The Command Line Assistant powered by RHEL Lightspeed is a optional generative
+The Command Line Assistant powered by RHEL Lightspeed is an optional generative
 AI assistant available within the RHEL command line interface. The Command Line
 Assistant can help with several tasks such as:
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-1. answering RHEL related questions
-2. assisting with troubleshooting
-3. assisting with deciphering log entries
-3. and many other tasks.
+*. Answering RHEL related questions
+*. Assisting with troubleshooting
+*. Assisting with understanding log entries
+*. And many other tasks.
 .EE
 .UNINDENT
 .UNINDENT
@@ -135,14 +199,24 @@ Alternatively, you can strictly specify that you want a query with:
 .INDENT 3.5
 .sp
 .EX
-$ c query \(dqWhat is RHEL?\(dq
+$ c chat \(dqWhat is RHEL?\(dq
 .EE
 .UNINDENT
 .UNINDENT
 .sp
 In case \fBquery\fP is not placed, the program will assume that anything that
-comes after is a potential query. That includes the options for \fBquery\fP
+comes after is a potential query. That includes the options for \fBchat\fP
 as well.
+.sp
+Alternativelly, you can also use \fB\-\-interactive\fP to start an interactive session:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c \-\-interactive
+.EE
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .UNINDENT
 .sp
@@ -161,7 +235,7 @@ $ cat log_with_error.log | c
 .UNINDENT
 .UNINDENT
 .sp
-If you want to redirect directly from a commmand, that is also possible
+If you want to redirect directly from a command, that is also possible
 with:
 .INDENT 0.0
 .INDENT 3.5
@@ -172,7 +246,7 @@ $ my\-command | c
 .UNINDENT
 .UNINDENT
 .sp
-Sometimes, only providing the error output may not be enough. For that, you
+Sometimes, only providing the error output might not be enough. For that, you
 can combine your redirect output with a question like this:
 .INDENT 0.0
 .INDENT 3.5
@@ -199,7 +273,7 @@ $ c \-\-attachment log_with_error.log
 .UNINDENT
 .UNINDENT
 .sp
-Or, with it\(aqs short version:
+Optionally, you can use the short version:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -209,7 +283,7 @@ $ c \-a log_with_error.log
 .UNINDENT
 .UNINDENT
 .sp
-You can also combine the attachemtn with a question:
+You can also combine the attachment with a question:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -229,14 +303,14 @@ echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log
 .UNINDENT
 .UNINDENT
 .sp
-However, if you specify a redirect output and a query at the same you have
+However, if you specify a redirect output and a query at the same time that you have
 an attachment, only the attachment plus the query will be used. The
 redirect output will be ignored:
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-# The redirection here will be ignored as the query has precedence over redirection in this scenario.
+# The redirection output here will be ignored, as the query has precedence over redirection in this scenario.
 echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
 .EE
 .UNINDENT
@@ -247,9 +321,8 @@ echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
 Example 4. History management
 .INDENT 0.0
 .INDENT 3.5
-With Command Line Assistant, you can also check your conversation history.
-To do so, one can issue the following command to retrieve all user
-history:: Check all history entries:
+With Command Line Assistant, you can also check your conversation history. For that, use the following command to retrieve all user
+history:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -259,7 +332,7 @@ $ c history
 .UNINDENT
 .UNINDENT
 .sp
-If you don\(aqt want all history, you can filter either for the first, or last
+If you don\(aqt want all history, you can filter it for either the first or last
 result with:
 .INDENT 0.0
 .INDENT 3.5
@@ -283,12 +356,54 @@ $ c history \-\-filter \(dqselinux\(dq
 .UNINDENT
 .UNINDENT
 .sp
-And lastly, to start a clean history, you can clear all of it with:
+And finally, to start a clean history, you can clear all the user history with:
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
 $ c history \-\-clear
+.EE
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Example 5. Shell integrations
+.INDENT 0.0
+.INDENT 3.5
+With Command Line Assistant, you can also enable shell integrations to help
+in your experience:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c shell \-\-enable\-integration
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+The above command will place a file under ~/.bashrc.d folder that will
+be sourced by bash after the next time you open up your terminal.
+Currently, we only have one integration that aims to start the
+interactive mode with a keybind, like the following:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c shell \-\-enable\-integration
+# After enabling the integration, restart your terminal or run
+$ source ~/.bashrc
+# After the integration was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+If you wish to disable the integration, that can be done with:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ c shell \-\-disabled\-integration
 .EE
 .UNINDENT
 .UNINDENT
@@ -312,6 +427,18 @@ order to maintain a correct order of querying. The rules can be seen here:
 7. All three sources \-> use only positional and file as \(dq{positional_query} {file_query}\(dq
 .EE
 .UNINDENT
+.UNINDENT
+.SH FILES
+.INDENT 0.0
+.TP
+.B \fI~/.bashrc.d/cla\-interactive.bashrc\fP
+Bash script to add keyboard binding to enable interactive mode.
+.TP
+.B \fI~/.bashrc.d/clad\-exports.bashrc\fP
+Bash script to export necessary environment variables for command\-line\-assistant.
+.TP
+.B \fI~/.local/state/command\-line\-assistant/terminal.log\fP
+State file that captures the terminal screen and store it as json.
 .UNINDENT
 .SH REFERENCE
 .INDENT 0.0

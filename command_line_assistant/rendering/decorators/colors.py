@@ -80,7 +80,7 @@ class ColorDecorator(BaseDecorator):
     ) -> None:
         """Constructor of the class.
 
-        Args:
+        Arguments:
             foreground (str, optional): Foreground color name. Defaults to "white".
             background (Optional[str], optional): Background color name. Defaults to None.
         """
@@ -90,7 +90,7 @@ class ColorDecorator(BaseDecorator):
     def _get_foreground_color(self, color: str) -> str:
         """Get the unicode for the requested color.
 
-        Args:
+        Arguments:
             color (str): Name of the foreground color
 
         Raises:
@@ -109,7 +109,7 @@ class ColorDecorator(BaseDecorator):
     def _get_background_color(self, color: str) -> str:
         """Get the unicode for the requested color.
 
-        Args:
+        Arguments:
             color (str): Name of the background color
 
         Raises:
@@ -128,7 +128,7 @@ class ColorDecorator(BaseDecorator):
     def decorate(self, text: str) -> str:
         """Decorate the text string and returns it.
 
-        Args:
+        Arguments:
             text (str): The text that needs to be decorated. This usually is being set from a renderer class.
 
         Returns:

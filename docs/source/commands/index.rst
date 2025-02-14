@@ -4,5 +4,7 @@ Commands
 .. toctree::
    :maxdepth: 2
 
-   query
+   base
+   chat
+   shell
    history

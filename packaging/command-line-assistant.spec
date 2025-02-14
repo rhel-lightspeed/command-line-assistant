@@ -3,15 +3,6 @@
 %define binary_name c
 %define daemon_binary_name clad
 
-# SELinux specific
-%define relabel_files() \
-restorecon -R /usr/sbin/clad; \
-restorecon -R /etc/xdg/command-line-assistant/config.toml; \
-restorecon -R /etc/xdg/command-line-assistant; \
-restorecon -R /var/lib/command-line-assistant; \
-restorecon -R /var/log/command-line-assistant; \
-restorecon -R /var/log/command-line-assistant/audit.log; \
-
 %define selinux_policyver 41.27-1
 
 %define selinuxtype targeted
@@ -57,8 +48,8 @@ Requires:       python3-tomli
 A simple wrapper to interact with RAG
 
 %package selinux
-Summary:	CLAD SELinux policy
-BuildArch:	noarch
+Summary:    CLAD SELinux policy
+BuildArch:  noarch
 
 Requires:       selinux-policy-%{selinuxtype}
 Requires(post): selinux-policy-%{selinuxtype}
@@ -82,9 +73,8 @@ popd
 
 # Create needed directories in buildroot
 %{__install} -d %{buildroot}/%{_sbindir}
-%{__install} -d %{buildroot}/%{_sysconfdir}/xdg/%{name}
-%{__install} -d %{buildroot}/%{_sharedstatedir}/%{name}
-%{__install} -d %{buildroot}/%{_localstatedir}/log/%{name}
+%{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/xdg/%{name}
+%{__install} -d -m 0755 %{buildroot}/%{_sharedstatedir}/%{name}
 %{__install} -d %{buildroot}/%{_mandir}/man1
 %{__install} -d %{buildroot}/%{_mandir}/man8
 %{__install} -d %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}
@@ -98,11 +88,12 @@ popd
 
 # d-bus policy config
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
-%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.query.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.query.service
+%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.chat.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.chat.service
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.history.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
+%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.user.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.user.service
 
 # Config file
-%{__install} -D -m 0644 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
+%{__install} -D -m 0600 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
 
 # Manpages
 %{__install} -D -m 0644 data/release/man/%{binary_name}.1 %{buildroot}/%{_mandir}/man1/%{binary_name}.1
@@ -149,19 +140,21 @@ fi
 
 # d-bus policy config
 %config %{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
-%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.query.service
+%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.chat.service
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
-
-# Config file
-%config(noreplace) %{_sysconfdir}/xdg/%{name}/config.toml
+%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.user.service
 
 # Manpages
 %{_mandir}/man1/%{binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
 
+
 # Needed directories
-%dir %{_sharedstatedir}/%{name}
-%dir %{_localstatedir}/log/%{name}
+%dir %attr(0755, root, root) %{_sharedstatedir}/%{name}
+%dir %attr(0755, root, root) %{_sysconfdir}/xdg/%{name}
+
+# Config file
+%attr(0600, root, root) %config(noreplace) %{_sysconfdir}/xdg/%{name}/config.toml
 
 %files selinux
 %attr(0600,root,root) %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2

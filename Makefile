@@ -1,15 +1,18 @@
 .PHONY:
 	install-tools \
 	install \
-	install-dev \
 	unit-test \
 	help \
 	clean \
 	link-systemd-units \
 	unlink-systemd-units \
-	run-clad status-clad \
+	run-clad \
+	status-clad \
 	reload-clad \
 	manpages \
+	docs \
+	distribution-tarball \
+	html-docs
 
 # Project directory path - /home/<user>/.../command-line-assistant
 PROJECT_DIR := $(shell pwd)
@@ -28,33 +31,34 @@ SYSTEMD_USER_UNITS := ~/.config/systemd/user
 # Path to local XDG_CONFIG_DIRS to load config file
 XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
 
+PKGNAME := command-line-assistant
+VERSION := 0.2.2
+
 default: help
 
 install-tools: ## Install required utilities/tools
-	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip install pdm; }
-	pdm --version
+	@command -v poetry > /dev/null || { echo >&2 "poetry is not installed. Installing..."; pip install -q poetry; }
+	@poetry --version
 
 install: install-tools ## Sync all required dependencies for Command Line Assistant to work
-	pdm sync
-
-install-dev: install-tools ## Sync all development dependencies
-	pdm sync --dev
+	@poetry install
+	@poetry install --all-extras
 
 unit-test: ## Unit test cla
 	@echo "Running tests..."
-	@pytest
+	@poetry run pytest
 	@echo "Tests completed."
 
 unit-test-coverage: ## Unit test cla with coverage
 	@echo "Running tests..."
-	@pytest --cov --junitxml=junit.xml -o junit_family=legacy
+	@poetry run pytest --cov --junitxml=junit.xml -o junit_family=legacy
 	@echo "Tests completed."
 
 coverage: ## Generate coverage report from unit-tests
-	@coverage xml
+	@poetry run coverage xml
 
 coverage-html: ## Generate coverage report from unit-tests as html
-	@coverage html
+	@poetry run coverage html
 
 help: ## Show available make commands
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
@@ -73,14 +77,13 @@ clean: ## Clean project files
 	@rm -rf htmlcov \
 	   .pytest_cache \
 	   command_line_assistant.egg-info \
-	   .pdm-build \
 	   .ruff_cache \
 	   .coverage \
-	   .pdm-python \
 	   dist \
 	   .tox \
 	   junit.xml \
-	   coverage.xml
+	   coverage.xml \
+	   $(PKGNAME)-$(VERSION).tar.gz
 	$(MAKE) -C docs clean
 	$(MAKE) -C data/release/selinux
 
@@ -103,7 +106,7 @@ run-clad: ## Run the clad under systemd
 	@systemctl start --user clad
 
 status-clad: ## Check the status for clad
-	@systemctl status -f --user clad
+	@journalctl --user -fu clad
 
 reload-clad: ## Reload clad systemd unit
 	@systemctl --user daemon-reload
@@ -113,3 +116,25 @@ man: ## Build manpages
 	# Build the manpages and change the builddir to match data/release
 	# Also change the doctrees cache to still use the original build directory.
 	$(MAKE) BUILDDIR=../data/release SPHINXOPTS=-d=build -C docs man
+
+html-docs: ## Build html docs
+	$(MAKE) -C docs html
+
+distribution-tarball: clean ## Generate distribution tarball
+	tar --create \
+		--gzip \
+		--file /tmp/$(PKGNAME)-$(VERSION).tar.gz \
+		--exclude=.git \
+		--exclude=.vscode \
+		--exclude=.github \
+		--exclude=.gitignore \
+		--exclude=.copr \
+		--exclude=.venv \
+		--exclude=.ruff_cache \
+		--exclude=data/development \
+		--exclude=scripts \
+		--exclude=docs \
+		--exclude=tests \
+		--exclude=.roproject \
+		--transform s/^\./$(PKGNAME)-$(VERSION)/ \
+		. && mv /tmp/$(PKGNAME)-$(VERSION).tar.gz .

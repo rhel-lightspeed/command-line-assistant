@@ -13,14 +13,10 @@ command_line_assistant_history.json
 
 # ignore venv
 [.]venv/
-.pdm-python
 
 # ignore test results
 .coverage
 htmlcov/
-
-# ignore builds
-.pdm-build
 
 # ignore tests specifics
 .tox
@@ -39,3 +35,6 @@ data/release/selinux/clad.pp
 data/release/selinux/clad.pp.bz2
 data/release/selinux/clad.cil
 data/release/selinux/tmp
+
+# Tarball
+*.tar.gz

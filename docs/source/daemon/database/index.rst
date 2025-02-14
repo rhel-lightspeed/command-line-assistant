@@ -6,3 +6,4 @@ Database
 
    manager
    models/index
+   repository/index

@@ -13,18 +13,26 @@ SYSTEM_BUS: SystemMessageBus = SystemMessageBus(error_mapper=ERROR_MAPPER)
 #: The base-level service namespace
 SERVICE_NAMESPACE = ("com", "redhat", "lightspeed")
 
-#: The query namespace
-QUERY_NAMESAPCE = (*SERVICE_NAMESPACE, "query")
+#: The chat namespace
+CHAT_NAMESAPCE = (*SERVICE_NAMESPACE, "chat")
 
 #: The history namespace
 HISTORY_NAMESPACE = (*SERVICE_NAMESPACE, "history")
 
-#: The query identifier that represents a dbus service
-QUERY_IDENTIFIER = DBusServiceIdentifier(
-    namespace=QUERY_NAMESAPCE, message_bus=SYSTEM_BUS
+#: The user namespace
+USER_NAMESPACE = (*SERVICE_NAMESPACE, "user")
+
+#: The chat identifier that represents a dbus service
+CHAT_IDENTIFIER = DBusServiceIdentifier(
+    namespace=CHAT_NAMESAPCE, message_bus=SYSTEM_BUS
 )
 
 #: The history identifier that represents a dbus service
 HISTORY_IDENTIFIER = DBusServiceIdentifier(
     namespace=HISTORY_NAMESPACE, message_bus=SYSTEM_BUS
+)
+
+#: The user identifier that represents a dbus service
+USER_IDENTIFIER = DBusServiceIdentifier(
+    namespace=USER_NAMESPACE, message_bus=SYSTEM_BUS
 )

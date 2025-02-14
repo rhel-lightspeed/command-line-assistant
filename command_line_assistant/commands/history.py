@@ -1,67 +1,249 @@
 """Module to handle the history command."""
 
+import logging
 from argparse import Namespace
-from typing import Optional
+from enum import auto
+from typing import ClassVar
 
-from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
-from command_line_assistant.dbus.exceptions import (
-    CorruptedHistoryError,
-    MissingHistoryFileError,
+from command_line_assistant.commands.base import (
+    BaseCLICommand,
+    BaseOperation,
+    CommandOperationFactory,
+    CommandOperationType,
 )
-from command_line_assistant.dbus.structures import HistoryEntry, HistoryItem
+from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
+from command_line_assistant.dbus.interfaces.chat import ChatInterface
+from command_line_assistant.dbus.interfaces.history import HistoryInterface
+from command_line_assistant.dbus.interfaces.user import UserInterface
+from command_line_assistant.dbus.structures.history import HistoryList
+from command_line_assistant.exceptions import HistoryCommandException
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
-from command_line_assistant.rendering.decorators.text import (
-    EmojiDecorator,
-)
-from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
-from command_line_assistant.utils.cli import BaseCLICommand, SubParsersAction
+from command_line_assistant.utils.cli import (
+    CommandContext,
+    SubParsersAction,
+    create_subparser,
+)
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
-    create_spinner_renderer,
     create_text_renderer,
 )
+
+logger = logging.getLogger(__name__)
+
+
+class HistoryOperationType(CommandOperationType):
+    """Enum to control the operations for the command"""
+
+    CLEAR = auto()
+    FIRST = auto()
+    LAST = auto()
+    FILTER = auto()
+    ALL = auto()
+
+
+class HistoryOperationFactory(CommandOperationFactory):
+    """Factory for creating shell operations with decorator-based registration"""
+
+    # Mapping of CLI arguments to operation types
+    _arg_to_operation: ClassVar[dict[str, CommandOperationType]] = {
+        "clear": HistoryOperationType.CLEAR,
+        "first": HistoryOperationType.FIRST,
+        "last": HistoryOperationType.LAST,
+        "filter": HistoryOperationType.FILTER,
+        "all": HistoryOperationType.ALL,
+    }
+
+
+class BaseHistoryOperation(BaseOperation):
+    """Base history operation common to all operations
+
+    Warning:
+        The proxy attributes in this class are not really mapping to interface.
+        It maps to internal dasbus ObjectProxy, but to avoid pyright syntax
+        errors, we type then as their respective interfaces. The objective of
+        the `ObjectProxy` is to serve as a proxy for the real interfaces.
+
+    Attributes:
+        q_renderer (TextRenderer): Instance of a text renderer to render questions
+        a_renderer (TextRenderer): Instance of a text renderer to render answers
+    """
+
+    def __init__(
+        self,
+        text_renderer: TextRenderer,
+        warning_renderer: TextRenderer,
+        error_renderer: TextRenderer,
+        args: Namespace,
+        context: CommandContext,
+        chat_proxy: ChatInterface,
+        history_proxy: HistoryInterface,
+        user_proxy: UserInterface,
+    ):
+        """Constructor of the class.
+
+        Arguments:
+            text_renderer (TextRenderer): Instance of text renderer class
+            warning_renderer (TextRenderer): Instance of text renderer class
+            error_renderer (TextRenderer): Instance of text renderer class
+            args (Namespace): The arguments from CLI
+            context (CommandContext): Context for the commands
+            chat_proxy (ChatInterface): The proxy object for dbus chat
+            history_proxy (HistoryInterface): The proxy object for dbus history
+            user_proxy (HistoryInterface): The proxy object for dbus user
+        """
+        super().__init__(
+            text_renderer,
+            warning_renderer,
+            error_renderer,
+            args,
+            context,
+            chat_proxy,
+            history_proxy,
+            user_proxy,
+        )
+
+        self.q_renderer: TextRenderer = create_text_renderer(
+            decorators=[ColorDecorator("lightgreen")]
+        )
+        self.a_renderer: TextRenderer = create_text_renderer(
+            decorators=[ColorDecorator("lightblue")]
+        )
+
+    def _show_history(self, entries: HistoryList) -> None:
+        """Internal method to show the history in a standardized way
+
+        Arguments:
+            entries (list[HistoryItem]): The list of entries in the history
+        """
+        if not entries.histories:
+            self.text_renderer.render("No history entries found")
+            return
+
+        is_separator_needed = len(entries.histories) > 1
+        for entry in entries.histories:
+            self.q_renderer.render(f"Question: {entry.question}")
+            self.a_renderer.render(f"Answer: {entry.response}")
+
+            timestamp = f"Time: {entry.created_at}"
+            self.text_renderer.render(timestamp)
+
+            if is_separator_needed:
+                # Separator between conversations
+                self.text_renderer.render("-" * len(timestamp))
+
+
+@HistoryOperationFactory.register(HistoryOperationType.CLEAR)
+class ClearHistoryOperation(BaseHistoryOperation):
+    """Class to hold the clean operation"""
+
+    def execute(self) -> None:
+        """Default method to execute the operation"""
+        try:
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            self.text_renderer.render("Cleaning the history.")
+            self.history_proxy.ClearHistory(user_id)
+        except HistoryNotAvailableError as e:
+            logger.error("Failed to clear the history: %s", str(e))
+            raise HistoryCommandException(
+                "Something went wrong while clearing the history."
+            ) from e
+
+
+@HistoryOperationFactory.register(HistoryOperationType.FIRST)
+class FirstHistoryOperation(BaseHistoryOperation):
+    """Class to hold the first history operation"""
+
+    def execute(self) -> None:
+        """Default method to execute the operation"""
+        try:
+            self.text_renderer.render("Getting first conversation from history.")
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            response = self.history_proxy.GetFirstConversation(user_id)
+            history = HistoryList.from_structure(response)
+
+            # Display the conversation
+            self._show_history(history)
+        except HistoryNotAvailableError as e:
+            logger.error("Failed to retrieve the first history entry: %s", str(e))
+            raise HistoryCommandException(
+                "Something went wrong while retrieving the first history entry"
+            ) from e
+
+
+@HistoryOperationFactory.register(HistoryOperationType.LAST)
+class LastHistoryOperation(BaseHistoryOperation):
+    """Class to hold the last history operation"""
+
+    def execute(self) -> None:
+        """Default method to execute the operation"""
+        try:
+            self.text_renderer.render("Getting last conversation from history.")
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            response = self.history_proxy.GetLastConversation(user_id)
+
+            history = HistoryList.from_structure(response)
+            # Display the conversation
+            self._show_history(history)
+        except HistoryNotAvailableError as e:
+            logger.error("Failed to retrieve the last history entry: %s", str(e))
+            raise HistoryCommandException(
+                "Something went wrong while retrieving the last history entry"
+            ) from e
+
+
+@HistoryOperationFactory.register(HistoryOperationType.FILTER)
+class FilteredHistoryOperation(BaseHistoryOperation):
+    """Class to hold the filtering history operation"""
+
+    def execute(self) -> None:
+        """Default method to execute the operation"""
+        try:
+            self.text_renderer.render("Filtering conversation history.")
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            response = self.history_proxy.GetFilteredConversation(
+                user_id, self.args.filter
+            )
+
+            # Handle and display the response
+            history = HistoryList.from_structure(response)
+
+            # Display the conversation
+            self._show_history(history)
+        except HistoryNotAvailableError as e:
+            logger.error(
+                "Failed to retrieve entries with filter '%s': %s",
+                self.args.filter,
+                str(e),
+            )
+            raise HistoryCommandException(
+                "Something went wrong while retrieving filtered history entries"
+            ) from e
+
+
+@HistoryOperationFactory.register(HistoryOperationType.ALL)
+class AllHistoryOperation(BaseHistoryOperation):
+    """Class to hold the reading of all history operation."""
+
+    def execute(self) -> None:
+        """Default method to execute the operation"""
+        try:
+            self.text_renderer.render("Getting all conversations from history.")
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            response = self.history_proxy.GetHistory(user_id)
+            history = HistoryList.from_structure(response)
+
+            # Display the conversation
+            self._show_history(history)
+        except HistoryNotAvailableError as e:
+            logger.error("Failed to retrieve the all history entries: %s", str(e))
+            raise HistoryCommandException(
+                "Something went wrong while retrieving all history entries"
+            ) from e
 
 
 class HistoryCommand(BaseCLICommand):
     """Class that represents the history command."""
-
-    def __init__(
-        self, clear: bool, first: bool, last: bool, filter: Optional[str] = None
-    ) -> None:
-        """Constructor of the class.
-
-        Note:
-            If none of the above is specified, the command will retrieve all
-            user history.
-
-        Args:
-            clear (bool): If the history should be cleared
-            first (bool): Retrieve only the first conversation from history
-            last (bool): Retrieve only last conversation from history
-            filter (Optional[str], optional): Keyword to filter in the user history
-        """
-        self._clear = clear
-        self._first = first
-        self._last = last
-        self._filter = filter
-
-        self._proxy = HISTORY_IDENTIFIER.get_proxy()
-
-        self._spinner_renderer: SpinnerRenderer = create_spinner_renderer(
-            message="Loading history",
-            decorators=[EmojiDecorator(emoji="U+1F916")],
-        )
-        self._q_renderer: TextRenderer = create_text_renderer(
-            decorators=[ColorDecorator("lightgreen")]
-        )
-        self._a_renderer: TextRenderer = create_text_renderer(
-            decorators=[ColorDecorator("lightblue")]
-        )
-        self._text_renderer: TextRenderer = create_text_renderer()
-        self._error_renderer: TextRenderer = create_error_renderer()
-
-        super().__init__()
 
     def run(self) -> int:
         """Main entrypoint for the command to run.
@@ -69,137 +251,69 @@ class HistoryCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution.
         """
-
+        error_renderer: TextRenderer = create_error_renderer()
+        operation_factory = HistoryOperationFactory()
         try:
-            if self._clear:
-                self._clear_history()
-            elif self._first:
-                self._retrieve_first_conversation()
-            elif self._last:
-                self._retrieve_last_conversation()
-            elif self._filter:
-                self._retrieve_conversation_filtered(self._filter)
-            else:
-                self._retrieve_all_conversations()
+            operation = operation_factory.create_operation(
+                self._args, self._context, error_renderer=error_renderer
+            )
 
+            if operation:
+                operation.execute()
             return 0
-        except (MissingHistoryFileError, CorruptedHistoryError) as e:
-            self._error_renderer.render(str(e))
+        except HistoryCommandException as e:
+            error_renderer.render(str(e))
             return 1
-
-    def _retrieve_all_conversations(self) -> None:
-        """Retrieve and display all conversations from history."""
-        self._text_renderer.render("Getting all conversations from history.")
-        response = self._proxy.GetHistory(self._context.effective_user_id)
-        history = HistoryEntry.from_structure(response)
-
-        # Display the conversation
-        self._show_history(history.entries)
-
-    def _retrieve_first_conversation(self) -> None:
-        """Retrieve the first conversation in the conversation cache."""
-        self._text_renderer.render("Getting first conversation from history.")
-        response = self._proxy.GetFirstConversation(self._context.effective_user_id)
-        history = HistoryEntry.from_structure(response)
-
-        # Display the conversation
-        self._show_history(history.entries)
-
-    def _retrieve_conversation_filtered(self, filter: str) -> None:
-        """Retrieve the user conversation with keyword filtering.
-
-        Args:
-            filter (str): Keyword to filter in the user history
-        """
-        self._text_renderer.render("Filtering conversation history.")
-        response = self._proxy.GetFilteredConversation(
-            self._context.effective_user_id, filter
-        )
-
-        # Handle and display the response
-        history = HistoryEntry.from_structure(response)
-
-        # Display the conversation
-        self._show_history(history.entries)
-
-    def _retrieve_last_conversation(self) -> None:
-        """Retrieve the last conversation in the conversation cache."""
-        self._text_renderer.render("Getting last conversation from history.")
-        response = self._proxy.GetLastConversation(self._context.effective_user_id)
-
-        # Handle and display the response
-        history = HistoryEntry.from_structure(response)
-
-        # Display the conversation
-        self._show_history(history.entries)
-
-    def _clear_history(self) -> None:
-        """Clear the user history"""
-        self._text_renderer.render("Cleaning the history.")
-        self._proxy.ClearHistory(self._context.effective_user_id)
-
-    def _show_history(self, entries: list[HistoryItem]) -> None:
-        """Internal method to show the history in a standardized way
-
-        Args:
-            entries (list[HistoryItem]): The list of entries in the history
-        """
-        if not entries:
-            self._text_renderer.render("No history found.")
-            return
-
-        is_separator_needed = len(entries) > 1
-        for entry in entries:
-            self._q_renderer.render(f"Query: {entry.query}")
-            self._a_renderer.render(f"Answer: {entry.response}")
-
-            timestamp = f"Time: {entry.timestamp}"
-            self._text_renderer.render(timestamp)
-
-            if is_separator_needed:
-                # Separator between conversations
-                self._text_renderer.render("-" * len(timestamp))
 
 
 def register_subcommand(parser: SubParsersAction):
     """
     Register this command to argparse so it's available for the root parser.
 
-    Args:
+    Arguments:
         parser (SubParsersAction): Root parser to register command-specific arguments
     """
-    history_parser = parser.add_parser(
-        "history",
-        help="Manage user conversation history",
-    )
-    history_parser.add_argument(
-        "--clear",
-        action="store_true",
-        help="Clear the entire history.",
-    )
-    history_parser.add_argument(
+    history_parser = create_subparser(parser, "history", "Manage conversation history")
+
+    filtering_options = history_parser.add_argument_group("Filtering Options")
+    filtering_options.add_argument(
+        "-f",
         "--first",
         action="store_true",
         help="Get the first conversation from history.",
     )
-    history_parser.add_argument(
+    filtering_options.add_argument(
+        "-l",
         "--last",
         action="store_true",
         help="Get the last conversation from history.",
     )
-    history_parser.add_argument(
-        "--filter", help="Search for a specific keyword of text in the history."
+    filtering_options.add_argument(
+        "--filter",
+        help="Search for a specific keyword of text in the history.",
     )
+    filtering_options.add_argument(
+        "-a", "--all", action="store_true", help="Get all conversation from history."
+    )
+
+    management_options = history_parser.add_argument_group("Management Options")
+    management_options.add_argument(
+        "-c",
+        "--clear",
+        action="store_true",
+        help="Clear the entire history. If no --from is specified, it will clear all history from all chats.",
+    )
+
     history_parser.set_defaults(func=_command_factory)
 
 
 def _command_factory(args: Namespace) -> HistoryCommand:
     """Internal command factory to create the command class
 
-    Args:
+    Arguments:
         args (Namespace): The arguments processed with argparse.
 
     Returns:
         HistoryCommand: Return an instance of class
     """
-    return HistoryCommand(args.clear, args.first, args.last, args.filter)
+    return HistoryCommand(args)

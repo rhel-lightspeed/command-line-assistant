@@ -5,8 +5,7 @@ After=network-online.service dbus.service
 Requires=network-online.target
 
 [Service]
-Type=dbus
-BusName=com.redhat.lightspeed
+Type=simple
 PrivateTmp=yes
 RemainAfterExit=no
 ExecStart=/usr/sbin/clad

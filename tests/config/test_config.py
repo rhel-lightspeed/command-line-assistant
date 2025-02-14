@@ -12,20 +12,13 @@ except ImportError:
 
 @pytest.fixture
 def get_config_template(tmp_path) -> str:
-    output_file = tmp_path / "output.tmp"
-
     return f"""\
-[output]
-# otherwise recording via script session will be enforced
-enforce_script = true
-# file with output(s) of regular commands (e.g. ls, echo, etc.)
-file = "{output_file}"
-# Keep non-empty if your file contains only output of commands (not prompt itself)
-prompt_separator = "$"
+[database]
+type = "sqlite"
+connection_string = "{tmp_path / "history.db"}"
 
 [history]
 enabled = true
-# max number of queries in history (including responses)
 
 [backend]
 endpoint = "https://localhost"
@@ -49,7 +42,6 @@ def test_load_config_file(tmp_path, monkeypatch, get_config_template):
 
     assert isinstance(instance, config.Config)
 
-    assert instance.output.enforce_script
     assert instance.history.enabled
 
 

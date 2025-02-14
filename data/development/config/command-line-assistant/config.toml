@@ -1,20 +1,13 @@
-[output]
-# otherwise recording via script session will be enforced
-enforce_script = false
-# file with output(s) of regular commands (e.g. ls, echo, etc.)
-file = "/tmp/command-line-assistant_output.txt"
-# Keep non-empty if your file contains only output of commands (not prompt itself)
-prompt_separator = "$"
+[database]
+type = "sqlite"
+connection_string = "/tmp/history.db"
 
 [history]
 enabled = true
 
-[history.database]
-type = "sqlite"
-connection_string = "~/.local/share/command-line-assistant/history.db"
-
 [backend]
-endpoint = "http://localhost:8080"
+endpoint = "https://rlsapi-rhel-lightspeed--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com"
+# proxies = { http = "http://localhost:8002", https = "https://localhost:8002" }
 
 [backend.auth]
 cert_file = "data/development/certificate/fake-certificate.pem"
@@ -23,8 +16,6 @@ verify_ssl = false
 
 [logging]
 level = "DEBUG"
-responses = false # Global setting - don't log responses by default
-question = false  # Global setting - don't log questions by default
 
-# User-specific settings
-#users.rolivier = { responses = true, question = true }
+[logging.audit]
+enabled = false

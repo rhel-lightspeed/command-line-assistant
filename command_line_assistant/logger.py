@@ -3,24 +3,33 @@
 import copy
 import json
 import logging.config
-from typing import Optional
+from logging import LogRecord
+from typing import Any, Optional
 
 from command_line_assistant.config import Config
-from command_line_assistant.daemon.session import UserSessionManager
 
 #: Define the dictionary configuration for the logger instance
 LOGGING_CONFIG_DICTIONARY = {
     "version": 1,
     "disable_existing_loggers": False,
-    "level": "DEBUG",
+    "level": "INFO",
     "formatters": {
         "default": {
             "format": "[%(asctime)s] [%(filename)s:%(lineno)d] %(levelname)s: %(message)s",
             "datefmt": "%m/%d/%Y %I:%M:%S %p",
         },
         "audit": {
-            "()": "command_line_assistant.logger._create_audit_formatter",
-            "config": None,  # Will be set in setup_logging
+            "()": "command_line_assistant.logger.AuditFormatter",
+            "datefmt": "%Y-%m-%dT%H:%M:%S",
+            "format": "[%(asctime)s] [%(filename)s:%(lineno)d] %(levelname)s: %(message)s",
+        },
+    },
+    "filters": {
+        "audit_only": {
+            "()": "command_line_assistant.logger.AuditFilter",
+        },
+        "non_audit_only": {
+            "()": "command_line_assistant.logger.NonAuditFilter",
         },
     },
     "handlers": {
@@ -28,147 +37,200 @@ LOGGING_CONFIG_DICTIONARY = {
             "class": "logging.StreamHandler",
             "formatter": "default",
             "stream": "ext://sys.stdout",
+            "filters": ["non_audit_only"],
         },
-        "audit_file": {
-            "class": "logging.FileHandler",
-            "filename": "/var/log/command-line-assistant/audit.log",
-            "formatter": "audit",
-            "mode": "a",
-        },
-        "audit_journald": {
+        "audit": {
             "class": "logging.StreamHandler",
             "formatter": "audit",
             "stream": "ext://sys.stdout",
+            "filters": ["audit_only"],
         },
     },
     "loggers": {
-        "root": {"handlers": ["console"], "level": "DEBUG"},
-        "audit": {
-            "handlers": ["audit_file", "audit_journald"],
-            "level": "INFO",
-            "propagate": False,
-        },
+        # Root logger
+        "root": {"handlers": ["console"], "level": "INFO"},
     },
 }
 
+#: Set of keys to skip during auditting. If any of those needs to be in the
+#: audit log, simply remove them from this list.
+EXTRAS_TO_SKIP = (
+    "args",
+    "asctime",
+    "created",
+    "exc_info",
+    "exc_text",
+    "filename",
+    "funcName",
+    "levelname",
+    "levelno",
+    "lineno",
+    "taskName",
+    "module",
+    "server",
+    "thread",
+    "process",
+    "processName",
+    "msecs",
+    "msg",
+    "name",
+    "pathname",
+    "relativeCreated",
+    "stack_info",
+    "threadName",
+    "audit",
+    "user_id",
+)
 
-def _should_log_for_user(effective_user_id: int, config: Config, log_type: str) -> bool:
-    """Check if logging should be enabled for a specific user and log type.
 
-    Args:
-        effective_user_id (int): The effective user id to check if logging is enabled.
-        log_type (str): The type of log ('responses' or 'question')
+class AuditFilter(logging.Filter):
+    """Filter to separate audit logs from regular logs."""
 
-    Returns:
-        bool: Whether logging should be enabled for this user and log type
-    """
-    logging_users = copy.deepcopy(config.logging.users)
-    for user in config.logging.users.keys():
-        user_id = str(UserSessionManager(user).user_id)
-        logging_users[user_id] = logging_users.pop(user)
+    def filter(self, record: LogRecord) -> bool:
+        """Filter records based on the presence of audit attribute.
 
-    user_id = str(UserSessionManager(effective_user_id).user_id)
-    # If user has specific settings, use those
-    if user_id in logging_users:
-        return logging_users[user_id].get(log_type, False)
+        Arguments:
+            record (LogRecord): The log record to check
 
-    # Otherwise fall back to global settings
-    return getattr(config.logging, log_type, False)
+        Returns:
+            bool: True if the record should be processed, False otherwise
+        """
+        return bool(getattr(record, "audit", False))
+
+
+class NonAuditFilter(logging.Filter):
+    """Filter to separate regular logs from audit logs."""
+
+    def filter(self, record: LogRecord) -> bool:
+        """Filter records based on the absence of audit attribute.
+
+        Arguments:
+            record (LogRecord): The log record to check
+
+        Returns:
+            bool: True if the record should be processed, False otherwise
+        """
+        return not bool(getattr(record, "audit", False))
 
 
 class AuditFormatter(logging.Formatter):
     """Custom formatter that handles user-specific logging configuration."""
 
-    def __init__(
-        self, config: Config, fmt: Optional[str] = None, datefmt: Optional[str] = None
-    ):
+    def __init__(self, fmt: Optional[str] = None, datefmt: Optional[str] = None):
         """Initialize the formatter with config.
 
-        Args:
+        Arguments:
             config (Config): The application configuration
             fmt (Optional[str], optional): Format string. Defaults to None.
             datefmt (Optional[str], optional): Date format string. Defaults to None.
         """
         super().__init__(fmt, datefmt)
-        self._config = config
 
-    def format(self, record: logging.LogRecord) -> str:
-        """Format the record based on user-specific settings.
+    def format(self, record: LogRecord) -> str:
+        """Format the record as JSON for journald consumption.
 
-        Args:
+        Arguments:
             record (logging.LogRecord): The log record to format
 
-        Note:
-            This method is called by the logging framework to format the log message.
+        Returns:
+            str: JSON formatted log message
+        """
+        user_id = getattr(record, "user_id", None)
 
-        Example:
-            This is how it will look like in the audit.log file::
+        # Build base structured data
+        structured_data = {
+            "priority": self._get_syslog_priority(record.levelno),
+            "message": record.getMessage(),
+            "timestamp": self.formatTime(record, self.datefmt),
+            "syslog_identifier": "command-line-assistant",
+            "code": {
+                "file": record.filename,
+                "line": record.lineno,
+                "function": record.funcName,
+            },
+            "user_id": user_id,
+            "audit_type": "command-line-assistant-audit",
+            "level": record.levelname,
+        }
 
-            >>> # In case the query and response are disabled for the current user.
-            >>> {"timestamp":"2025-01-03T11:26:37.%fZ","user":"my-user","message":"Query executed successfully.","query":null,"response":null}
+        # Add any additional fields from record
+        extras = self._get_extra_fields(record)
+        if extras:
+            structured_data["audit_data"] = extras
 
-            >>> # In case the query and response are enabled for the current user.
-            >>> {"timestamp":"2025-01-03T11:26:37.%fZ","user":"my-user","message":"Query executed successfully.","query":"My query!","response":"My super response"}
+        return json.dumps(structured_data, default=str)
+
+    def _get_syslog_priority(self, levelno: int) -> int:
+        """Convert Python logging levels to syslog priorities.
+
+        Arguments:
+            levelno (int): Python logging level number
 
         Returns:
-            str: The formatted log message
+            int: Corresponding syslog priority
         """
-        # Basic structure that will always be included
-        data = {
-            "timestamp": self.formatTime(record, self.datefmt),
-            "user": getattr(record, "user", "unknown"),
-            "message": record.getMessage(),
+        priorities = {
+            logging.CRITICAL: 2,  # LOG_CRIT
+            logging.ERROR: 3,  # LOG_ERR
+            logging.WARNING: 4,  # LOG_WARNING
+            logging.INFO: 6,  # LOG_INFO
+            logging.DEBUG: 7,  # LOG_DEBUG
         }
-        effective_user_id = data["user"]
-        is_query_enabled = hasattr(record, "query") and _should_log_for_user(
-            effective_user_id, self._config, "question"
-        )
-        # Add query if enabled for user
-        data["query"] = record.query if is_query_enabled else None  # type: ignore
+        return priorities.get(levelno, 6)  # Default to INFO
 
-        is_response_enabled = hasattr(record, "response") and _should_log_for_user(
-            effective_user_id, self._config, "responses"
-        )
-        # Add response if enabled for user
-        data["response"] = record.response if is_response_enabled else None  # type: ignore
+    def _get_extra_fields(self, record: LogRecord) -> dict[str, Any]:
+        """Extract additional fields from the record.
 
-        # separators will remove whitespace between items
-        # ensure_ascii will properly handle unicode characters.
-        return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+        Arguments:
+            record (LogRecord): The log record
+
+        Returns:
+            dict[str, Any]: Dictionary of extra fields
+        """
+        extras = {}
+        for key, value in record.__dict__.items():
+            if key not in EXTRAS_TO_SKIP:
+                extras[key] = value
+        return extras
 
 
-def _create_audit_formatter(config: Config) -> AuditFormatter:
-    """Internal method to create a new audit formatter instance.
+def _setup_logging(logging_level: str, handlers: list[str]) -> None:
+    """Internal method to handle logging configuration and initialization.
+
+    Arguments:
+        logging_level (str): The mininaml level to enable
+        handlers (list[str]): A list of handlers to add to the root loger.
+    """
+    logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
+    logging_configuration["level"] = logging_level
+    logging_configuration["loggers"]["root"]["level"] = logging_level
+    logging_configuration["loggers"]["root"]["handlers"].extend(handlers)
+    logging.config.dictConfig(logging_configuration)
+
+
+def setup_daemon_logging(config: Config) -> None:
+    """Setup basic logging functionality.
 
     Note:
-        This appears to be not used, but the logging class will call this
-        function to initialize the formatter options for audit logger.
+        This is intended to be called by the daemon to initialize their logging
+        routine.
 
-        Do not remove this function, only if there is a better idea on how to
-        do it.
-
-    Args:
-        config (Config): The application configuration
-
-    Returns:
-        AuditFormatter: The new audit formatter instance.
-    """
-
-    fmt = '{"timestamp": "%(asctime)s", "user": "%(user)s", "message": "%(message)s"%(query)s%(response)s}'
-    datefmt = "%Y-%m-%dT%H:%M:%S"
-    return AuditFormatter(config=config, fmt=fmt, datefmt=datefmt)
-
-
-def setup_logging(config: Config):
-    """Setup basic logging functionality"
-
-    Args:
+    Arguments:
         config (Config): Instance of a config class.
     """
+    custom_handlers = []
+    # Add audit logging in case it is enabledc
+    if config.logging.audit.enabled:
+        custom_handlers.append("audit")
 
-    logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
-    logging_configuration["loggers"]["root"]["level"] = config.logging.level
-    # Set the config in the formatter
-    logging_configuration["formatters"]["audit"]["config"] = config
+    _setup_logging(config.logging.level, custom_handlers)
 
-    logging.config.dictConfig(logging_configuration)
+
+def setup_client_logging() -> None:
+    """Setup basic logging functionality.
+
+    Note:
+        This is intended to be called by the client to initialize their logging
+        routine.
+    """
+    _setup_logging(logging_level="DEBUG", handlers=[])

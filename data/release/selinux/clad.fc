@@ -1,13 +1,10 @@
 # Configuration files
-/etc/xdg/command-line-assistant(/.*)?             gen_context(system_u:object_r:clad_etc_rw_t,s0)
-/etc/xdg/command-line-assistant/config.toml    -- gen_context(system_u:object_r:clad_etc_rw_t,s0)
+/etc/xdg/command-line-assistant(/.*)?             gen_context(system_u:object_r:clad_etc_r_t,s0)
+/etc/xdg/command-line-assistant/config.toml    -- gen_context(system_u:object_r:clad_etc_r_t,s0)
 
 # Binary
 /usr/sbin/clad                                 -- gen_context(system_u:object_r:clad_exec_t,s0)
 
 # Data directory
-/var/lib/command-line-assistant(/.*)?             gen_context(system_u:object_r:clad_var_lib_t,s0)
-/var/lib/command-line-assistant/history.db     -- gen_context(system_u:object_r:clad_var_lib_t,s0)
-
-# Log files
-/var/log/command-line-assistant/audit.log      -- gen_context(system_u:object_r:clad_log_t,s0)
+/var/lib/command-line-assistant(/.*)?             gen_context(system_u:object_r:clad_var_lib_rw_t,s0)
+/var/lib/command-line-assistant/history.db     -- gen_context(system_u:object_r:clad_var_lib_rw_t,s0)

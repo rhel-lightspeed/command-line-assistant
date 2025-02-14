@@ -1,23 +1,5 @@
-# ------------------ experimental
-# Experimental settings for output. Not yet working.
-[output]
-# otherwise recording via script session will be enforced
-enforce_script = false
-# file with output(s) of regular commands (e.g. ls, echo, etc.)
-file = "/tmp/command-line-assistant/output.txt"
-# Keep non-empty if your file contains only output of commands (not prompt itself)
-prompt_separator = "$"
-# ------------------ experimental
-
-# History management configuration
-[history]
-# If the history for all conversation should be enabled or not. By default,
-# this is enabled and will store in a database defined under
-# [history.database]. The conversation is stored per-user.
-enabled = true
-
 # History Database settings. By default, sqlite is used.
-[history.database]
+[database]
 # Available types for databases are: sqlite, postgresql and mysql. Mariadb can
 # be used as well with "mysql" type.
 type = "sqlite"
@@ -26,7 +8,7 @@ type = "sqlite"
 connection_string = "/var/lib/command-line-assistant/history.db"
 
 # In order to use postgresql, uncomment the following settings:
-# [history.database]
+# [database]
 # type = "postgresql"
 # host = "localhost"
 # port = "5432"
@@ -35,7 +17,7 @@ connection_string = "/var/lib/command-line-assistant/history.db"
 # password = "your-password"
 
 # Or, to use mysql, uncomment the following:
-# [history.database]
+# [database]
 # type = "mysql"
 # host = "localhost"
 # port = "3306"
@@ -43,10 +25,20 @@ connection_string = "/var/lib/command-line-assistant/history.db"
 # user = "your-user"
 # password = "your-password"
 
+# History management configuration
+[history]
+# If the history for all conversation should be enabled or not. By default,
+# this is enabled and will store in a database defined under
+# [database]. The conversation is stored per-user.
+enabled = true
+
 # Backend settings for communicating with the external API.
 [backend]
 # The endpoint points to an API server.
-endpoint = "http://localhost:8080"
+endpoint = "https://localhost:8080"
+# Define https proxy to route the request through it.
+# It accepts `username:password@localhost:8002`, for example.
+# proxies = { https = "https://localhost:8002" }
 
 # Configure authentication settings for backend
 [backend.auth]
@@ -61,11 +53,8 @@ verify_ssl = true
 [logging]
 # The default logging level for all messages logged by CLAD.
 level = "INFO"
-# Global setting to enable logging responses in an audit file and journald
-responses = true
-# Global setting to enable logging question in an audit file and journald
-question = true  # Global setting - don't log questions by default
 
-# User-specific settings that can override the global settings based on user name.
-# Note: The user must exist in order for this to work.
-# users.admin = { responses = true, question = true }
+# Audit logging settings
+[logging.audit]
+# If enabled, we will log audit tracing to journald.
+enabled = false
