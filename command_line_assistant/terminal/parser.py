@@ -27,7 +27,6 @@ def parse_terminal_output() -> list[dict[str, str]]:
 
     with OUTPUT_FILE_NAME.open(mode="r") as handler:
         for block in handler:
-            logger.debug("Parsing block %s", block)
             # Parse the JSON
             try:
                 parsed = json.loads(block)
@@ -44,7 +43,6 @@ def parse_terminal_output() -> list[dict[str, str]]:
                 )
                 return result
 
-    logger.debug("Final result json list: %s", result)
     # Reverse the list before returning
     result.reverse()
     return result
@@ -78,6 +76,5 @@ def clean_parsed_text(text: str) -> str:
         str: The cleaned string.
     """
     # Remove ANSI escape sequences
-    logger.info("Cleaning ANSI escape sequences with regex %s", ANSI_ESCAPE_SEQ)
     cleaned_ansi_escape_seq = ANSI_ESCAPE_SEQ.sub("", text)
     return cleaned_ansi_escape_seq.strip()

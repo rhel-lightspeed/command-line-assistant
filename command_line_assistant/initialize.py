@@ -4,6 +4,8 @@ import logging
 import sys
 from argparse import ArgumentParser, Namespace
 
+from dasbus.error import DBusError
+
 from command_line_assistant.commands import chat, history, shell
 from command_line_assistant.logger import setup_client_logging
 from command_line_assistant.utils.cli import (
@@ -61,4 +63,10 @@ def initialize() -> int:
         return service.run()
     except ValueError as e:
         error_renderer.render(str(e))
+        return 1
+    except DBusError as e:
+        logger.error("Got exception from dbus: %s", str(e))
+        error_renderer.render(
+            f"Failed to communicate with daemon through dbus. Reason: {str(e)}"
+        )
         return 1
