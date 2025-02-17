@@ -15,7 +15,7 @@ key_file = "data/development/certificate/fake-key.pem"
 verify_ssl = false
 
 [logging]
-level = "DEBUG"
+level = "INFO"
 
 [logging.audit]
 enabled = false
