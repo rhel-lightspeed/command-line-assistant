@@ -40,6 +40,7 @@ from command_line_assistant.terminal.parser import (
     find_output_by_index,
     parse_terminal_output,
 )
+from command_line_assistant.utils.benchmark import TimingLogger
 from command_line_assistant.utils.cli import (
     CommandContext,
     SubParsersAction,
@@ -53,6 +54,16 @@ from command_line_assistant.utils.renderers import (
 )
 
 logger = logging.getLogger(__name__)
+
+timing = TimingLogger(
+    filtered_params=[
+        "question",
+        "stdin",
+        "attachment",
+        "attachment_mimetype",
+        "last_output",
+    ]
+)
 
 #: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
@@ -282,6 +293,7 @@ class BaseChatOperation(BaseOperation):
         self.text_renderer.render(response)
         self.notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
 
+    @timing.timeit
     def _submit_question(
         self,
         user_id: str,
@@ -313,27 +325,28 @@ class BaseChatOperation(BaseOperation):
 
         if skip_spinner:
             response = self._get_response(
-                user_id,
-                final_question,
-                stdin,
-                attachment,
-                attachment_mimetype,
-                last_output,
+                user_id=user_id,
+                question=final_question,
+                stdin=stdin,
+                attachment=attachment,
+                attachment_mimetype=attachment_mimetype,
+                last_output=last_output,
             )
         else:
             with self.spinner_renderer:
                 response = self._get_response(
-                    user_id,
-                    final_question,
-                    stdin,
-                    attachment,
-                    attachment_mimetype,
-                    last_output,
+                    user_id=user_id,
+                    question=final_question,
+                    stdin=stdin,
+                    attachment=attachment,
+                    attachment_mimetype=attachment_mimetype,
+                    last_output=last_output,
                 )
 
         self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
         return response
 
+    @timing.timeit
     def _get_response(
         self,
         user_id: str,
@@ -496,10 +509,14 @@ class InteractiveChatOperation(BaseChatOperation):
 class SingleQuestionOperation(BaseChatOperation):
     """Class that holds the single question ask operation"""
 
+    @timing.timeit
     def execute(self) -> None:
         """Default method to execute the operation"""
         try:
-            last_terminal_output = _read_last_terminal_output(self.args.with_output)
+            last_terminal_output = ""
+            if self.args.with_output:
+                last_terminal_output = _read_last_terminal_output(self.args.with_output)
+
             attachment = _parse_attachment_file(self.args.attachment)
             attachment_mimetype = guess_mimetype(self.args.attachment)
             stdin = self.args.stdin.strip()
