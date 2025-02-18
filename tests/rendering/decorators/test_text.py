@@ -1,12 +1,13 @@
 import shutil
 from typing import Iterator
+from unittest import mock
 
 import pytest
 
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
     TextWrapDecorator,
-    WriteOnceDecorator,
+    WriteOncePerSessionDecorator,
 )
 
 
@@ -131,7 +132,7 @@ class TestTextWrapDecorator:
         assert "    " not in result  # Should not contain multiple consecutive spaces
 
 
-class TestWriteOnceDecorator:
+class TestWriteOncePerSessionDecorator:
     @pytest.fixture
     def temp_state_dir(self, tmp_path):
         """Fixture to provide a temporary state directory"""
@@ -146,7 +147,7 @@ class TestWriteOnceDecorator:
             "command_line_assistant.rendering.decorators.text.get_xdg_state_path",
             lambda: temp_state_dir,
         )
-        return WriteOnceDecorator("test_state")
+        return WriteOncePerSessionDecorator("test_state")
 
     def test_first_write(self, decorator):
         """Test first write with decorator"""
@@ -169,8 +170,8 @@ class TestWriteOnceDecorator:
             lambda: temp_state_dir,
         )
 
-        decorator1 = WriteOnceDecorator("state1")
-        decorator2 = WriteOnceDecorator("state2")
+        decorator1 = WriteOncePerSessionDecorator("state1")
+        decorator2 = WriteOncePerSessionDecorator("state2")
 
         result1 = decorator1.decorate("Text 1")
         result2 = decorator2.decorate("Text 2")
@@ -187,7 +188,7 @@ class TestWriteOnceDecorator:
             lambda: non_existent_dir,
         )
 
-        decorator = WriteOnceDecorator("test_state")
+        decorator = WriteOncePerSessionDecorator("test_state")
         decorator.decorate("Test text")
 
         assert non_existent_dir.exists()
@@ -206,8 +207,8 @@ class TestWriteOnceDecorator:
             lambda: temp_state_dir,
         )
 
-        decorator1 = WriteOnceDecorator("same_state")
-        decorator2 = WriteOnceDecorator("same_state")
+        decorator1 = WriteOncePerSessionDecorator("same_state")
+        decorator2 = WriteOncePerSessionDecorator("same_state")
 
         result1 = decorator1.decorate("First text")
         result2 = decorator2.decorate("Second text")
@@ -239,8 +240,26 @@ class TestWriteOnceDecorator:
             lambda: temp_state_dir,
         )
 
-        decorator = WriteOnceDecorator(filename)
+        decorator = WriteOncePerSessionDecorator(filename)
         result = decorator.decorate("Test text")
 
         assert result == "Test text"
+        assert decorator._state_file.exists()
+
+    def test_different_pid(self, temp_state_dir, monkeypatch):
+        monkeypatch.setattr(
+            "command_line_assistant.rendering.decorators.text.get_xdg_state_path",
+            lambda: temp_state_dir,
+        )
+        monkeypatch.setattr("os.getppid", mock.Mock(side_effect=[0, 0, 1]))
+
+        decorator = WriteOncePerSessionDecorator("test")
+        assert decorator.decorate("Test text") == "Test text"
+
+        decorator = WriteOncePerSessionDecorator("test")
+        assert not decorator.decorate("Test second")
+
+        decorator = WriteOncePerSessionDecorator("test")
+        assert decorator.decorate("Test third") == "Test third"
+
         assert decorator._state_file.exists()

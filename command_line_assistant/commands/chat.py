@@ -30,7 +30,7 @@ from command_line_assistant.dbus.structures.chat import (
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
-    WriteOnceDecorator,
+    WriteOncePerSessionDecorator,
 )
 from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
@@ -275,7 +275,7 @@ class BaseChatOperation(BaseOperation):
         self.legal_renderer: TextRenderer = create_text_renderer(
             decorators=[
                 ColorDecorator(foreground="lightyellow"),
-                WriteOnceDecorator(state_filename="legal"),
+                WriteOncePerSessionDecorator(state_filename="legal"),
             ]
         )
         self.notice_renderer: TextRenderer = create_text_renderer(
