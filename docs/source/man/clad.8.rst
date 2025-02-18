@@ -46,6 +46,9 @@ Files
 */usr/lib/systemd/system/clad.service*
     Systemd service file for clad
 
+*/etc/systemd/system/clad.service.d/*
+    Systemd unit override for clad
+
 Reference
 ---------
 
