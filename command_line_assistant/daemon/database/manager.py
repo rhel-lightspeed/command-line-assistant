@@ -57,15 +57,13 @@ class DatabaseManager:
         """
         try:
             connection_url = self._config.database.get_connection_url()
-
             # SQLite-specific settings
             if self._config.database.type == "sqlite":
-                connect_args = {"check_same_thread": False}
                 return create_engine(
                     connection_url,
                     echo=echo,
                     poolclass=StaticPool,
-                    connect_args=connect_args,
+                    connect_args={"check_same_thread": False},
                 )
 
             # For other databases, use standard pooling

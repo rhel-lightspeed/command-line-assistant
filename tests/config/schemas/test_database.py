@@ -23,7 +23,12 @@ def test_database_schema_invalid_type():
 )
 def test_database_schema_default_initialization(type, port, connection_string):
     result = DatabaseSchema(
-        type=type, port=port, connection_string=connection_string, database="test"
+        type=type,
+        port=port,
+        connection_string=connection_string,
+        database="test",
+        username="test",
+        password="test",
     )
 
     assert result.port == port
@@ -33,13 +38,50 @@ def test_database_schema_default_initialization(type, port, connection_string):
 
 
 @pytest.mark.parametrize(
-    ("type", "expected"),
+    ("identifier", "value"),
     (
-        ("sqlite", None),
-        ("mysql", 3306),
-        ("postgresql", 5432),
+        ("database-username", "test"),
+        ("database-password", "test"),
     ),
 )
-def test_database_schema_initialization_no_port(type, expected):
-    result = DatabaseSchema(type=type)
-    assert result.port == expected
+def test_read_credentials_from_systemd(identifier, value, tmp_path, monkeypatch):
+    systemd_mock_path = tmp_path / identifier
+    systemd_mock_path.write_text("test")
+    monkeypatch.setenv("CREDENTIALS_DIRECTORY", str(tmp_path))
+
+    schema = DatabaseSchema()
+    assert schema._read_credentials_from_systemd(identifier=identifier) == value
+
+
+def test_read_credentials_from_systemd_contents_empty_exception():
+    schema = DatabaseSchema()
+    with pytest.raises(
+        ValueError,
+        match="Either username or password is missing from config file or systemd-creds.",
+    ):
+        assert schema._read_credentials_from_systemd(identifier="testtest")
+
+
+def test_read_credentials_from_systemd_file_not_found_exception(tmp_path, monkeypatch):
+    systemd_mock_path = tmp_path / "test"
+    monkeypatch.setenv("CREDENTIALS_DIRECTORY", str(systemd_mock_path))
+
+    schema = DatabaseSchema()
+    with pytest.raises(ValueError, match="does not exist."):
+        assert schema._read_credentials_from_systemd(identifier="testtest")
+
+
+def test_initialize_without_username_and_password_read_from_systemd_creds(
+    tmp_path, monkeypatch
+):
+    systemd_mock_username_path = tmp_path / "database-username"
+    systemd_mock_username_path.write_text("test")
+
+    systemd_mock_password_path = tmp_path / "database-password"
+    systemd_mock_password_path.write_text("test")
+
+    monkeypatch.setenv("CREDENTIALS_DIRECTORY", str(tmp_path))
+
+    schema = DatabaseSchema(type="postgresql", username=None, password=None)
+    assert schema.username == "test"
+    assert schema.password == "test"

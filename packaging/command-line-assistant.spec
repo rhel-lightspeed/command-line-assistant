@@ -72,12 +72,13 @@ popd
 %py3_install_wheel %{python_package_src}-%{version}-py3-none-any.whl
 
 # Create needed directories in buildroot
-%{__install} -d %{buildroot}/%{_sbindir}
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/xdg/%{name}
+%{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/systemd/system/clad.service.d
 %{__install} -d -m 0755 %{buildroot}/%{_sharedstatedir}/%{name}
+%{__install} -d %{buildroot}/%{_sbindir}
 %{__install} -d %{buildroot}/%{_mandir}/man1
 %{__install} -d %{buildroot}/%{_mandir}/man8
-%{__install} -d %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}
+%{__install} -d %{buildroot}/%{_datadir}/selinux/packages/%{selinuxtype}
 
 # Move the daemon to /usr/sbin instead of /usr/bin
 %{__install} -m 0755 %{buildroot}/%{_bindir}/%{daemon_binary_name} %{buildroot}/%{_sbindir}/%{daemon_binary_name}
@@ -152,6 +153,7 @@ fi
 # Needed directories
 %dir %attr(0755, root, root) %{_sharedstatedir}/%{name}
 %dir %attr(0755, root, root) %{_sysconfdir}/xdg/%{name}
+%dir %attr(0755, root, root) %{_sysconfdir}/systemd/system/clad.service.d
 
 # Config file
 %attr(0600, root, root) %config(noreplace) %{_sysconfdir}/xdg/%{name}/config.toml

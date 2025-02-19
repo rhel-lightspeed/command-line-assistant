@@ -236,7 +236,7 @@ class AllHistoryOperation(BaseHistoryOperation):
             # Display the conversation
             self._show_history(history)
         except HistoryNotAvailableError as e:
-            logger.error("Failed to retrieve the all history entries: %s", str(e))
+            logger.debug("Failed to retrieve the all history entries: %s", str(e))
             raise HistoryCommandException(
                 "Something went wrong while retrieving all history entries"
             ) from e

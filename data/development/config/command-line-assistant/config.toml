@@ -1,6 +1,6 @@
 [database]
 type = "sqlite"
-connection_string = "/tmp/history.db"
+connection_string = "~/.local/state/command-line-assistant/history.db"
 
 [history]
 enabled = true
