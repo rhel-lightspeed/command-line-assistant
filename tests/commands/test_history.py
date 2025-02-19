@@ -12,9 +12,14 @@ from command_line_assistant.commands.history import (
     LastHistoryOperation,
     _command_factory,
 )
-from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
+from command_line_assistant.dbus.exceptions import (
+    HistoryNotAvailableError,
+    HistoryNotEnabledError,
+)
 from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
-from command_line_assistant.exceptions import HistoryCommandException
+from command_line_assistant.exceptions import (
+    HistoryCommandException,
+)
 from command_line_assistant.utils.renderers import create_text_renderer
 
 
@@ -260,3 +265,31 @@ def test_command_factory(first, last, clear, filter, all, default_namespace):
     assert command._args.clear == clear
     assert command._args.filter == filter
     assert command._args.all == all
+
+
+@pytest.mark.parametrize(
+    ("operation",),
+    (
+        (ClearHistoryOperation,),
+        (FirstHistoryOperation,),
+        (LastHistoryOperation,),
+        (FilteredHistoryOperation,),
+        (AllHistoryOperation,),
+    ),
+)
+def test_operations_with_history_disabled(
+    operation, default_kwargs, mock_dbus_service, caplog
+):
+    """Test all operations with history disabled"""
+    mock_dbus_service.GetUserId.side_effect = HistoryNotEnabledError(
+        "History not enabled"
+    )
+    default_kwargs["text_renderer"] = create_text_renderer()
+
+    with pytest.raises(
+        HistoryCommandException,
+        match="Looks like history is not enabled yet. Enable it in the configuration file before trying to access history.",
+    ):
+        operation(**default_kwargs).execute()
+
+    assert "History is not enabled. Nothing to do." in caplog.records[-1].message

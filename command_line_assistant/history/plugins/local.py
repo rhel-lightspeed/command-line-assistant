@@ -64,9 +64,6 @@ class LocalHistory(BaseHistoryPlugin):
             CorruptedHistoryError: Raised when there's an error reading from the database.
             MissingHistoryFileError: Raised when the database file is missing.
         """
-        if not self._check_if_history_is_enabled():
-            return []
-
         try:
             return self._history_repository.select_all_history(user_id)
         except Exception as e:
@@ -86,9 +83,6 @@ class LocalHistory(BaseHistoryPlugin):
             CorruptedHistoryError: Raised when there's an error writing to the database.
             MissingHistoryFileError: Raised when the database file is missing.
         """
-        if not self._check_if_history_is_enabled():
-            return
-
         try:
             # Verify if the given chat_id has a history associated with it
             result = self._history_repository.select_by_chat_id(chat_id)

@@ -51,13 +51,6 @@ class TestLocalHistoryInitialization:
 class TestLocalHistoryRead:
     """Test cases for reading history."""
 
-    def test_read_disabled_history(
-        self, local_history: LocalHistory, mock_config: Mock
-    ):
-        """Should return empty list when history is disabled."""
-        mock_config.history.enabled = False
-        assert local_history.read("6d4e6b1e-dfcb-11ef-9b4f-52b437312584") == []
-
     def test_read_success(self, local_history: LocalHistory):
         """Should successfully read and format history entries."""
         # Create mock history entries
@@ -82,19 +75,6 @@ class TestLocalHistoryRead:
 
 class TestLocalHistoryWrite:
     """Test cases for writing history."""
-
-    def test_write_disabled_history(
-        self, local_history: LocalHistory, mock_config: Mock
-    ):
-        """Should not write when history is disabled."""
-        mock_config.history.enabled = False
-        local_history.write(
-            "6d4e6b1e-dfcb-11ef-9b4f-52b437312584",
-            "6d4e6b1e-dfcb-11ef-9b4f-52b437312584",
-            "query",
-            "response",
-        )
-        assert not local_history.read("6d4e6b1e-dfcb-11ef-9b4f-52b437312584")
 
     @pytest.mark.parametrize(
         "query,response",

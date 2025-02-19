@@ -2,6 +2,7 @@ from argparse import Namespace
 from unittest.mock import Mock, patch
 
 import pytest
+from dasbus.error import DBusError
 
 from command_line_assistant.commands.base import BaseCLICommand
 from command_line_assistant.constants import VERSION
@@ -167,3 +168,12 @@ def test_initialize_command_selection(argv, expected_command):
 
         assert result == 1
         mock_command.assert_called_once()
+
+
+def test_dbus_initialization_error(capsys):
+    with patch("command_line_assistant.initialize.read_stdin") as mock_stdin:
+        mock_stdin.side_effect = DBusError("Name is not active")
+        initialize()
+
+    captured = capsys.readouterr()
+    assert "Failed to communicate with CLAD through dbus." in captured.err

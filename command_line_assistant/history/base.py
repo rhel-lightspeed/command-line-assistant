@@ -49,14 +49,3 @@ class BaseHistoryPlugin(ABC):
         Arguments:
             user_id (str): The user's identifier
         """
-
-    def _check_if_history_is_enabled(self) -> bool:
-        """Check if the history is enabled in the configuration file.
-
-        Returns:
-            bool: If the history is enable or not.
-        """
-        if not self._config.history.enabled:
-            logger.info("History disabled. Nothing to do.")
-
-        return self._config.history.enabled

@@ -19,6 +19,7 @@ from command_line_assistant.commands.chat import (
 )
 from command_line_assistant.dbus.exceptions import (
     ChatNotFoundError,
+    HistoryNotEnabledError,
 )
 from command_line_assistant.dbus.structures.chat import ChatEntry, ChatList, Response
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
@@ -515,3 +516,33 @@ def test_trim_down_message_size(
     captured = capsys.readouterr()
     assert "The total size of your question and context" in captured.out
     assert "Final size of question after the limit 2048." in caplog.records[-3].message
+
+
+def test_submit_question_history_disabled(
+    mock_dbus_service, default_kwargs, capsys, caplog
+):
+    mock_dbus_service.WriteHistory.side_effect = HistoryNotEnabledError(
+        "History is disabled"
+    )
+    mock_dbus_service.AskQuestion.return_value = Response("test").structure()
+
+    default_kwargs["text_renderer"] = create_text_renderer()
+
+    chat_op = BaseChatOperation(**default_kwargs)
+    result = chat_op._submit_question(
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "test",
+        "",
+        "",
+        "",
+        "",
+        True,
+    )
+    captured = capsys.readouterr()
+    assert result == "test"
+    assert "Asking RHEL Lightspeed" not in captured.out
+    assert (
+        "The history is disabled in the configuration file. Skipping the write to the history."
+        in caplog.records[-2].message
+    )

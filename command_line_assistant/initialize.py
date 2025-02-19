@@ -65,9 +65,9 @@ def initialize() -> int:
         error_renderer.render(str(e))
         return 1
     except DBusError as e:
-        logger.error("Got exception from dbus: %s", str(e))
+        logger.debug("Got exception from dbus: %s", e)
         error_renderer.render(
-            f"Failed to communicate with daemon through dbus. Reason: {str(e)}"
+            f"Failed to communicate with CLAD through dbus. Reason: {str(e)}. Check the daemon logs with systemctl status clad"
         )
         return 1
     except KeyboardInterrupt as e:

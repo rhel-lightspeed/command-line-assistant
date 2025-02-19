@@ -32,6 +32,11 @@ class HistoryNotAvailableError(DBusError):
     """History for that particular user is not available."""
 
 
+@dbus_error("HistoryNotEnabledError", namespace=HISTORY_NAMESPACE)
+class HistoryNotEnabledError(DBusError):
+    """History for that particular user is not enabled."""
+
+
 @dbus_error("ChatNotFound", namespace=CHAT_NAMESAPCE)
 class ChatNotFoundError(DBusError):
     """Couldn't find chat for the given user."""

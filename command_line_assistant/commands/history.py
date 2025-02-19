@@ -11,7 +11,10 @@ from command_line_assistant.commands.base import (
     CommandOperationFactory,
     CommandOperationType,
 )
-from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
+from command_line_assistant.dbus.exceptions import (
+    HistoryNotAvailableError,
+    HistoryNotEnabledError,
+)
 from command_line_assistant.dbus.interfaces.chat import ChatInterface
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
 from command_line_assistant.dbus.interfaces.user import UserInterface
@@ -32,9 +35,13 @@ from command_line_assistant.utils.renderers import (
 logger = logging.getLogger(__name__)
 
 
+#: Message for when the history is not available yet.
 HISTORY_NOT_AVAILABLE_MESSAGE = (
     "Looks like no history was found. Try asking something first!"
 )
+
+#: Message for when the history is not enabled yet.
+HISTORY_NOT_ENABLED_MESSAGE = "Looks like history is not enabled yet. Enable it in the configuration file before trying to access history."
 
 
 class HistoryOperationType(CommandOperationType):
@@ -151,6 +158,9 @@ class ClearHistoryOperation(BaseHistoryOperation):
         except HistoryNotAvailableError as e:
             logger.debug("Failed to clear the history: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
+        except HistoryNotEnabledError as e:
+            logger.debug("History is not enabled. Nothing to do.")
+            raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.FIRST)
@@ -170,6 +180,9 @@ class FirstHistoryOperation(BaseHistoryOperation):
         except HistoryNotAvailableError as e:
             logger.debug("Failed to retrieve the first history entry: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
+        except HistoryNotEnabledError as e:
+            logger.debug("History is not enabled. Nothing to do.")
+            raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.LAST)
@@ -189,6 +202,9 @@ class LastHistoryOperation(BaseHistoryOperation):
         except HistoryNotAvailableError as e:
             logger.debug("Failed to retrieve the last history entry: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
+        except HistoryNotEnabledError as e:
+            logger.debug("History is not enabled. Nothing to do.")
+            raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.FILTER)
@@ -216,6 +232,9 @@ class FilteredHistoryOperation(BaseHistoryOperation):
                 str(e),
             )
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
+        except HistoryNotEnabledError as e:
+            logger.debug("History is not enabled. Nothing to do.")
+            raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.ALL)
@@ -235,6 +254,9 @@ class AllHistoryOperation(BaseHistoryOperation):
         except HistoryNotAvailableError as e:
             logger.debug("Failed to retrieve the all history entries: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
+        except HistoryNotEnabledError as e:
+            logger.debug("History is not enabled. Nothing to do.")
+            raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
 class HistoryCommand(BaseCLICommand):
