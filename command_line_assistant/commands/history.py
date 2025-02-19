@@ -32,6 +32,11 @@ from command_line_assistant.utils.renderers import (
 logger = logging.getLogger(__name__)
 
 
+HISTORY_NOT_AVAILABLE_MESSAGE = (
+    "Looks like no history was found. Try asking something first!"
+)
+
+
 class HistoryOperationType(CommandOperationType):
     """Enum to control the operations for the command"""
 
@@ -144,10 +149,8 @@ class ClearHistoryOperation(BaseHistoryOperation):
             self.text_renderer.render("Cleaning the history.")
             self.history_proxy.ClearHistory(user_id)
         except HistoryNotAvailableError as e:
-            logger.error("Failed to clear the history: %s", str(e))
-            raise HistoryCommandException(
-                "Something went wrong while clearing the history."
-            ) from e
+            logger.debug("Failed to clear the history: %s", str(e))
+            raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.FIRST)
@@ -165,10 +168,8 @@ class FirstHistoryOperation(BaseHistoryOperation):
             # Display the conversation
             self._show_history(history)
         except HistoryNotAvailableError as e:
-            logger.error("Failed to retrieve the first history entry: %s", str(e))
-            raise HistoryCommandException(
-                "Something went wrong while retrieving the first history entry"
-            ) from e
+            logger.debug("Failed to retrieve the first history entry: %s", str(e))
+            raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.LAST)
@@ -186,10 +187,8 @@ class LastHistoryOperation(BaseHistoryOperation):
             # Display the conversation
             self._show_history(history)
         except HistoryNotAvailableError as e:
-            logger.error("Failed to retrieve the last history entry: %s", str(e))
-            raise HistoryCommandException(
-                "Something went wrong while retrieving the last history entry"
-            ) from e
+            logger.debug("Failed to retrieve the last history entry: %s", str(e))
+            raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.FILTER)
@@ -211,14 +210,12 @@ class FilteredHistoryOperation(BaseHistoryOperation):
             # Display the conversation
             self._show_history(history)
         except HistoryNotAvailableError as e:
-            logger.error(
+            logger.debug(
                 "Failed to retrieve entries with filter '%s': %s",
                 self.args.filter,
                 str(e),
             )
-            raise HistoryCommandException(
-                "Something went wrong while retrieving filtered history entries"
-            ) from e
+            raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
 
 
 @HistoryOperationFactory.register(HistoryOperationType.ALL)
@@ -237,9 +234,7 @@ class AllHistoryOperation(BaseHistoryOperation):
             self._show_history(history)
         except HistoryNotAvailableError as e:
             logger.debug("Failed to retrieve the all history entries: %s", str(e))
-            raise HistoryCommandException(
-                "Something went wrong while retrieving all history entries"
-            ) from e
+            raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
 
 
 class HistoryCommand(BaseCLICommand):
@@ -273,7 +268,7 @@ def register_subcommand(parser: SubParsersAction):
     Arguments:
         parser (SubParsersAction): Root parser to register command-specific arguments
     """
-    history_parser = create_subparser(parser, "history", "Manage conversation history")
+    history_parser = create_subparser(parser, "history", "Manage Conversation History")
 
     filtering_options = history_parser.add_argument_group("Filtering Options")
     filtering_options.add_argument(

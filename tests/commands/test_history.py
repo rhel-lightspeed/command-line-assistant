@@ -57,7 +57,7 @@ def test_retrieve_all_conversations_exception(mock_dbus_service, default_kwargs)
     )
     with pytest.raises(
         HistoryCommandException,
-        match="Something went wrong while retrieving all history entries",
+        match="Looks like no history was found. Try asking something first!",
     ):
         AllHistoryOperation(**default_kwargs).execute()
 
@@ -94,7 +94,7 @@ def test_retrieve_conversation_filtered_exception(
     )
     with pytest.raises(
         HistoryCommandException,
-        match="Something went wrong while retrieving filtered history entries",
+        match="Looks like no history was found. Try asking something first!",
     ):
         FilteredHistoryOperation(**default_kwargs).execute()
 
@@ -126,7 +126,7 @@ def test_retrieve_first_conversation_exception(mock_dbus_service, default_kwargs
     )
     with pytest.raises(
         HistoryCommandException,
-        match="Something went wrong while retrieving the first history entry",
+        match="Looks like no history was found. Try asking something first!",
     ):
         FirstHistoryOperation(**default_kwargs).execute()
 
@@ -156,7 +156,7 @@ def test_retrieve_last_conversation_exception(mock_dbus_service, default_kwargs)
     )
     with pytest.raises(
         HistoryCommandException,
-        match="Something went wrong while retrieving the last history entry",
+        match="Looks like no history was found. Try asking something first!",
     ):
         LastHistoryOperation(**default_kwargs).execute()
 
@@ -176,7 +176,8 @@ def test_clear_history_exception(mock_dbus_service, default_kwargs):
         "Not found history"
     )
     with pytest.raises(
-        HistoryCommandException, match="Something went wrong while clearing the history"
+        HistoryCommandException,
+        match="Looks like no history was found. Try asking something first!",
     ):
         ClearHistoryOperation(**default_kwargs).execute()
 
