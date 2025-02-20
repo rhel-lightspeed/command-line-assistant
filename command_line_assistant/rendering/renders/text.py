@@ -9,7 +9,9 @@ from command_line_assistant.rendering.stream import StdoutStream
 
 
 class TextRenderer(BaseRenderer):
-    """This is a specialized class to render output based on the `stream` parameter to the terminal."""
+    """This is a specialized class to render output based on the `stream`
+    parameter to the terminal.
+    """
 
     def __init__(self, stream: Optional[BaseStream] = None) -> None:
         """Constructor of the class
@@ -20,7 +22,9 @@ class TextRenderer(BaseRenderer):
                 >>> text_renderer.render("Hello, world!")
 
         Arguments:
-            stream (Optional[OutputStreamWritter], optional): The stream to where the output will be. Can be either `py:StdoutStream` or `py:StderrStream`. Defaults to StdoutStream().
+            stream (Optional[OutputStreamWritter], optional): The stream to
+            where the output will be. Can be either `py:StdoutStream` or
+            `py:StderrStream`. Defaults to StdoutStream().
         """
         super().__init__(stream or StdoutStream())
 

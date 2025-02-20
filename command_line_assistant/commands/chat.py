@@ -33,6 +33,7 @@ from command_line_assistant.rendering.decorators.text import (
     WriteOncePerSessionDecorator,
 )
 from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
+from command_line_assistant.rendering.renders.markdown import MarkdownRenderer
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.parser import (
@@ -48,8 +49,10 @@ from command_line_assistant.utils.files import guess_mimetype
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
     create_interactive_renderer,
+    create_markdown_renderer,
     create_spinner_renderer,
     create_text_renderer,
+    format_datetime,
     human_readable_size,
 )
 
@@ -283,6 +286,7 @@ class BaseChatOperation(BaseOperation):
             decorators=[ColorDecorator(foreground="lightyellow")]
         )
         self.interactive_renderer: InteractiveRenderer = create_interactive_renderer()
+        self.markdown_renderer: MarkdownRenderer = create_markdown_renderer()
 
     def _display_response(self, response: str) -> None:
         """Internal method to display message to the terminal
@@ -291,7 +295,7 @@ class BaseChatOperation(BaseOperation):
             response(str): The message to be displayed
         """
         self.legal_renderer.render(LEGAL_NOTICE)
-        self.text_renderer.render(response)
+        self.markdown_renderer.render(response)
         self.notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
 
     @timing.timeit
@@ -445,7 +449,7 @@ class ListChatsOperation(BaseChatOperation):
         self.text_renderer.render(f"Found a total of {len(all_chats.chats)} chats:")
         for index, chat in enumerate(all_chats.chats):
             self.text_renderer.render(
-                f"{index}. Chat: {chat.name} - {chat.description} (created at: {chat.created_at})"
+                f"{index}. Chat: {chat.name} - {chat.description} (created at: {format_datetime(chat.created_at)})"
             )
 
 
@@ -579,7 +583,7 @@ class ChatCommand(BaseCLICommand):
                 self._args,
                 self._context,
                 text_renderer=create_text_renderer(
-                    decorators=[ColorDecorator(foreground="green")],
+                    decorators=[ColorDecorator()],
                 ),
                 error_renderer=error_renderer,
             )
