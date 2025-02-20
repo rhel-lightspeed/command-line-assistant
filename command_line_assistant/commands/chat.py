@@ -519,8 +519,8 @@ class SingleQuestionOperation(BaseChatOperation):
 
             attachment = _parse_attachment_file(self.args.attachment)
             attachment_mimetype = guess_mimetype(self.args.attachment)
-            stdin = self.args.stdin.strip()
-            question = self.args.query_string.strip()
+            stdin = self.args.stdin.strip() if self.args.stdin else ""
+            question = self.args.query_string.strip() if self.args.query_string else ""
 
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             chat_id = self._create_chat_session(
