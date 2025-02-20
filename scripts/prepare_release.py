@@ -157,7 +157,7 @@ def update_spec_file(new_version: str, changelog_entry: Optional[str] = None) ->
 {changelog_entry}
 
 """
-        content = re.sub(r"(%changelog\n)", f"\g<1>{new_entry}", content)
+        content = re.sub(r"(%changelog\n)", rf"\g<1>{new_entry}", content)
 
     with VERSION_FILES["spec"].open("w") as f:
         f.write(content)

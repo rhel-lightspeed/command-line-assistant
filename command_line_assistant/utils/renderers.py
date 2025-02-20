@@ -114,3 +114,22 @@ def create_text_renderer(
     text.update(decorators)
 
     return text
+
+
+def human_readable_size(size: float) -> str:
+    """Converts a byte value to a human-readable format (KB, MB, GB).
+
+    Arguments:
+        size (float): The size to be converted to a human readable format
+
+    Returns:
+        str: Size in a human readable format
+    """
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    unit_index = 0
+
+    while size >= 1024 and unit_index < len(units) - 1:
+        size /= 1024
+        unit_index += 1
+
+    return f"{size:.2f} {units[unit_index]}"
