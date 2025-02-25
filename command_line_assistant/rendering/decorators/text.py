@@ -154,7 +154,7 @@ class WriteOncePerSessionDecorator(BaseDecorator):
                     "The state file already exists. Skipping writting it a second time."
                 )
                 return False
-        create_folder(self._state_dir)
+        create_folder(self._state_dir, parents=True)
         # Write state file
         write_file(self._parent_pid, self._state_file)
         return True
@@ -163,7 +163,8 @@ class WriteOncePerSessionDecorator(BaseDecorator):
         """Write the text only if it hasn't been written before.
 
         Arguments:
-            text (str): The text that needs to be decorated. This usually is being set from a renderer class.
+            text (str): The text that needs to be decorated. This usually is
+            being set from a renderer class.
 
         Returns:
             str: The text decorated if it can writes, otherwise, blank string.

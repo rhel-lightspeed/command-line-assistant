@@ -66,4 +66,5 @@ def test_find_output_by_index(index, expected):
 
 
 def test_clean_parsed_text():
-    assert parser.clean_parsed_text("\u001b[?2004l\r\r\nexit") == "exit"
+    result = parser.clean_parsed_text("\u001b[?2004l\r\r\nexit")
+    assert result == "exit"

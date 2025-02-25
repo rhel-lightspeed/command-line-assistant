@@ -103,7 +103,7 @@ def start_capturing() -> None:
     os.environ["TERM"] = os.environ.get("TERM", "xterm")
 
     # The create_folder function will silently fail in case the folder exists.
-    create_folder(OUTPUT_FILE_NAME.parent)
+    create_folder(OUTPUT_FILE_NAME.parent, parents=True)
 
     # Initialize the file
     write_file("", OUTPUT_FILE_NAME)

@@ -23,6 +23,10 @@ def parse_terminal_output() -> list[dict[str, str]]:
     result = []
 
     if not OUTPUT_FILE_NAME.exists():
+        logger.warning(
+            "Terminal output requested but couldn't find file at %s. Returning empty list.",
+            OUTPUT_FILE_NAME,
+        )
         return result
 
     with OUTPUT_FILE_NAME.open(mode="r") as handler:
@@ -43,8 +47,6 @@ def parse_terminal_output() -> list[dict[str, str]]:
                 )
                 return result
 
-    # Reverse the list before returning
-    result.reverse()
     return result
 
 
@@ -58,9 +60,13 @@ def find_output_by_index(index: int, output: list) -> str:
     Returns:
         str: In case it finds the output, otherwise, empty string.
     """
-    logger.info("Checking for output with index %s", index)
     try:
-        return output[index]["output"]
+        logger.info("Checking for output with index %s", index)
+        found_output = output[index]["output"]
+        logger.debug(
+            "Found output with index %s, and contents: %s", index, found_output
+        )
+        return found_output
     except (IndexError, KeyError):
         logger.warning("Couldn't find a match for index %s", index)
         return ""
