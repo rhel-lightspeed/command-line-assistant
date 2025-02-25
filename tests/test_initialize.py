@@ -127,6 +127,15 @@ def test_initialize_bad_stdin(capsys):
     assert "\x1b[31m🙁 Binary input are not supported.\x1b[0m\n" in captured.err
 
 
+def test_initialize_keyboard_interrupt(capsys):
+    with patch("command_line_assistant.initialize.read_stdin") as mock_stdin:
+        mock_stdin.side_effect = KeyboardInterrupt("Interrupted")
+        initialize()
+
+    captured = capsys.readouterr()
+    assert "\x1b[31m🙁 Uh, oh! Keyboard interrupt detected.\x1b[0m\n" in captured.err
+
+
 @pytest.mark.parametrize(
     (
         "argv",
