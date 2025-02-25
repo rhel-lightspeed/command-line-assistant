@@ -43,7 +43,7 @@ class InteractiveRenderer(BaseRenderer):
         """
         if not self._first_message:
             self._stream.write(self._banner)
-            self._stream.write("The current seesion does not include running context.")
+            self._stream.write("The current session does not include running context.")
             self._first_message = True
 
         try:
