@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+from datetime import datetime
 from unittest import mock
 from unittest.mock import patch
 
@@ -244,9 +245,8 @@ def test_parse_attachment_file_exception(tmp_path):
 
 def test_chat_management_list(mock_dbus_service, capsys, default_namespace):
     mock_dbus_service.GetAllChatFromUser = lambda user_id: ChatList(
-        [ChatEntry()]
+        [ChatEntry(created_at=str(datetime.now()))]
     ).structure()
-
     default_namespace.list = True
 
     ChatCommand(default_namespace).run()

@@ -29,7 +29,9 @@ from command_line_assistant.utils.cli import (
 )
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
+    create_markdown_renderer,
     create_text_renderer,
+    format_datetime,
 )
 
 logger = logging.getLogger(__name__)
@@ -114,35 +116,57 @@ class BaseHistoryOperation(BaseOperation):
             history_proxy,
             user_proxy,
         )
-
-        self.q_renderer: TextRenderer = create_text_renderer(
-            decorators=[ColorDecorator("lightgreen")]
-        )
-        self.a_renderer: TextRenderer = create_text_renderer(
-            decorators=[ColorDecorator("lightblue")]
-        )
+        # Add markdown renderer as a standard renderer
+        self.markdown_renderer = create_markdown_renderer()
 
     def _show_history(self, entries: HistoryList) -> None:
         """Internal method to show the history in a standardized way
 
         Arguments:
-            entries (list[HistoryItem]): The list of entries in the history
+            entries (HistoryItem): The list of entries in the history
         """
         if not entries.histories:
             self.text_renderer.render("No history entries found")
             return
 
-        is_separator_needed = len(entries.histories) > 1
+        # Create specialized renderers for different parts
+        question_renderer = create_markdown_renderer(
+            decorators=[
+                ColorDecorator(foreground="cyan"),
+            ]
+        )
+
+        answer_renderer = create_markdown_renderer(
+            decorators=[
+                ColorDecorator(foreground="green"),
+            ]
+        )
+
+        metadata_renderer = create_text_renderer(
+            decorators=[
+                ColorDecorator(foreground="yellow"),
+            ]
+        )
+
         for entry in entries.histories:
-            self.q_renderer.render(f"Question: {entry.question}")
-            self.a_renderer.render(f"Answer: {entry.response}")
+            # Render question block
+            question_text = f"## 🤔 Question\n{entry.question}"
+            question_renderer.render(question_text)
 
-            timestamp = f"Time: {entry.created_at}"
-            self.text_renderer.render(timestamp)
+            # Add a small spacing
+            self.text_renderer.render("")
 
-            if is_separator_needed:
-                # Separator between conversations
-                self.text_renderer.render("-" * len(timestamp))
+            # Render answer block
+            answer_text = f"## 🤖 Answer\n{entry.response}"
+            answer_renderer.render(answer_text)
+
+            metadata_renderer.render(
+                f"\n*Created at: {format_datetime(entry.created_at)}*"
+            )
+
+            # Add separator between entries if needed
+            if len(entries.histories) > 1:
+                self.text_renderer.render("\n" + "═" * 80 + "\n")
 
 
 @HistoryOperationFactory.register(HistoryOperationType.CLEAR)

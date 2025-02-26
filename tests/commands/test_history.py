@@ -1,4 +1,5 @@
 from argparse import Namespace
+from datetime import datetime
 
 import pytest
 
@@ -26,10 +27,8 @@ from command_line_assistant.utils.renderers import create_text_renderer
 @pytest.fixture
 def sample_history_entry():
     """Create a sample history entry for testing."""
-    entry = HistoryEntry("test query", "test response", "2024-01-01T00:00:00Z")
-    last = HistoryEntry(
-        "test final query", "test final response", "2024-01-02T00:00:00Z"
-    )
+    entry = HistoryEntry("test query", "test response", str(datetime.now()))
+    last = HistoryEntry("test final query", "test final response", str(datetime.now()))
     history_entry = HistoryList([entry, last])
     return history_entry
 
@@ -82,10 +81,8 @@ def test_retrieve_conversation_filtered_success(
 
     captured = capsys.readouterr()
     mock_dbus_service.GetFilteredConversation.assert_called_once()
-    assert (
-        "\x1b[92mQuestion: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
-        in captured.out
-    )
+    assert "Question\n───────────\ntest query" in captured.out
+    assert "Answer\n─────────\ntest response" in captured.out
 
 
 def test_retrieve_conversation_filtered_exception(
@@ -118,10 +115,8 @@ def test_retrieve_first_conversation_success(
     FirstHistoryOperation(**default_kwargs).execute()
     captured = capsys.readouterr()
     mock_dbus_service.GetFirstConversation.assert_called_once()
-    assert (
-        "\x1b[92mQuestion: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
-        in captured.out
-    )
+    assert "Question\n───────────\ntest query" in captured.out
+    assert "Answer\n─────────\ntest response" in captured.out
 
 
 def test_retrieve_first_conversation_exception(mock_dbus_service, default_kwargs):
@@ -148,10 +143,8 @@ def test_retrieve_last_conversation_success(
 
     captured = capsys.readouterr()
     mock_dbus_service.GetLastConversation.assert_called_once()
-    assert (
-        "\x1b[92mQuestion: test query\x1b[0m\n\x1b[94mAnswer: test response\x1b[0m\n"
-        in captured.out
-    )
+    assert "Question\n───────────\ntest query" in captured.out
+    assert "Answer\n─────────\ntest response" in captured.out
 
 
 def test_retrieve_last_conversation_exception(mock_dbus_service, default_kwargs):
@@ -187,23 +180,16 @@ def test_clear_history_exception(mock_dbus_service, default_kwargs):
         ClearHistoryOperation(**default_kwargs).execute()
 
 
-@pytest.mark.parametrize(
-    ("query", "response", "expected"),
-    (
-        (
-            "test",
-            "test",
-            "\x1b[92mQuestion: test\x1b[0m\n\x1b[94mAnswer: test\x1b[0m\nTime:\n",
-        ),
-    ),
-)
-def test_show_history(query, response, expected, default_kwargs, capsys):
+def test_show_history(default_kwargs, capsys):
     default_kwargs["text_renderer"] = create_text_renderer()
     bash_history_operation = BaseHistoryOperation(**default_kwargs)
-    bash_history_operation._show_history(HistoryList([HistoryEntry(query, response)]))
+    bash_history_operation._show_history(
+        HistoryList([HistoryEntry("test", "test", str(datetime.now()))])
+    )
 
     captured = capsys.readouterr()
-    assert expected in captured.out
+    assert "Question\n───────────\ntest" in captured.out
+    assert "Answer\n─────────\ntest" in captured.out
 
 
 @pytest.mark.parametrize(

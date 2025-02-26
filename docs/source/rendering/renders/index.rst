@@ -7,3 +7,4 @@ Renders
    spinner
    text
    interactive
+   markdown
