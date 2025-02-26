@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "CLAD" "8" "Feb 13, 2025" "0.1.0" "Command Line Assistant"
+.TH "CLAD" "8" "Feb 26, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 clad \- Command Line Assistant Daemon
 .SH SYNOPSIS
@@ -79,15 +79,22 @@ Service to enable dbus activation from history endpoint
 .TP
 .B \fI/usr/lib/systemd/system/clad.service\fP
 Systemd service file for clad
+.TP
+.B \fI/etc/systemd/system/clad.service.d/\fP
+Systemd unit override for clad
 .UNINDENT
 .SH REFERENCE
 .INDENT 0.0
 .IP 1. 3
-Command Line Assistant Daemon source code: \X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'
+Command Line Assistant Daemon source code: <\X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'>
 .UNINDENT
 .SH BUGS
 .sp
-Please send bug reports to our bug tracker, see \X'tty: link https://issues.redhat.com/browse/RSPEED'\fI\%https://issues.redhat.com/browse/RSPEED\fP\X'tty: link'
+To submit bug reports, please use the following link:
+<\X'tty: link https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=1&components=12410340'\fI\%https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=1&components=12410340\fP\X'tty: link'>
+.sp
+In case to submit feature requests, please use the following link:
+<\X'tty: link https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=3&components=12410340'\fI\%https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=3&components=12410340\fP\X'tty: link'>
 .SH SEE ALSO
 .sp
 \fBc(1)\fP

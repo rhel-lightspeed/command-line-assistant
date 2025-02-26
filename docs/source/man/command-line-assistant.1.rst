@@ -165,12 +165,17 @@ Files
 
 Reference
 ---------
-1. Command Line Assistant source code: https://github.com/rhel-lightspeed/command-line-assistant
+
+1. Command Line Assistant source code: <https://github.com/rhel-lightspeed/command-line-assistant>
 
 Bugs
 ----
 
-Please send bug reports to our bug tracker, see https://issues.redhat.com/browse/RSPEED
+To submit bug reports, please use the following link:
+<https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=1&components=12410340>
+
+In case it is a feature request, please use the following link:
+<https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=3&components=12410340>
 
 See Also
 --------
