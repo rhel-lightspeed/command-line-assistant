@@ -15,6 +15,7 @@ from command_line_assistant.commands.base import (
 )
 from command_line_assistant.dbus.exceptions import (
     ChatNotFoundError,
+    HistoryNotEnabledError,
 )
 from command_line_assistant.dbus.interfaces.chat import ChatInterface
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
@@ -358,7 +359,13 @@ class BaseChatOperation(BaseOperation):
                     last_output=last_output,
                 )
 
-        self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
+        try:
+            self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
+        except HistoryNotEnabledError:
+            logger.warning(
+                "The history is disabled in the configuration file. Skipping the write to the history."
+            )
+
         return response
 
     @timing.timeit

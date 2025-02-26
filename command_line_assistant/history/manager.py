@@ -1,13 +1,17 @@
 """Module to control the history plugins and provide an abstract interface to execute them."""
 
+import logging
 from typing import Optional, Type
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.models.history import HistoryModel
+from command_line_assistant.dbus.exceptions import HistoryNotEnabledError
 from command_line_assistant.history.base import BaseHistoryPlugin
 
 #: Default history plugin error message.
 HISTORY_PLUGIN_ERROR_MESSAGE = "No history plugin set. Set plugin before operations."
+
+logger = logging.getLogger(__name__)
 
 
 class HistoryManager:
@@ -41,6 +45,15 @@ class HistoryManager:
         # Set initial plugin if provided
         if plugin:
             self.plugin = plugin
+
+    def _check_if_history_is_enabled(self) -> None:
+        """Check if the history is enabled in the configuration file.
+
+        Raises:
+            HistoryNotEnabledError: If history is not enabled in the configuration file.
+        """
+        if not self._config.history.enabled:
+            raise HistoryNotEnabledError("History is not enabled.")
 
     @property
     def plugin(self) -> Optional[Type[BaseHistoryPlugin]]:
@@ -84,6 +97,7 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
+        self._check_if_history_is_enabled()
         return self._instance.read(user_id)
 
     def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
@@ -101,6 +115,7 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
+        self._check_if_history_is_enabled()
         self._instance.write(chat_id, user_id, query, response)
 
     def clear(self, user_id: str) -> None:
@@ -115,4 +130,5 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
+        self._check_if_history_is_enabled()
         self._instance.clear(user_id)
