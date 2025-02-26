@@ -470,3 +470,48 @@ def test_submit_question_no_spinner(mock_dbus_service, default_kwargs, capsys):
     assert result == "test"
     captured = capsys.readouterr()
     assert "Asking RHEL Lightspeed" not in captured.out
+
+
+@pytest.mark.parametrize(
+    ("question", "stdin", "attachment", "last_output"),
+    (
+        ("test " * 2048, "", "", ""),
+        ("", "test " * 2048, "", ""),
+        ("", "", "test " * 2048, ""),
+        ("", "", "", "test " * 2048),
+        # Combining two or more sources
+        ("question " * 2048, "stdin " * 124, "", ""),
+        ("question " * 2048, "stdin " * 124, "attachment" * 124, "last_output" * 124),
+    ),
+)
+def test_trim_down_message_size(
+    question,
+    stdin,
+    attachment,
+    last_output,
+    mock_dbus_service,
+    default_kwargs,
+    capsys,
+    caplog,
+):
+    mock_dbus_service.WriteHistory.return_value = None
+    mock_dbus_service.AskQuestion.return_value = Response("test").structure()
+
+    default_kwargs["text_renderer"] = create_text_renderer()
+    default_kwargs["warning_renderer"] = create_text_renderer()
+
+    chat_op = BaseChatOperation(**default_kwargs)
+    result = chat_op._submit_question(
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        question,
+        stdin,
+        attachment,
+        "",
+        last_output,
+        True,
+    )
+    assert result == "test"
+    captured = capsys.readouterr()
+    assert "The total size of your question and context" in captured.out
+    assert "Final size of question after the limit 2048." in caplog.records[-3].message

@@ -50,6 +50,7 @@ from command_line_assistant.utils.renderers import (
     create_interactive_renderer,
     create_spinner_renderer,
     create_text_renderer,
+    human_readable_size,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,10 @@ timing = TimingLogger(
         "last_output",
     ]
 )
+
+#: Max input size we want to allow to be submitted to the backend. This
+#: corresponds to 2KB (2048 bytes)
+MAX_QUESTION_SIZE: int = 2048
 
 #: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
@@ -318,6 +323,20 @@ class BaseChatOperation(BaseOperation):
         """
         final_question = _get_input_source(question, stdin, attachment, last_output)
         response = None
+
+        if len(final_question) > MAX_QUESTION_SIZE:
+            self.warning_renderer.render(
+                f"The total size of your question and context ({human_readable_size(len(final_question))}) exceeds the limit of {human_readable_size(MAX_QUESTION_SIZE)}. Trimming it down to fit in the expected size, you may lose some context."
+            )
+            logger.debug(
+                "Total size of question (%s) exceeds defined limit of %s.",
+                len(final_question),
+                MAX_QUESTION_SIZE,
+            )
+            final_question = final_question[:MAX_QUESTION_SIZE]
+            logger.debug(
+                "Final size of question after the limit %s.", len(final_question)
+            )
 
         if skip_spinner:
             response = self._get_response(

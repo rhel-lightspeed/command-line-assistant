@@ -36,3 +36,18 @@ def test_create_text_renderer(capsys: pytest.CaptureFixture[str]):
     captured = capsys.readouterr()
     print(captured)
     assert "rrored out\n" in captured.out
+
+
+@pytest.mark.parametrize(
+    ("size", "expected"),
+    (
+        (248, "248.00 B"),
+        (2048, "2.00 KB"),
+        (2000048, "1.91 MB"),
+        (2000000048, "1.86 GB"),
+        (2000000000408, "1.82 TB"),
+        (2000000000000408, "1.78 PB"),
+    ),
+)
+def test_human_readable_size(size, expected):
+    assert renderers.human_readable_size(size) == expected
