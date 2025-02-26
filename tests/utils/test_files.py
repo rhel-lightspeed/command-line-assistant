@@ -38,11 +38,19 @@ def test_guess_mimetype_file_extension(file, mimetype, tmp_path):
 def test_create_folder(path, mode, expected, tmp_path):
     folder_path = tmp_path / path
     if mode:
-        create_folder(folder_path, mode)
+        create_folder(folder_path, mode=mode)
     else:
         create_folder(folder_path)
 
     assert oct(folder_path.stat().st_mode).endswith(expected)
+
+
+def test_create_folder_with_parents(tmp_path):
+    folder_path = tmp_path / "test/test"
+    create_folder(folder_path, parents=True)
+
+    assert folder_path.exists()
+    assert folder_path.parent.exists()
 
 
 def test_create_folder_already_exists(tmp_path, caplog):

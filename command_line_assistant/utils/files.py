@@ -33,7 +33,7 @@ def guess_mimetype(attachment: Optional[TextIOWrapper]) -> str:
     return mimetype
 
 
-def create_folder(path: Path, mode: int = 0o700) -> None:
+def create_folder(path: Path, parents: bool = False, mode: int = 0o700) -> None:
     """Try to create a new folder under the specified directory.
 
     Notes:
@@ -43,13 +43,21 @@ def create_folder(path: Path, mode: int = 0o700) -> None:
 
     Arguments:
         path (Path): The path of the folder that needs to be created.
+        parents (bool): If it should create the parents folder from the given path.
         mode (int): The permissions of the given folder. Defaults to 0700.
     """
     try:
-        path.mkdir(mode)
+        if not path.exists():
+            logger.debug(
+                "Directory %s does not exist. Creating it with permissions %s",
+                path,
+                mode,
+            )
+
+        path.mkdir(mode=mode, parents=parents)
     except (FileExistsError, FileNotFoundError) as e:
         logger.info(
-            "Skipping directory creation at '%s' as we found an exception %s. It's possible that the folder already exists.",
+            "Skipping directory creation at '%s' as we found an exception %s. It's possible that the folder already exists or is a race condition.",
             path,
             str(e),
         )
@@ -69,6 +77,11 @@ def write_file(contents: Union[str, bytes], path: Path, mode: int = 0o600) -> No
         mode (int): The permissions of the given file. Defaults to 0600.
     """
     try:
+        if not path.exists():
+            logger.debug(
+                "File %s does not exist. Creating it with permissions %s", path, mode
+            )
+
         if isinstance(contents, bytes):
             path.write_bytes(contents)
         else:
@@ -77,7 +90,7 @@ def write_file(contents: Union[str, bytes], path: Path, mode: int = 0o600) -> No
         path.chmod(mode)
     except (FileExistsError, FileNotFoundError) as e:
         logger.info(
-            "Skipping file creation at '%s' as we found an exception %s. It's possible that the file already exists.",
+            "Skipping file creation at '%s' as we found an exception %s. It's possible that the file already exists or is a race condition.",
             path,
             str(e),
         )

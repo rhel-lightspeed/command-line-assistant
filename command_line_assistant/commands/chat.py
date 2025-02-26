@@ -36,7 +36,6 @@ from command_line_assistant.rendering.renders.interactive import InteractiveRend
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.parser import (
-    clean_parsed_text,
     find_output_by_index,
     parse_terminal_output,
 )
@@ -88,14 +87,11 @@ def _read_last_terminal_output(index: int) -> str:
     contents = parse_terminal_output()
 
     if not contents:
-        logger.info(
-            "No contents found during reading the terminal output. Returning empty string."
-        )
+        logger.info("No contents found during reading the terminal output.")
         return ""
 
-    logger.info("Finding output by index, if any.")
     last_output = find_output_by_index(index=index, output=contents)
-    return clean_parsed_text(last_output)
+    return last_output
 
 
 def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
@@ -515,6 +511,10 @@ class SingleQuestionOperation(BaseChatOperation):
         try:
             last_terminal_output = ""
             if self.args.with_output:
+                logger.debug(
+                    "Retrieving context from with-output parameter (index %s)",
+                    self.args.with_output,
+                )
                 last_terminal_output = _read_last_terminal_output(self.args.with_output)
 
             attachment = _parse_attachment_file(self.args.attachment)
@@ -603,11 +603,11 @@ def register_subcommand(parser: SubParsersAction) -> None:
         help="Start interactive chat session",
     )
     question_group.add_argument(
-        "-o",
+        "-w",
         "--with-output",
         nargs="?",
         type=int,
-        help="Add output from terminal as context for the query. Use 0 to retrieve latest output.",
+        help="Add output from terminal as context for the query. Use 0 to retrieve latest output, 1 to before last and so on...",
     )
     question_group.add_argument(
         "-r",
@@ -656,4 +656,11 @@ def _command_factory(args: Namespace) -> ChatCommand:
     Returns:
         QueryCommand: Return an instance of class
     """
+    if args.with_output:
+        logger.debug(
+            "Converting the index to a negative number in order to reverse search the output list."
+        )
+        logger.debug("Original index is %s", args.with_output)
+        args.with_output = -abs(args.with_output)
+
     return ChatCommand(args)
