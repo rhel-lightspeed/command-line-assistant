@@ -16,6 +16,7 @@ from command_line_assistant.exceptions import ShellCommandException
 from command_line_assistant.integrations import (
     BASH_ESSENTIAL_EXPORTS,
     BASH_INTERACTIVE,
+    BASH_PERSISTENT_TERMINAL_CAPTURE,
 )
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.reader import start_capturing
@@ -149,7 +150,7 @@ class EnablePersistentCapture(BaseShellOperation):
     def execute(self) -> None:
         """Default method to execute the operation"""
         self._write_bash_functions(
-            PERSISTENT_TERMINAL_CAPTURE_FILE, BASH_ESSENTIAL_EXPORTS
+            PERSISTENT_TERMINAL_CAPTURE_FILE, BASH_PERSISTENT_TERMINAL_CAPTURE
         )
 
 
