@@ -70,3 +70,7 @@ def initialize() -> int:
             f"Failed to communicate with daemon through dbus. Reason: {str(e)}"
         )
         return 1
+    except KeyboardInterrupt as e:
+        logger.debug("Got exception from keyboard handling: %s", str(e))
+        error_renderer.render("Uh, oh! Keyboard interrupt detected.")
+        return 1
