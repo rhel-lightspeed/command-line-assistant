@@ -151,12 +151,12 @@ fi
 
 
 # Needed directories
-%dir %attr(0755, root, root) %{_sharedstatedir}/%{name}
-%dir %attr(0755, root, root) %{_sysconfdir}/xdg/%{name}
-%dir %attr(0755, root, root) %{_sysconfdir}/systemd/system/clad.service.d
+%dir %attr(0700, root, root) %{_sharedstatedir}/%{name}
+%dir %attr(0700, root, root) %{_sysconfdir}/xdg/%{name}
+%dir %attr(0700, root, root) %{_sysconfdir}/systemd/system/clad.service.d
 
 # Config file
-%attr(0600, root, root) %config(noreplace) %{_sysconfdir}/xdg/%{name}/config.toml
+%config(noreplace) %attr(0600, root, root) %{_sysconfdir}/xdg/%{name}/config.toml
 
 %files selinux
 %attr(0600,root,root) %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
