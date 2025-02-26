@@ -38,7 +38,7 @@ tests = [
     "pytest-sugar==1.0.0",
     "pytest-clarity==1.0.1",
     "tox==4.23.2",
-    "responses==0.25.3",
+    "responses==0.25.6",
 ]
 dev = [
     "PyGObject==3.50.0",
