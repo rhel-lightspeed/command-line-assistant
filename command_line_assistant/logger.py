@@ -8,19 +8,29 @@ from typing import Any, Optional
 
 from command_line_assistant.config import Config
 
+#: Default formatter string for systemd/terminal
+DEFAULT_FORMATTER: str = (
+    "[%(asctime)s] [%(filename)s:%(lineno)d] %(levelname)s: %(message)s"
+)
+
 #: Define the dictionary configuration for the logger instance
 LOGGING_CONFIG_DICTIONARY = {
     "version": 1,
     "disable_existing_loggers": False,
     "level": "INFO",
     "formatters": {
-        "default": {
-            "format": "[%(asctime)s] [%(filename)s:%(lineno)d] %(levelname)s: %(message)s",
+        "systemd": {
+            "format": DEFAULT_FORMATTER,
+            "datefmt": "%m/%d/%Y %I:%M:%S %p",
+        },
+        "terminal": {
+            # Include a record separator prefix to allow parsing the logs easily
+            "format": f"\x1f{DEFAULT_FORMATTER}",
             "datefmt": "%m/%d/%Y %I:%M:%S %p",
         },
         "audit": {
             "()": "command_line_assistant.logger.AuditFormatter",
-            "datefmt": "%Y-%m-%dT%H:%M:%S",
+            "datefmt": "%m/%d/%Y %I:%M:%S %p",
             "format": "[%(asctime)s] [%(filename)s:%(lineno)d] %(levelname)s: %(message)s",
         },
     },
@@ -33,9 +43,15 @@ LOGGING_CONFIG_DICTIONARY = {
         },
     },
     "handlers": {
-        "console": {
+        "terminal": {
             "class": "logging.StreamHandler",
-            "formatter": "default",
+            "formatter": "terminal",
+            "stream": "ext://sys.stdout",
+            "filters": ["non_audit_only"],
+        },
+        "systemd": {
+            "class": "logging.StreamHandler",
+            "formatter": "systemd",
             "stream": "ext://sys.stdout",
             "filters": ["non_audit_only"],
         },
@@ -48,7 +64,7 @@ LOGGING_CONFIG_DICTIONARY = {
     },
     "loggers": {
         # Root logger
-        "root": {"handlers": ["console"], "level": "INFO"},
+        "root": {"handlers": [], "level": "INFO"},
     },
 }
 
@@ -218,7 +234,7 @@ def setup_daemon_logging(config: Config) -> None:
     Arguments:
         config (Config): Instance of a config class.
     """
-    custom_handlers = []
+    custom_handlers = ["systemd"]
     # Add audit logging in case it is enabledc
     if config.logging.audit.enabled:
         custom_handlers.append("audit")
@@ -233,4 +249,4 @@ def setup_client_logging() -> None:
         This is intended to be called by the client to initialize their logging
         routine.
     """
-    _setup_logging(logging_level="DEBUG", handlers=[])
+    _setup_logging(logging_level="DEBUG", handlers=["terminal"])
