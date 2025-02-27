@@ -1,5 +1,7 @@
 import json
 import os
+import shutil
+import struct
 from unittest import mock
 from unittest.mock import patch
 
@@ -7,6 +9,20 @@ import pytest
 
 from command_line_assistant.terminal import reader
 from command_line_assistant.terminal.reader import TerminalRecorder, start_capturing
+
+
+@pytest.fixture(autouse=True)
+def mock_terminal_functions():
+    """Mock terminal functions that require a TTY."""
+    with patch("fcntl.ioctl", mock.Mock(return_value=None)):
+        with patch("os.isatty", mock.Mock(return_value=True)):
+            yield
+
+
+@pytest.fixture
+def get_terminal_size_packed():
+    columns, lines = shutil.get_terminal_size()
+    return struct.pack("HHHH", lines, columns, 0, 0)
 
 
 @pytest.fixture
@@ -31,17 +47,17 @@ def test_start_capturing(mock_pty_spawn, monkeypatch, tmp_path):
     assert oct(terminal_log.stat().st_mode).endswith("600")
 
 
-def test_terminal_recorder_can_initialize(tmp_path):
+def test_terminal_recorder_can_initialize(tmp_path, get_terminal_size_packed):
     dummy_file = tmp_path / "test.log"
     with dummy_file.open(mode="wb") as handler:
-        instance = TerminalRecorder(handler)
+        instance = TerminalRecorder(handler, get_terminal_size_packed)
         assert instance._handler == handler
 
 
-def test_terminal_recorder_write_json_block(tmp_path):
+def test_terminal_recorder_write_json_block(tmp_path, get_terminal_size_packed):
     dummy_file = tmp_path / "test.log"
     with dummy_file.open(mode="wb") as handler:
-        instance = TerminalRecorder(handler)
+        instance = TerminalRecorder(handler, get_terminal_size_packed)
         assert instance._handler == handler
 
         instance._current_command = b"test"
@@ -63,11 +79,13 @@ def test_terminal_recorder_write_json_block(tmp_path):
         (b"test\n\r", b"test\n\r"),
     ),
 )
-def test_terminal_recorder_read(data, expected, monkeypatch, tmp_path):
+def test_terminal_recorder_read(
+    data, expected, monkeypatch, tmp_path, get_terminal_size_packed
+):
     dummy_file = tmp_path / "test.log"
     monkeypatch.setattr(os, "read", mock.Mock(return_value=data))
     with dummy_file.open(mode="wb") as handler:
-        instance = TerminalRecorder(handler)
+        instance = TerminalRecorder(handler, get_terminal_size_packed)
         assert instance._handler == handler
 
         assert instance.read(0) == expected
@@ -76,11 +94,13 @@ def test_terminal_recorder_read(data, expected, monkeypatch, tmp_path):
 @pytest.mark.parametrize(
     ("data", "expected"), ((b"test", b"test"), (b"test%c", b"test"))
 )
-def test_terminal_recorder_read_in_command_false(data, expected, monkeypatch, tmp_path):
+def test_terminal_recorder_read_in_command_false(
+    data, expected, monkeypatch, tmp_path, get_terminal_size_packed
+):
     dummy_file = tmp_path / "test.log"
     monkeypatch.setattr(os, "read", mock.Mock(return_value=data))
     with dummy_file.open(mode="wb") as handler:
-        instance = TerminalRecorder(handler)
+        instance = TerminalRecorder(handler, get_terminal_size_packed)
         instance._in_command = False
         assert instance._handler == handler
 

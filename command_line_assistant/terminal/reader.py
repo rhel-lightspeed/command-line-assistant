@@ -1,8 +1,13 @@
 """Module to hold the reader part of the terminal module."""
 
+import fcntl
 import json
+import logging
 import os
 import pty
+import shutil
+import struct
+import termios
 from pathlib import Path
 from typing import IO, Any
 
@@ -15,17 +20,22 @@ PROMPT_MARKER: str = "%c"
 #: The name of the output file to store the logs.
 OUTPUT_FILE_NAME: Path = Path(get_xdg_state_path(), "terminal.log")
 
+logger = logging.getLogger(__name__)
+
 
 class TerminalRecorder:
     """Class that controls how the terminal is being read"""
 
-    def __init__(self, handler: IO[Any]) -> None:
+    def __init__(self, handler: IO[Any], winsize: bytes) -> None:
         """Constructor of the class.
 
         Arguments:
             handler (IO[Any]): The file handler opened during the screen reader.
+            winsize (bytes): A packed struct with the original terminal size.
         """
         self._handler = handler
+        self._winsize = winsize
+
         self._in_command: bool = True
         self._current_command: bytes = b""
         self._current_output: bytes = b""
@@ -52,6 +62,8 @@ class TerminalRecorder:
         Returns:
             bytes: The data read from the terminal
         """
+        fcntl.ioctl(fd, termios.TIOCSWINSZ, self._winsize)
+
         data = os.read(fd, 1024)
 
         if self._prompt_marker in data:
@@ -108,10 +120,19 @@ def start_capturing() -> None:
     # Initialize the file
     write_file("", OUTPUT_FILE_NAME)
 
+    columns, lines = shutil.get_terminal_size()
+    logger.debug(
+        "Got terminal size of %sx%s (columns=%s, lines=%s).",
+        columns,
+        lines,
+        columns,
+        lines,
+    )
+
     with OUTPUT_FILE_NAME.open(mode="wb") as handler:
         # Instantiate the TerminalRecorder and spawn a new shell with pty.
-        recorder = TerminalRecorder(handler)
-        pty.spawn([shell, "-i"], recorder.read)
+        recorder = TerminalRecorder(handler, struct.pack("HHHH", lines, columns, 0, 0))
+        pty.spawn([shell], recorder.read)
 
         # Write the final json block if it exists.
         recorder.write_json_block()
