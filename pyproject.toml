@@ -12,8 +12,8 @@ maintainers = [
 dependencies = [
     # tomli is only required below 3.11 as it is native after that version.
     'tomli; python_version<"3.11"',
-    "requests",
-    "dasbus",
+    "requests==2.32.3",
+    "dasbus==1.7",
     "sqlalchemy==2.0.37",
 ]
 requires-python = ">=3.9,<4.0" # RHEL 9 and 10
@@ -28,30 +28,20 @@ scripts = { c = "command_line_assistant.initialize:initialize", clad = "command_
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[project.optional-dependencies]
-db = ["psycopg2==2.9.10", "mysqlclient==2.2.7"]
-tests = [
-    "pytest==8.3.4",
-    "pytest-cov==6.0.0",
-    "pytest-randomly==3.16.0",
-    "coverage==7.6.12",
-    "pytest-sugar==1.0.0",
-    "pytest-clarity==1.0.1",
-    "tox==4.23.2",
-    "responses==0.25.6",
-]
-dev = [
-    "PyGObject==3.50.0",
-    # added here mainly for editor happines
-    "ruff==0.9.7"
-]
-docs = [
-    "sphinx==7.4.7",
-    "sphinx-autodoc-typehints==2.3.0",
-    "sphinx-rtd-theme==3.0.2",
-    "sphinx-argparse-cli==1.17.0",
-    "sphinx-autodoc-typehints==2.3.0",
-]
+[tool.poetry.group.dev.dependencies]
+psycopg2 = "2.9.10"
+mysqlclient = "2.2.7"
+pytest = "8.3.4"
+pytest-cov = "6.0.0"
+pytest-randomly = "3.16.0"
+coverage = "7.6.12"
+pytest-sugar = "1.0.0"
+pytest-clarity = "1.0.1"
+tox = "4.23.2"
+responses = "0.25.6"
+PyGObject = "3.50.0"
+# added here mainly for editor happines
+ruff = "0.9.7"
 
 # ----- Tooling specifics
 [tool.setuptools.packages.find]
