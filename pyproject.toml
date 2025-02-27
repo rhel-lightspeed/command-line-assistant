@@ -49,7 +49,7 @@ docs = [
     "sphinx==7.4.7",
     "sphinx-autodoc-typehints==2.3.0",
     "sphinx-rtd-theme==3.0.2",
-    "sphinx-argparse-cli==1.17.0",
+    "sphinx-argparse-cli==1.19.0",
     "sphinx-autodoc-typehints==2.3.0",
 ]
 
