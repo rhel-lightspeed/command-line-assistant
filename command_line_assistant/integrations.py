@@ -43,10 +43,3 @@ BASH_ESSENTIAL_EXPORTS: str = r"""
 export CLA_USER_SHELL_PS1=$PS1
 export CLA_USER_SHELL_PROMPT_COMMAND=$PROMPT_COMMAND
 """
-
-#: Small bash script to enable persistent capture upon shell loading.
-BASH_PERSISTENT_TERMINAL_CAPTURE: str = r"""
-if command -v /usr/bin/c >/dev/null 2>&1; then
-    /usr/bin/c shell --enable-capture
-fi
-"""

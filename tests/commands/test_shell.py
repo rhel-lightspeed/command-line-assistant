@@ -7,9 +7,7 @@ from command_line_assistant.commands import shell
 from command_line_assistant.commands.shell import (
     BaseShellOperation,
     DisableInteractiveMode,
-    DisablePersistentCapture,
     EnableInteractiveMode,
-    EnablePersistentCapture,
     EnableTerminalCapture,
     ShellCommand,
     _command_factory,
@@ -31,11 +29,6 @@ def mock_bash_rc(monkeypatch, tmp_path):
     interactive_mode_integration_file = tmp_path / "cla-interactive.bashrc"
     monkeypatch.setattr(
         shell, "INTERACTIVE_MODE_INTEGRATION_FILE", interactive_mode_integration_file
-    )
-
-    persistent_terminal_capture_file = tmp_path / "cla-persistent-capture.bashrc"
-    monkeypatch.setattr(
-        shell, "PERSISTENT_TERMINAL_CAPTURE_FILE", persistent_terminal_capture_file
     )
 
 
@@ -111,8 +104,6 @@ def test_remove_bash_functions_no_integration_found(default_kwargs, tmp_path, ca
     (
         (EnableInteractiveMode),
         (DisableInteractiveMode),
-        (EnablePersistentCapture),
-        (DisablePersistentCapture),
     ),
 )
 def test_shell_operations(operation, default_kwargs):
@@ -146,9 +137,7 @@ def test_shell_run_exceptions(exception, expected_msg, capsys, monkeypatch):
     )
     args = Namespace(
         enable_capture=False,
-        enable_persistent_capture=True,
-        disable_persistent_capture=False,
-        enable_interactive=False,
+        enable_interactive=True,
         disable_interactive=False,
     )
     result = ShellCommand(args).run()

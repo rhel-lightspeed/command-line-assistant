@@ -16,7 +16,6 @@ from command_line_assistant.exceptions import ShellCommandException
 from command_line_assistant.integrations import (
     BASH_ESSENTIAL_EXPORTS,
     BASH_INTERACTIVE,
-    BASH_PERSISTENT_TERMINAL_CAPTURE,
 )
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.reader import start_capturing
@@ -51,8 +50,6 @@ class ShellOperationType(CommandOperationType):
 
     ENABLE_INTERACTIVE = auto()
     DISABLE_INTERACTIVE = auto()
-    ENABLE_PERSISTENT_CAPTURE = auto()
-    DISABLE_PERSISTENT_CAPTURE = auto()
     ENABLE_CAPTURE = auto()
 
 
@@ -63,8 +60,6 @@ class ShellOperationFactory(CommandOperationFactory):
     _arg_to_operation: ClassVar[dict[str, CommandOperationType]] = {
         "enable_interactive": ShellOperationType.ENABLE_INTERACTIVE,
         "disable_interactive": ShellOperationType.DISABLE_INTERACTIVE,
-        "enable_persistent_capture": ShellOperationType.ENABLE_PERSISTENT_CAPTURE,
-        "disable_persistent_capture": ShellOperationType.DISABLE_PERSISTENT_CAPTURE,
         "enable_capture": ShellOperationType.ENABLE_CAPTURE,
     }
 
@@ -143,26 +138,6 @@ class DisableInteractiveMode(BaseShellOperation):
         self._remove_bash_functions(INTERACTIVE_MODE_INTEGRATION_FILE)
 
 
-@ShellOperationFactory.register(ShellOperationType.ENABLE_PERSISTENT_CAPTURE)
-class EnablePersistentCapture(BaseShellOperation):
-    """Class to hold the enable persistent capture more"""
-
-    def execute(self) -> None:
-        """Default method to execute the operation"""
-        self._write_bash_functions(
-            PERSISTENT_TERMINAL_CAPTURE_FILE, BASH_PERSISTENT_TERMINAL_CAPTURE
-        )
-
-
-@ShellOperationFactory.register(ShellOperationType.DISABLE_PERSISTENT_CAPTURE)
-class DisablePersistentCapture(BaseShellOperation):
-    """Class to the disable persistent capture mode"""
-
-    def execute(self) -> None:
-        """Default method to execute the operation"""
-        self._remove_bash_functions(PERSISTENT_TERMINAL_CAPTURE_FILE)
-
-
 @ShellOperationFactory.register(ShellOperationType.ENABLE_CAPTURE)
 class EnableTerminalCapture(BaseShellOperation):
     """Class to hold the enable terminal capture operation"""
@@ -215,16 +190,6 @@ def register_subcommand(parser: SubParsersAction):
         "--enable-capture",
         action="store_true",
         help="Enable terminal capture for the current terminal session.",
-    )
-    terminal_capture_group.add_argument(
-        "--enable-persistent-capture",
-        action="store_true",
-        help="Enable persistent terminal capture for the terminal session.",
-    )
-    terminal_capture_group.add_argument(
-        "--disable-persistent-capture",
-        action="store_true",
-        help="Disable persistent terminal capture for the terminal session.",
     )
 
     interactive_mode = shell_parser.add_argument_group("Interactive Mode Options")
