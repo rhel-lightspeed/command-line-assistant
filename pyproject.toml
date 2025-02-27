@@ -14,7 +14,7 @@ dependencies = [
     'tomli; python_version<"3.11"',
     "requests==2.32.3",
     "dasbus==1.7",
-    "sqlalchemy==2.0.37",
+    "sqlalchemy==2.0.38",
 ]
 requires-python = ">=3.9,<4.0" # RHEL 9 and 10
 readme = "README.md"
