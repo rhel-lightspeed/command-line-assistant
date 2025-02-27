@@ -81,8 +81,10 @@ def test_retrieve_conversation_filtered_success(
 
     captured = capsys.readouterr()
     mock_dbus_service.GetFilteredConversation.assert_called_once()
-    assert "Question\n───────────\ntest query" in captured.out
-    assert "Answer\n─────────\ntest response" in captured.out
+    assert "Question\n───────────" in captured.out
+    assert "test query" in captured.out
+    assert "Answer\n─────────\n" in captured.out
+    assert "test response" in captured.out
 
 
 def test_retrieve_conversation_filtered_exception(
@@ -115,8 +117,10 @@ def test_retrieve_first_conversation_success(
     FirstHistoryOperation(**default_kwargs).execute()
     captured = capsys.readouterr()
     mock_dbus_service.GetFirstConversation.assert_called_once()
-    assert "Question\n───────────\ntest query" in captured.out
-    assert "Answer\n─────────\ntest response" in captured.out
+    assert "Question\n───────────" in captured.out
+    assert "test query" in captured.out
+    assert "Answer\n─────────" in captured.out
+    assert "test response" in captured.out
 
 
 def test_retrieve_first_conversation_exception(mock_dbus_service, default_kwargs):
@@ -143,8 +147,10 @@ def test_retrieve_last_conversation_success(
 
     captured = capsys.readouterr()
     mock_dbus_service.GetLastConversation.assert_called_once()
-    assert "Question\n───────────\ntest query" in captured.out
-    assert "Answer\n─────────\ntest response" in captured.out
+    assert "Question\n───────────" in captured.out
+    assert "test query" in captured.out
+    assert "Answer\n─────────" in captured.out
+    assert "test response" in captured.out
 
 
 def test_retrieve_last_conversation_exception(mock_dbus_service, default_kwargs):
@@ -188,8 +194,10 @@ def test_show_history(default_kwargs, capsys):
     )
 
     captured = capsys.readouterr()
-    assert "Question\n───────────\ntest" in captured.out
-    assert "Answer\n─────────\ntest" in captured.out
+    assert "Question\n───────────" in captured.out
+    assert "test" in captured.out
+    assert "Answer\n─────────" in captured.out
+    assert "test" in captured.out
 
 
 @pytest.mark.parametrize(

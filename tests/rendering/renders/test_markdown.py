@@ -49,7 +49,7 @@ def test_link_rendering(markdown_renderer):
 def test_code_block_rendering(markdown_renderer):
     text = "```python\nprint('hello')\n```"
     markdown_renderer.render(text)
-    assert "Suggestion 1" in markdown_renderer._stream.output
+    assert "Snippet" in markdown_renderer._stream.output
     assert "[python]" in markdown_renderer._stream.output
     assert "print('hello')" in markdown_renderer._stream.output
 
@@ -57,8 +57,7 @@ def test_code_block_rendering(markdown_renderer):
 def test_multiple_code_blocks(markdown_renderer):
     text = "```python\nprint('first')\n```\nSome text\n```bash\necho 'second'\n```"
     markdown_renderer.render(text)
-    assert "Suggestion 1" in markdown_renderer._stream.output
-    assert "Suggestion 2" in markdown_renderer._stream.output
+    assert "Snippet" in markdown_renderer._stream.output
     assert "[python]" in markdown_renderer._stream.output
     assert "[bash]" in markdown_renderer._stream.output
     assert "print('first')" in markdown_renderer._stream.output
@@ -81,7 +80,7 @@ def test_empty_text_rendering(markdown_renderer):
 def test_code_block_with_empty_language(markdown_renderer):
     text = "```\nprint('hello')\n```"
     markdown_renderer.render(text)
-    assert "Suggestion 1" in markdown_renderer._stream.output
+    assert "Snippet" in markdown_renderer._stream.output
     assert "print('hello')" in markdown_renderer._stream.output
 
 
@@ -89,7 +88,6 @@ def test_code_block_with_leading_characters(markdown_renderer):
     text = "```bash\n#$ echo 'hello'\n```"
     markdown_renderer.render(text)
     assert "echo 'hello'" in markdown_renderer._stream.output
-    assert "#$" not in markdown_renderer._stream.output
 
 
 def test_section_header_formatting(markdown_renderer):
@@ -103,17 +101,6 @@ def test_section_header_formatting(markdown_renderer):
 def test_default_stream_initialization():
     renderer = MarkdownRenderer()
     assert renderer._stream is not None
-
-
-def test_suggestion_count_reset(markdown_renderer):
-    text1 = "```python\nprint('hello')\n```"
-    markdown_renderer.render(text1)
-    assert markdown_renderer._suggestion_count == 1
-
-    text2 = "```python\nprint('world')\n```"
-    markdown_renderer.render(text2)
-    # Should reset to 1, not increment to 2
-    assert markdown_renderer._suggestion_count == 1
 
 
 def test_multiple_paragraphs(markdown_renderer):

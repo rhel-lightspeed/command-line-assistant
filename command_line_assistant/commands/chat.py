@@ -330,8 +330,10 @@ class BaseChatOperation(BaseOperation):
         response = None
 
         if len(final_question) > MAX_QUESTION_SIZE:
+            final_question_size = human_readable_size(len(final_question))
+            max_question_size = human_readable_size(MAX_QUESTION_SIZE)
             self.warning_renderer.render(
-                f"The total size of your question and context ({human_readable_size(len(final_question))}) exceeds the limit of {human_readable_size(MAX_QUESTION_SIZE)}. Trimming it down to fit in the expected size, you may lose some context."
+                f"The total size of your question and context ({final_question_size}) exceeds the limit of {max_question_size}. Trimming it down to fit in the expected size, you may lose some context."
             )
             logger.debug(
                 "Total size of question (%s) exceeds defined limit of %s.",
@@ -455,8 +457,9 @@ class ListChatsOperation(BaseChatOperation):
 
         self.text_renderer.render(f"Found a total of {len(all_chats.chats)} chats:")
         for index, chat in enumerate(all_chats.chats):
+            created_at = format_datetime(chat.created_at)
             self.text_renderer.render(
-                f"{index}. Chat: {chat.name} - {chat.description} (created at: {format_datetime(chat.created_at)})"
+                f"{index}. Chat: {chat.name} - {chat.description} (created at: {created_at})"
             )
 
 

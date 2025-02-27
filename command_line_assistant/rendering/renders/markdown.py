@@ -1,228 +1,240 @@
 """Module that renders markdown-formatted output to the terminal."""
 
 import re
+from dataclasses import dataclass
 from typing import Optional
 
 from command_line_assistant.rendering.base import BaseRenderer, BaseStream
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.stream import StdoutStream
 
-#: Regex to handle inline code blocks
+# Regular expressions for markdown parsing
+#: Matches inline code blocks
 INLINE_CODE_REGEX = re.compile(r"`([^`]+)`")
-#: Regex to handle links
+#: Matches markdown links
 HANDLE_LINKS_REGEX = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
-#: Regex to handle bold text
+#: Matches bold text
 BOLD_REGEX = re.compile(r"\*\*(.+?)\*\*")
-#: Regex to handle italic text
+#: Matches italic text
 ITALIC_REGEX = re.compile(r"\*(.+?)\*")
-#: Regex to handle headers
+#: Matches headers
 HEADER_REGEX = re.compile(r"^(#{1,6})\s+(.+)$")
-#: Marker for code blocks
+
+# Formatting constants
+#: Marker for code block start/end
 CODE_BLOCK_MARKER = "```"
+#: Width for section separators
+SECTION_WIDTH: int = 16
+
+# Color decorators for terminal output
+HIGHLIGHT_DEFAULT_COLOR: ColorDecorator = ColorDecorator(foreground="lightblue")
+LLM_RESPONSE_COLOR: ColorDecorator = ColorDecorator(foreground="red")
+
+
+@dataclass
+class Block:
+    """Data structure representing a block of markdown content.
+
+    Attributes:
+        content (list[str]): List of strings containing the block content
+        is_code (bool): Boolean indicating if this is a code block
+        language (str): Programming language for code blocks
+    """
+
+    content: list[str]
+    is_code: bool = False
+    language: str = ""
 
 
 class MarkdownRenderer(BaseRenderer):
-    """Specialized class to render markdown-formatted output to the terminal."""
+    """Renders markdown-formatted text to the terminal with styling."""
 
     def __init__(self, stream: Optional[BaseStream] = None) -> None:
-        """Default constructor for class
+        """Initialize renderer with optional custom output stream.
 
-        Arguments:
-            stream (Optional[BaseStream], optional): The stream to write to. Defaults to stdout.
+        Args:
+            stream (Optional[BaseStream], optional): Output stream to use. Defaults to stdout if not provided.
         """
         super().__init__(stream or StdoutStream())
-        self._suggestion_count = 0
-        self._section_width = 24
-        self._highlight_color = ColorDecorator(foreground="lightblue")
 
     def _format_header(self, text: str, level: int) -> str:
-        """Format a header with the appropriate styling.
+        """Format a markdown header with appropriate styling.
 
-        Arguments:
-            text (str): The header text
-            level (int): The header level (1-6)
+        Args:
+            text (str): Header text content
+            level (str): Header level (1-3)
 
         Returns:
-            str: The formatted header
+            Formatted header string
         """
-        # Remove any existing formatting for clean display
         text = text.strip()
-
-        if level == 1:
-            return f"\n{text.upper()}\n{'═' * (len(text) + 1)}\n"
-        elif level == 2:
-            return f"\n{text}\n{'─' * (len(text) + 1)}\n"
-        elif level == 3:
-            return f"\n{text}\n{'·' * (len(text) + 1)}\n"
-        else:
-            return f"\n{text}\n"
+        header_styles = {
+            1: (text.upper(), "═"),
+            2: (text, "─"),
+            3: (text, "·"),
+        }
+        style = header_styles.get(level, (text, ""))
+        return (
+            f"\n{style[0]}\n{style[1] * (len(text) + 1)}\n"
+            if style[1]
+            else f"\n{text}\n"
+        )
 
     def _format_section_header(self, title: str, language: str = "") -> str:
-        """Formats a section header with an optional language tag.
+        """Format a section header with optional language tag.
 
-        Arguments:
-            title (str): The title of the section.
-            language (str, optional): The language tag to include. Defaults to "".
+        Args:
+            title (str): Section title
+            language (str, optional): Optional programming language
 
         Returns:
-            str: The formatted section header.
+            str: Formatted section header
         """
         if language:
-            title = f"{self._highlight_color.decorate(f'[{language}]')} {title}"
-        return f"{title}\n{'─' * self._section_width}"
+            title = f"{HIGHLIGHT_DEFAULT_COLOR.decorate(f'[{language}]')} {title}"
+        return f"{title} {'─' * SECTION_WIDTH}"
 
     def _process_inline_formatting(self, text: str) -> str:
-        """Processes inline formatting in the text.
+        """Process inline markdown formatting (bold, italic, code, links).
 
-        Arguments:
-            text (str): The text to process.
+        Args:
+            text (str): Text to process
 
         Returns:
-            str: The processed text.
+            str: Text with terminal formatting applied
         """
-        # Process bold text
-        text = BOLD_REGEX.sub(lambda m: f"\033[1m{m.group(1)}\033[0m", text)
+        formats = [
+            (
+                BOLD_REGEX,
+                lambda m: f"\033[1m{m.group(1)}\033[0m{LLM_RESPONSE_COLOR.start()}",
+            ),
+            (
+                ITALIC_REGEX,
+                lambda m: f"\033[3m{m.group(1)}\033[0m{LLM_RESPONSE_COLOR.start()}",
+            ),
+            (
+                INLINE_CODE_REGEX,
+                lambda m: f"{HIGHLIGHT_DEFAULT_COLOR.decorate(m.group(1))}{LLM_RESPONSE_COLOR.start()}",
+            ),
+            (
+                HANDLE_LINKS_REGEX,
+                lambda m: f"{m.group(1)} ({HIGHLIGHT_DEFAULT_COLOR.decorate(m.group(2))}){LLM_RESPONSE_COLOR.start()}",
+            ),
+        ]
 
-        # Process italic text
-        text = ITALIC_REGEX.sub(lambda m: f"\033[3m{m.group(1)}\033[0m", text)
+        for regex, formatter in formats:
+            text = regex.sub(formatter, text)
 
-        # Process inline code
-        text = INLINE_CODE_REGEX.sub(
-            lambda m: self._highlight_color.decorate(m.group(1)), text
-        )
-
-        # Process links
-        text = HANDLE_LINKS_REGEX.sub(
-            lambda m: f"{m.group(1)} ({self._highlight_color.decorate(m.group(2))})",
-            text,
-        )
-
-        return text
+        return LLM_RESPONSE_COLOR.decorate(text)
 
     def _format_code_block(self, content: str, language: str = "") -> str:
-        """Formats a code block.
+        """Format a code block with syntax highlighting.
 
-        Arguments:
-            content (str): The content of the code block.
-            language (str, optional): The language of the code block.
+        Args:
+            content (str): Code block content
+            language (str, optional): Programming language for syntax highlighting
 
         Returns:
-            str: The formatted code block.
+            str: Formatted code block
         """
-        self._suggestion_count += 1
-        header = self._format_section_header(
-            f"Suggestion {self._suggestion_count}", language
-        )
-        content = content.strip().lstrip("#$").lstrip()
-        return f"\n{header}\n{self._highlight_color.decorate(content)}\n"
+        title = "Snippet"
+        header = self._format_section_header(title, language)
+        content = content.strip().lstrip("$").lstrip()
+        bottom_width = SECTION_WIDTH + len(title) + 1
+        bottom = f"{'─' * bottom_width}"
+        return f"\n{header}\n{HIGHLIGHT_DEFAULT_COLOR.decorate(content)}\n{bottom}\n"
 
     def _process_references(self, line: str) -> str:
-        """Formats a reference block.
+        """Process reference section formatting.
 
-        Arguments:
-            line (str): The line containing the reference.
+        Args:
+            line (str): Reference line content
 
         Returns:
-            str: The formatted reference block.
+            str: Formatted references section
         """
+        title = "References"
+        bottom_width = SECTION_WIDTH + len(title) + 1
         return (
-            f"\n{self._format_section_header('References')}\n"
+            f"\n{self._format_section_header(title)}\n"
             f"{line[10:].strip()}\n"
-            f"{'─' * self._section_width}"
+            f"{'─' * bottom_width}\n"
         )
 
-    def _handle_code_block(
-        self, output_lines: list[str], code_content: list[str], code_language: str
-    ) -> None:
-        """Formats a code block.
-
-        Arguments:
-            output_lines (list[str]): The list of output lines.
-            code_content (list[str]): The content of the code block.
-            code_language (str): The language of the code block.
-        """
-        if code_content:
-            output_lines.append(
-                self._format_code_block("\n".join(code_content), code_language)
-            )
-
-    def _handle_text_block(
-        self, output_lines: list[str], current_block: list[str]
-    ) -> None:
-        """Formats a text block.
-
-        Arguments:
-            output_lines (list[str]): The list of output lines.
-            current_block (list[str]): The content of the text block.
-        """
-        if current_block:
-            processed_text = self._process_inline_formatting("\n".join(current_block))
-            if processed_text.strip():
-                output_lines.append(processed_text)
-
     def _process_blocks(self, text: str) -> list[str]:
-        """Processes the blocks of text and code.
+        """Split markdown text into blocks and process each block.
 
-        Arguments:
-            text (str): The input text.
+        Args:
+            text (str): Raw markdown text
 
         Returns:
-            list[str]: The processed output lines.
+            list[str]: List of processed text blocks
         """
-        output_lines = []
-        current_block = []
-        code_content = []
-        code_language = ""
-        in_code_block = False
+        blocks: list[Block] = []
+        current_block = Block(content=[])
 
         for line in text.splitlines():
-            # Handle headers
-            header_match = HEADER_REGEX.match(line)
-            if header_match and not in_code_block:
-                self._handle_text_block(output_lines, current_block)
-                current_block = []
-                level = len(header_match.group(1))
-                header_text = header_match.group(2)
-                output_lines.append(self._format_header(header_text, level))
-                continue
-
-            # Handle code blocks
             if line.startswith(CODE_BLOCK_MARKER):
-                if in_code_block:
-                    self._handle_code_block(output_lines, code_content, code_language)
-                    code_content = []
-                else:
-                    self._handle_text_block(output_lines, current_block)
-                    current_block = []
-                    code_language = line[3:].strip()
-                in_code_block = not in_code_block
+                if current_block.content:
+                    blocks.append(current_block)
+                current_block = Block(
+                    content=[],
+                    is_code=not current_block.is_code,
+                    language=line[3:].strip() if not current_block.is_code else "",
+                )
                 continue
 
-            # Process the line based on context
-            if in_code_block:
-                code_content.append(line)
-            elif line.lower().startswith("references"):
-                self._handle_text_block(output_lines, current_block)
-                current_block = []
-                output_lines.append(self._process_references(line))
-            else:
-                current_block.append(line)
+            header_match = HEADER_REGEX.match(line)
+            if header_match and not current_block.is_code:
+                if current_block.content:
+                    blocks.append(current_block)
+                blocks.append(
+                    Block(
+                        content=[
+                            self._format_header(
+                                header_match.group(2), len(header_match.group(1))
+                            )
+                        ]
+                    )
+                )
+                current_block = Block(content=[])
+                continue
 
-        # Handle any remaining blocks
-        if in_code_block and code_content:
-            self._handle_code_block(output_lines, code_content, code_language)
-        elif current_block:
-            self._handle_text_block(output_lines, current_block)
+            if line.lower().startswith("references") and not current_block.is_code:
+                if current_block.content:
+                    blocks.append(current_block)
+                blocks.append(Block(content=[self._process_references(line)]))
+                current_block = Block(content=[])
+                continue
 
-        return output_lines
+            current_block.content.append(line)
+
+        if current_block.content:
+            blocks.append(current_block)
+
+        return [self._format_block(block) for block in blocks if block.content]
+
+    def _format_block(self, block: Block) -> str:
+        """Format a single content block.
+
+        Args:
+            block (Block): Block to format
+
+        Returns:
+            str: Formatted block content
+        """
+        if block.is_code:
+            return self._format_code_block("\n".join(block.content), block.language)
+
+        text = self._process_inline_formatting("\n".join(block.content))
+        return text if text.strip() else ""
 
     def render(self, text: str) -> None:
-        """Render markdown-formatted text with decorators applied.
+        """Render markdown text to the terminal.
 
-        Arguments:
-            text (str): The markdown text to render
+        Args:
+            text (str): Markdown formatted text to render
         """
-        self._suggestion_count = 0
         processed_blocks = self._process_blocks(text)
         final_text = "".join(block for block in processed_blocks if block)
         if final_text:

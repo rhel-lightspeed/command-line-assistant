@@ -87,6 +87,22 @@ class ColorDecorator(BaseDecorator):
         self.foreground = self._get_foreground_color(foreground)
         self.background = self._get_background_color(background) if background else ""
 
+    def start(self) -> str:
+        """Returns just the starting ANSI sequence without the reset code.
+
+        Returns:
+            str: ANSI sequence to start the color formatting
+        """
+        result = ""
+        if should_disable_color_output():
+            return result
+
+        if self.background:
+            result += self.background
+        if self.foreground:
+            result += self.foreground
+        return result
+
     def _get_foreground_color(self, color: str) -> str:
         """Get the unicode for the requested color.
 
@@ -135,8 +151,7 @@ class ColorDecorator(BaseDecorator):
             str: The text itself colored with the requested foreground and (optionally) background color.
         """
         if not should_disable_color_output():
-            formatted_text = f"{self.background}{self.foreground}{text}{RESET_ALL}"
-            return formatted_text
+            return f"{self.start()}{text}{RESET_ALL}"
         return text
 
 
