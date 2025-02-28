@@ -75,11 +75,11 @@ jobs:
 
   # Test jobs
   - job: tests
-    identifier: level0-tests
+    identifier: level1-tests
     trigger: pull_request
     fmf_url: "https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/cla-tests"
-    fmf_ref: "develop"
-    tmt_plan: "level0"
+    fmf_ref: "main"
+    tmt_plan: "level1"
     use_internal_tf: True
     targets:
       epel-9-x86_64:
