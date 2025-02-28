@@ -160,13 +160,14 @@ class BaseHistoryOperation(BaseOperation):
             answer_text = f"## 🤖 Answer\n{entry.response}"
             answer_renderer.render(answer_text)
 
-            metadata_renderer.render(
-                f"\n*Created at: {format_datetime(entry.created_at)}*"
-            )
+            created_at_message = f"\n*Created at: {format_datetime(entry.created_at)}*"
+            metadata_renderer.render(created_at_message)
 
             # Add separator between entries if needed
             if len(entries.histories) > 1:
-                self.text_renderer.render("\n" + "═" * 80 + "\n")
+                self.text_renderer.render(
+                    "\n" + "═" * (len(created_at_message) - 1) + "\n"
+                )
 
 
 @HistoryOperationFactory.register(HistoryOperationType.CLEAR)

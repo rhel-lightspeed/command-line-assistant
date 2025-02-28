@@ -23,15 +23,18 @@ class BaseRepository:
         self._manager = manager
         self._model = model
 
-    def insert(self, values: Union[list[dict[str, Any]], dict[str, Any], Any]) -> Row:
+    def insert(self, values: dict[str, Any]) -> Row:
         """Default method to make insertions in the database.
 
         Arguments:
-            values (Union[list[dict[str, Any]],dict[str, Any]]): The values to insert in the database
+            values (dict[str, Any]): The values to insert in the database
 
         Returns:
             Row: A row represented as a tuple with the id inserted.
         """
+        if "created_at" not in values:
+            values["created_at"] = datetime.now()
+
         statement = insert(self._model).values(values)
 
         with self._manager.session() as session:
@@ -155,6 +158,9 @@ class BaseRepository:
             values (dict[str, Any]): The values to update in the database.
             identifier (Union[UUID, str]): The unique identifier to query in the database.
         """
+        if "updated_at" not in values:
+            values["updated_at"] = datetime.now()
+
         statement = (
             update(self._model)
             .values(values)

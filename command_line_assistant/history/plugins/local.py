@@ -93,7 +93,10 @@ class LocalHistory(BaseHistoryPlugin):
                 logger.info("Found history '%s' for user '%s'", history_id, user_id)
             else:
                 history_id = self._history_repository.insert(
-                    {"chat_id": chat_id, "user_id": user_id}
+                    {
+                        "chat_id": chat_id,
+                        "user_id": user_id,
+                    }
                 )[0]
                 logger.info(
                     "Wrote a new history '%s' for user '%s'", history_id, user_id

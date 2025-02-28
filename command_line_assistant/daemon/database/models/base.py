@@ -1,10 +1,9 @@
 """Base module to hold the declarative base for sqlalchemy models"""
 
 import uuid
-from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Column, DateTime
+from sqlalchemy import Column, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.ext.declarative import declarative_base
@@ -103,8 +102,8 @@ class BaseMixin:
     __name__ = "BaseMixin"
 
     id = Column(GUID(), primary_key=True, default=uuid.uuid4)
-    created_at = Column(DateTime, default=datetime.now(), nullable=False)
-    updated_at = Column(DateTime, default=datetime.now(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), nullable=False)
     deleted_at = Column(DateTime, default=None, nullable=True)
 
 
