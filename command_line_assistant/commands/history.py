@@ -45,6 +45,9 @@ HISTORY_NOT_AVAILABLE_MESSAGE = (
 #: Message for when the history is not enabled yet.
 HISTORY_NOT_ENABLED_MESSAGE = "Looks like history is not enabled yet. Enable it in the configuration file before trying to access history."
 
+#: History not enabled debug message.
+HISTORY_NOT_ENABLED_DEBUG = "History is not enabled. Nothing to do."
+
 
 class HistoryOperationType(CommandOperationType):
     """Enum to control the operations for the command"""
@@ -183,7 +186,7 @@ class ClearHistoryOperation(BaseHistoryOperation):
             logger.debug("Failed to clear the history: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
         except HistoryNotEnabledError as e:
-            logger.debug("History is not enabled. Nothing to do.")
+            logger.debug(HISTORY_NOT_ENABLED_DEBUG)
             raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
@@ -205,7 +208,7 @@ class FirstHistoryOperation(BaseHistoryOperation):
             logger.debug("Failed to retrieve the first history entry: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
         except HistoryNotEnabledError as e:
-            logger.debug("History is not enabled. Nothing to do.")
+            logger.debug(HISTORY_NOT_ENABLED_DEBUG)
             raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
@@ -227,7 +230,7 @@ class LastHistoryOperation(BaseHistoryOperation):
             logger.debug("Failed to retrieve the last history entry: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
         except HistoryNotEnabledError as e:
-            logger.debug("History is not enabled. Nothing to do.")
+            logger.debug(HISTORY_NOT_ENABLED_DEBUG)
             raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
@@ -257,7 +260,7 @@ class FilteredHistoryOperation(BaseHistoryOperation):
             )
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
         except HistoryNotEnabledError as e:
-            logger.debug("History is not enabled. Nothing to do.")
+            logger.debug(HISTORY_NOT_ENABLED_DEBUG)
             raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 
@@ -279,7 +282,7 @@ class AllHistoryOperation(BaseHistoryOperation):
             logger.debug("Failed to retrieve the all history entries: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
         except HistoryNotEnabledError as e:
-            logger.debug("History is not enabled. Nothing to do.")
+            logger.debug(HISTORY_NOT_ENABLED_DEBUG)
             raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
 
 

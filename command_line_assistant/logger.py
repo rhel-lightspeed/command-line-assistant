@@ -13,6 +13,9 @@ DEFAULT_FORMATTER: str = (
     "[%(asctime)s] [%(filename)s:%(lineno)d] %(levelname)s: %(message)s"
 )
 
+#: Default date formatter string for systemd/terminal
+DEFAULT_DATE_FORMATTER: str = "%m/%d/%Y %I:%M:%S %p"
+
 #: Define the dictionary configuration for the logger instance
 LOGGING_CONFIG_DICTIONARY = {
     "version": 1,
@@ -21,16 +24,16 @@ LOGGING_CONFIG_DICTIONARY = {
     "formatters": {
         "systemd": {
             "format": DEFAULT_FORMATTER,
-            "datefmt": "%m/%d/%Y %I:%M:%S %p",
+            "datefmt": DEFAULT_DATE_FORMATTER,
         },
         "terminal": {
             # Include a record separator prefix to allow parsing the logs easily
             "format": f"\x1f{DEFAULT_FORMATTER}",
-            "datefmt": "%m/%d/%Y %I:%M:%S %p",
+            "datefmt": DEFAULT_DATE_FORMATTER,
         },
         "audit": {
             "()": "command_line_assistant.logger.AuditFormatter",
-            "datefmt": "%m/%d/%Y %I:%M:%S %p",
+            "datefmt": DEFAULT_DATE_FORMATTER,
             "format": "[%(asctime)s] [%(filename)s:%(lineno)d] %(levelname)s: %(message)s",
         },
     },

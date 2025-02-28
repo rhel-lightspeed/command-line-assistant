@@ -110,6 +110,10 @@ class LocalHistory(BaseHistoryPlugin):
             logger.info("Wrote a new interaction for user '%s'.", user_id)
             logger.info(
                 "New interaction '%s' for user '%s' in history '%s' that belongs to chat '%s'",
+                interaction_id,
+                user_id,
+                history_id,
+                chat_id,
                 extra={
                     "audit": True,
                     "interaction_id": interaction_id,
