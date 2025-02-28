@@ -1,6 +1,5 @@
 from unittest import mock
 
-from command_line_assistant.config import Config
 from command_line_assistant.dbus import server
 
 
@@ -27,16 +26,15 @@ def test_serve_registers_services(monkeypatch, mock_config):
     assert system_bus_mock.register_service.call_count == 3
 
 
-def test_serve_cleanup_on_exception(monkeypatch):
+def test_serve_cleanup_on_exception(monkeypatch, mock_config):
     event_loop_mock = mock.Mock()
     event_loop_mock.return_value.run.side_effect = Exception("Test error")
     system_bus_mock = mock.Mock()
     monkeypatch.setattr(server, "EventLoop", event_loop_mock)
     monkeypatch.setattr(server, "SYSTEM_BUS", system_bus_mock)
-    config = Config()
 
     try:
-        server.serve(config)
+        server.serve(mock_config)
     except Exception:
         pass
 
