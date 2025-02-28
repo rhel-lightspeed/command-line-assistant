@@ -104,7 +104,7 @@ def _subcommand_used(args: list[str]) -> Optional[str]:
             continue
 
         # If we have a exact match for any of the commands, return directly
-        if argument in ("chat", "history", "shell"):
+        if argument in ("chat", "history", "shell", "feedback"):
             return argument
 
         # Otherwise, check if this is the second part of an arg that takes a value.

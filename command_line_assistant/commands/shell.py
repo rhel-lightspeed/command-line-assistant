@@ -1,4 +1,4 @@
-"""Module to handle the history command."""
+"""Module to handle the shell command."""
 
 import logging
 from argparse import Namespace

@@ -6,7 +6,7 @@ from argparse import ArgumentParser, Namespace
 
 from dasbus.error import DBusError
 
-from command_line_assistant.commands import chat, history, shell
+from command_line_assistant.commands import chat, feedback, history, shell
 from command_line_assistant.logger import setup_client_logging
 from command_line_assistant.utils.cli import (
     add_default_command,
@@ -25,6 +25,7 @@ def register_subcommands() -> ArgumentParser:
     parser, commands_parser = create_argument_parser()
 
     chat.register_subcommand(commands_parser)  # type: ignore
+    feedback.register_subcommand(commands_parser)  # type: ignore
     history.register_subcommand(commands_parser)  # type: ignore
     shell.register_subcommand(commands_parser)  # type: ignore
 
