@@ -1,6 +1,6 @@
 [project]
 name = "command-line-assistant"
-version = "0.2.2"
+version = "0.3.0"
 description = "A simple wrapper to interact with RAG"
 authors = [
     { name = "RHEL Lightspeed Team", email = "rhel-sst-lightspeed@redhat.com" },

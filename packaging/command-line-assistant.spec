@@ -9,7 +9,7 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.2.2
+Version:        0.3.0
 Release:        1%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
@@ -163,6 +163,50 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Mon Mar 03 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.3.0
+- Update markdown text from "Suggestion" to "Snippet"
+- Add small feedback command
+- Fix created_at dates for history and chat
+- Rework to start sending context alongside question
+- Add proxy setting for config.toml
+- Rename all instances of public "query" to "chat"
+- Add Chat sessions
+- Add simple and interactive chat session
+- Minor improvements to spinner
+- Disable default audit loggers
+- Rework audit logging system
+- Add a new shell command to handle integrations
+- Fix typoos for CLAD man page documentation
+- Increase systemd timeout seconds
+- Fix logging and audit
+- Capture terminal output
+- Remove unused output config and code handler
+- Reverse order of the terminal output reader
+- Rename interactive bash function
+- Fix typing_extension and name change for chat command
+- Add raw mode for queries
+- Add error handling for history command
+- Fix selinux policy configs
+- Fix files and folders permissions when installing the RPM
+- Add ability to load credentials from systemd
+- Remove default value for with-output
+- Improve error message for missing history
+- Fix none values in stdin and query_string
+- Fix typo in interactive session message
+- Change permissions for xdg and lib folder for cla
+- Fix search ordering in last output function
+- Add KeyboardInterrupt exception catch to top-level call
+- Limit down the size of message that will be sent to the backend
+- Add message when the history is not enabled in the config file
+- Add markdown renderer for chat and history
+- Update links to use RHEL bug tracker
+- Fix terminal line wrapping when in terminal capture mode
+- Add null-character as prefix in logs to make parsing easier
+- Update markdown text from "Suggestion" to "Snippet"
+- Fixed created_at dates for chat and history
+- Introduce a simple feedback mechanis,
+
+
 * Mon Jan 27 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.2
 - Add noreplace to config file in specfile
 
