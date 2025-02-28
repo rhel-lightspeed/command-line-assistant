@@ -11,7 +11,9 @@ from command_line_assistant.commands.base import (
     CommandOperationFactory,
     CommandOperationType,
 )
-from command_line_assistant.exceptions import ShellCommandException
+from command_line_assistant.exceptions import (
+    FeedbackCommandException,
+)
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.utils.cli import (
     SubParsersAction,
@@ -21,7 +23,7 @@ from command_line_assistant.utils.renderers import (
     create_error_renderer,
 )
 
-WARNING_MESSAGE = "Do not include personal information or other sensitive information in your feedback. Feedback may be used to improve Red Hat's products or services."
+WARNING_MESSAGE = "Please do not include personal information or other sensitive data in your feedback. Feedback may be used to improve Red Hat's products or services."
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +55,7 @@ class DefaultFeedbackOperation(BaseFeedbackOperation):
         """Default method to execute the operation"""
         self.warning_renderer.render(WARNING_MESSAGE)
 
-        feedback_message = "To submit your feedback to Command Line Assistant team, please use the following email address: <cla-feedback@redhat.com>"
+        feedback_message = "Please submit feedback using the following email address: <cla-feedback@redhat.com>."
         self.text_renderer.render(feedback_message)
 
 
@@ -77,7 +79,7 @@ class FeedbackCommand(BaseCLICommand):
                 operation.execute()
 
             return 0
-        except ShellCommandException as e:
+        except FeedbackCommandException as e:
             logger.info("Failed to execute feedback command: %s", str(e))
             error_renderer.render(f"Failed to execute feedback command: {str(e)}")
             return 1

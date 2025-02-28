@@ -8,3 +8,4 @@ Commands
    chat
    shell
    history
+   feedback

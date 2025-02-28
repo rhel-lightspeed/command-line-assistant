@@ -15,3 +15,7 @@ class ShellCommandException(Exception):
 
 class HistoryCommandException(Exception):
     """Exception class to control history command."""
+
+
+class FeedbackCommandException(Exception):
+    """Exception class to control feedback command."""
