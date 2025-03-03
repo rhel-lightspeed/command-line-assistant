@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import pty
+import re
 import shutil
 import struct
 import termios
@@ -15,12 +16,37 @@ from command_line_assistant.utils.environment import get_xdg_state_path
 from command_line_assistant.utils.files import create_folder, write_file
 
 #: Special prompt marker to help us figure out when we should capture a new command/output.
-PROMPT_MARKER: str = "%c"
+PROMPT_MARKER: str = "\x1b]"
+
+#: The compiled regex to clean the ANSI escape sequence
+ANSI_ESCAPE_SEQ = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 #: The name of the output file to store the logs.
 OUTPUT_FILE_NAME: Path = Path(get_xdg_state_path(), "terminal.log")
 
+#: Default style for PS1
+DEFAULT_PS1 = r"[\u@\h \W]\$ "
+
+#: Default style for PROMPT_COMMAND
+DEFAULT_PROMPT_COMMAND = (
+    r'printf "\033]0;%s@%s:%s\007" "${USER}" "${HOSTNAME%%.*}" "${PWD/#$HOME/\~}" '
+)
+
 logger = logging.getLogger(__name__)
+
+
+def clean_parsed_text(text: str) -> str:
+    """Clean the parsed text.
+
+    Note:
+        This will remove ANSI escape sequences and newline/returnlines feeds.
+
+    Returns:
+        str: The cleaned string.
+    """
+    # Remove ANSI escape sequences
+    cleaned_ansi_escape_seq = ANSI_ESCAPE_SEQ.sub("", text)
+    return cleaned_ansi_escape_seq.strip()
 
 
 class TerminalRecorder:
@@ -65,8 +91,7 @@ class TerminalRecorder:
         fcntl.ioctl(fd, termios.TIOCSWINSZ, self._winsize)
 
         data = os.read(fd, 1024)
-
-        if self._prompt_marker in data:
+        if data.startswith(self._prompt_marker):
             if not self._in_command:
                 self.write_json_block()
             self._in_command = True
@@ -101,18 +126,24 @@ def start_capturing() -> None:
         if the user specify a path for $XDG_STATE_HOME, we use it, otherwise,
         we default to `~/.local/state` folder.
     """
-    # Read our special environment variable to get the PROMPT_COMMAND, in case
-    # it does not exists, set a default PROMPT_COMMAND for it.
-    user_prompt_command = os.environ.get("CLA_USER_SHELL_PROMPT_COMMAND", r"")
-
-    # Modify PROMPT_COMMAND and PS1 to include our marker
-    os.environ["PROMPT_COMMAND"] = f"{user_prompt_command}{PROMPT_MARKER}"
-
     # Get the current user SHELL environment variable, if not set, use sh.
     shell = os.environ.get("SHELL", "/usr/bin/sh")
 
     # Set up proper shell environment variables for job control
     os.environ["TERM"] = os.environ.get("TERM", "xterm")
+
+    # user_ps1 = os.environ.get("CLA_USER_SHELL_PS1", None)
+    # if not user_ps1:
+    #     logger.debug("Couldn't find user $PS1. Using a default one.")
+    #     user_ps1 = DEFAULT_PS1
+    # os.environ["PS1"] = user_ps1
+
+    # user_prompt = os.environ.get("CLA_USER_SHELL_PROMPT_COMMAND", None)
+    # if not user_prompt:
+    #     logger.debug("Couldn't find user $PROMPT_COMMAND. Using a default one.")
+    #     user_prompt = DEFAULT_PROMPT_COMMAND
+
+    # os.environ["PROMPT_COMMAND"] = user_prompt
 
     # The create_folder function will silently fail in case the folder exists.
     create_folder(OUTPUT_FILE_NAME.parent, parents=True)
@@ -130,8 +161,9 @@ def start_capturing() -> None:
     )
 
     with OUTPUT_FILE_NAME.open(mode="wb") as handler:
-        # Instantiate the TerminalRecorder and spawn a new shell with pty.
         recorder = TerminalRecorder(handler, struct.pack("HHHH", lines, columns, 0, 0))
+
+        # Instantiate the TerminalRecorder and spawn a new shell with pty.
         pty.spawn([shell], recorder.read)
 
         # Write the final json block if it exists.
