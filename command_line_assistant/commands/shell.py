@@ -147,6 +147,7 @@ class EnableTerminalCapture(BaseShellOperation):
         self.text_renderer.render(
             "Starting terminal reader. Press Ctrl + D to stop the capturing."
         )
+        self._initialize_bash_folder()
         start_capturing()
 
 
