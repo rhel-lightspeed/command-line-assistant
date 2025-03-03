@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Feb 26, 2025" "0.1.0" "Command Line Assistant"
+.TH "C" "1" "Mar 03, 2025" "0.1.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -37,7 +37,7 @@ The Command Line Assistant powered by RHEL Lightspeed is an optional generative 
 .INDENT 3.5
 .sp
 .EX
-c [\-\-debug] [\-h] [\-v] {chat,history,shell} ...
+c [\-\-debug] [\-h] [\-v] {chat,feedback,history,shell} ...
 .EE
 .UNINDENT
 .UNINDENT
@@ -57,7 +57,7 @@ Command to ask a question to the LLM.
 .INDENT 3.5
 .sp
 .EX
-c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-o [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELETE]] [\-\-delete\-all]
+c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELETE]] [\-\-delete\-all]
        [\-n [NAME]] [\-\-description [DESCRIPTION]]
        [query_string]
 .EE
@@ -77,7 +77,7 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-o [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELE
 .IP \(bu 2
 \fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start interactive chat session
 .IP \(bu 2
-\fI\%\-o\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 0 to retrieve latest output. (default: \fBNone\fP)
+\fI\%\-w\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 0 to retrieve latest output, 1 to before last and so on... (default: \fBNone\fP)
 .IP \(bu 2
 \fI\%\-r\fP, \fI\%\-\-raw\fP \- Interact with the backend in raw mode. No spinners, emojis or anything.
 .UNINDENT
@@ -93,6 +93,27 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-o [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELE
 \fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session (default: \fBdefault\fP)
 .IP \(bu 2
 \fI\%\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session (default: \fBDefault Command Line Assistant Chat.\fP)
+.UNINDENT
+.SS c feedback
+.sp
+Submit feedback about Command Line Assistant responses and interactions.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+c feedback [\-h] [\-s]
+.EE
+.UNINDENT
+.UNINDENT
+.SS c feedback options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+.UNINDENT
+.SS c feedback Submit Options
+.INDENT 0.0
+.IP \(bu 2
+\fI\%\-s\fP, \fI\%\-\-submit\fP \- Submit the feedback.
 .UNINDENT
 .SS c history
 .sp
@@ -133,8 +154,7 @@ Manage shell integrations
 .INDENT 3.5
 .sp
 .EX
-c shell [\-h] [\-\-enable\-capture] [\-\-enable\-persistent\-capture] [\-\-disable\-persistent\-capture]
-        [\-\-enable\-interactive] [\-\-disable\-interactive]
+c shell [\-h] [\-\-enable\-capture] [\-\-enable\-interactive] [\-\-disable\-interactive]
 .EE
 .UNINDENT
 .UNINDENT
@@ -147,10 +167,6 @@ c shell [\-h] [\-\-enable\-capture] [\-\-enable\-persistent\-capture] [\-\-disab
 .INDENT 0.0
 .IP \(bu 2
 \fI\%\-\-enable\-capture\fP \- Enable terminal capture for the current terminal session.
-.IP \(bu 2
-\fI\%\-\-enable\-persistent\-capture\fP \- Enable persistent terminal capture for the terminal session.
-.IP \(bu 2
-\fI\%\-\-disable\-persistent\-capture\fP \- Disable persistent terminal capture for the terminal session.
 .UNINDENT
 .SS c shell Interactive Mode Options
 .INDENT 0.0
