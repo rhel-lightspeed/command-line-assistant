@@ -36,10 +36,3 @@ __c_interactive() {
 # Bind Ctrl+J to the interactive function
 bind -x '"\C-j": __c_interactive'
 """
-
-#: Exports the $PROMPT_COMMAND variable to an internal variable managed by CLA.
-#: This will allow us to inject our marker to enable the caret feature.
-BASH_ESSENTIAL_EXPORTS: str = r"""
-export CLA_USER_SHELL_PS1=$PS1
-export CLA_USER_SHELL_PROMPT_COMMAND=$PROMPT_COMMAND
-"""

@@ -14,7 +14,6 @@ from command_line_assistant.commands.shell import (
     register_subcommand,
 )
 from command_line_assistant.exceptions import ShellCommandException
-from command_line_assistant.integrations import BASH_ESSENTIAL_EXPORTS
 from command_line_assistant.utils.renderers import create_text_renderer
 
 
@@ -33,13 +32,9 @@ def mock_bash_rc(monkeypatch, tmp_path):
 
 
 def test_initialize_bash_folder(default_kwargs, tmp_path):
-    essential_exports_file = tmp_path / "cla-exports.bashrc"
     bash_rc_d = tmp_path / ".bashrc.d"
     BaseShellOperation(**default_kwargs)._initialize_bash_folder()
 
-    assert essential_exports_file.exists()
-    assert BASH_ESSENTIAL_EXPORTS == essential_exports_file.read_text()
-    assert oct(essential_exports_file.stat().st_mode).endswith("600")
     assert oct(bash_rc_d.stat().st_mode).endswith("700")
 
 

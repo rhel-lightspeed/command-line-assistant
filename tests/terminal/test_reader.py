@@ -75,7 +75,7 @@ def test_terminal_recorder_write_json_block(tmp_path, get_terminal_size_packed):
     ("data", "expected"),
     (
         (b"test", b"test"),
-        (b"test%c", b"test"),
+        (b"\x1b]test", b"\x1b]test"),
         (b"test\n\r", b"test\n\r"),
     ),
 )
@@ -92,7 +92,7 @@ def test_terminal_recorder_read(
 
 
 @pytest.mark.parametrize(
-    ("data", "expected"), ((b"test", b"test"), (b"test%c", b"test"))
+    ("data", "expected"), ((b"test", b"test"), (b"\x1b]test", b"\x1b]test"))
 )
 def test_terminal_recorder_read_in_command_false(
     data, expected, monkeypatch, tmp_path, get_terminal_size_packed

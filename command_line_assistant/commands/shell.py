@@ -14,7 +14,6 @@ from command_line_assistant.commands.base import (
 )
 from command_line_assistant.exceptions import ShellCommandException
 from command_line_assistant.integrations import (
-    BASH_ESSENTIAL_EXPORTS,
     BASH_INTERACTIVE,
 )
 from command_line_assistant.rendering.renders.text import TextRenderer
@@ -72,7 +71,6 @@ class BaseShellOperation(BaseOperation):
         """Internal function to initialize the bash folder"""
         # Always ensure essential exports are in place
         create_folder(BASH_RC_D_PATH)
-        write_file(BASH_ESSENTIAL_EXPORTS, ESSENTIAL_EXPORTS_FILE)
 
     def _write_bash_functions(self, file: Path, contents: Union[bytes, str]) -> None:
         """Internal funtion to write the bash function to the desired location
@@ -147,6 +145,7 @@ class EnableTerminalCapture(BaseShellOperation):
         self.text_renderer.render(
             "Starting terminal reader. Press Ctrl + D to stop the capturing."
         )
+        self._initialize_bash_folder()
         start_capturing()
 
 
