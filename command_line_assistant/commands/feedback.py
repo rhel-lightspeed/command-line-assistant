@@ -1,5 +1,6 @@
 """Module to handle the feedback command."""
 
+import argparse
 import logging
 from argparse import Namespace
 from enum import auto
@@ -101,11 +102,10 @@ def register_subcommand(parser: SubParsersAction):
     submit_group = feedback_parser.add_argument_group("Submit Options")
 
     submit_group.add_argument(
-        "-s",
         "--submit",
         action="store_true",
         default=True,
-        help="Submit the feedback.",
+        help=argparse.SUPPRESS,
     )
 
     feedback_parser.set_defaults(func=_command_factory)
