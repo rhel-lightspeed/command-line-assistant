@@ -119,22 +119,29 @@ Example 5. Shell integrations
     With Command Line Assistant, you can also enable shell integrations to help
     in your experience::
 
-        $ c shell --enable-integration
-
+        $ c shell --enable-interactive
 
     The above command will place a file under ~/.bashrc.d folder that will
     be sourced by bash after the next time you open up your terminal.
     Currently, we only have one integration that aims to start the
     interactive mode with a keybind, like the following::
 
-        $ c shell --enable-integration
-        # After enabling the integration, restart your terminal or run
+        $ c shell --enable-interactive
+
+        # After enabling the interactive, restart your terminal or run
         $ source ~/.bashrc
-        # After the integration was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
 
-    If you wish to disable the integration, that can be done with::
+        # After the interactive was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
 
-        $ c shell --disabled-integration
+    If you wish to disable the interactive, that can be done with::
+
+        $ c shell --disabled-interactive
+
+    You can also enable terminal capture to aid in adding context to your queries with::
+
+        $ c shell --enable-capture
+
+    To quit the capture, just press `Ctrl + D`
 
 Notes
 -----
@@ -149,16 +156,15 @@ order to maintain a correct order of querying. The rules can be seen here::
     4. Stdin + positional query -> combine as "{positional_query} {stdin}"
     5. Stdin + file query -> combine as "{stdin} {file_query}"
     6. Positional + file query -> combine as "{positional_query} {file_query}"
-    7. All three sources -> use only positional and file as "{positional_query} {file_query}"
+    7. Positional + last output -> combine as "{positional_query} {last_output}"
+    8. Positional + attachment + last output -> combine as "{positional_query} {attachment} {last_output}"
+    99. All three sources -> use only positional and file as "{positional_query} {file_query}"
 
 Files
 -----
 
 *~/.bashrc.d/cla-interactive.bashrc*
     Bash script to add keyboard binding to enable interactive mode.
-
-*~/.bashrc.d/clad-exports.bashrc*
-    Bash script to export necessary environment variables for command-line-assistant.
 
 *~/.local/state/command-line-assistant/terminal.log*
     State file that captures the terminal screen and store it as json.
