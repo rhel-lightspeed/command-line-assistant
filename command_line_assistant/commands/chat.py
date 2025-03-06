@@ -640,7 +640,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "--with-output",
         nargs="?",
         type=int,
-        help="Add output from terminal as context for the query. Use 0 to retrieve latest output, 1 to before last and so on...",
+        help="Add output from terminal as context for the query. Use 1 to retrieve latest output, 2 to before last and so on...",
     )
     question_group.add_argument(
         "-r",
