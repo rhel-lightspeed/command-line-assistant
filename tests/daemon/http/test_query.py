@@ -53,3 +53,23 @@ def test_disable_ssl_verification(caplog, default_payload, mock_config):
         "Disabling SSL verification as per user requested."
         in caplog.records[-2].message
     )
+
+
+@responses.activate
+def test_submit_empty_query(mock_config):
+    """Test submitting an empty query"""
+    empty_payload = {
+        "question": "",
+        "context": {
+            "stdin": "",
+            "attachment": {"contents": "", "mimetype": "unknown/unknown"},
+        },
+    }
+
+    responses.post(
+        url="http://localhost/infer",
+        json={"data": {"text": ""}},
+    )
+
+    result = query.submit(empty_payload, config=mock_config)
+    assert result == ""

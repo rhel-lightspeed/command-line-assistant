@@ -134,3 +134,14 @@ def test_spinner_clear_message(mock_stream):
     # Verify any written message contains clear spaces
     written_text = mock_stream.written
     assert any(" " * (len("Clear me") + 2) + "\r" in text for text in written_text)
+
+
+def test_spinner_with_empty_message(mock_stream):
+    """Test spinner with an empty message"""
+    spinner = SpinnerRenderer("", stream=mock_stream)
+
+    with spinner:
+        time.sleep(0.1)
+
+    # The spinner should still render frames even with empty message
+    assert len(mock_stream.written) > 0

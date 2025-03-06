@@ -85,3 +85,44 @@ def test_initialize_without_username_and_password_read_from_systemd_creds(
     schema = DatabaseSchema(type="postgresql", username=None, password=None)
     assert schema.username == "test"
     assert schema.password == "test"
+
+
+def test_database_connection_string_path_expansion():
+    """Test that database connection string paths are expanded"""
+    # Test with tilde in path
+    schema = DatabaseSchema(type="sqlite", connection_string="~/test.db")
+    assert schema.connection_string.is_absolute()  # type: ignore
+    assert "test.db" in str(schema.connection_string)
+
+    # Test with relative path
+    schema = DatabaseSchema(type="sqlite", connection_string="./test.db")
+    assert "test.db" in str(schema.connection_string)
+
+
+def test_database_get_connection_url():
+    """Test database connection URL construction for different database types"""
+    # SQLite
+    sqlite_db = DatabaseSchema(type="sqlite", connection_string="/path/to/db.sqlite")
+    assert sqlite_db.get_connection_url() == "sqlite:////path/to/db.sqlite"
+
+    # MySQL
+    mysql_db = DatabaseSchema(
+        type="mysql",
+        host="localhost",
+        port=3306,
+        database="testdb",
+        username="user",
+        password="pass",
+    )
+    assert mysql_db.get_connection_url() == "mysql://user:pass@localhost:3306/testdb"
+
+    # PostgreSQL
+    pg_db = DatabaseSchema(
+        type="postgresql",
+        host="localhost",
+        port=5432,
+        database="testdb",
+        username="user",
+        password="pass",
+    )
+    assert pg_db.get_connection_url() == "postgresql://user:pass@localhost:5432/testdb"

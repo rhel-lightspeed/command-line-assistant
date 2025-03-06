@@ -185,3 +185,36 @@ def test_non_audit_filter(audit, expected):
     record.audit = audit
 
     assert NonAuditFilter().filter(record) == expected
+
+
+def test_audit_formatter_with_complex_objects():
+    """Test audit formatter with complex nested objects in extra fields"""
+
+    class TestObject:
+        def __str__(self):
+            return "TestObject"
+
+    record = logging.LogRecord(
+        name="test",
+        level=logging.INFO,
+        pathname="test.py",
+        lineno=1,
+        msg="Test message",
+        args=(),
+        exc_info=None,
+    )
+
+    # Add complex nested structure as extra field
+    record.complex_data = {
+        "nested": {"level": 2, "data": [1, 2, 3]},
+        "object": TestObject(),
+        "none": None,
+    }
+
+    formatter = AuditFormatter()
+    result = formatter.format(record)
+
+    # Should serialize without errors
+    data = json.loads(result)
+    assert "audit_data" in data
+    assert "complex_data" in data["audit_data"]

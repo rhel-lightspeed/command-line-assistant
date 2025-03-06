@@ -67,3 +67,13 @@ def test_session_context_manager_with_error(mock_config):
     with pytest.raises(QueryError):
         with manager.session():
             raise SQLAlchemyError("Database error")
+
+
+def test_session_raises_query_error(mock_config):
+    """Test session context manager raises QueryError on exception"""
+    manager = DatabaseManager(mock_config)
+
+    with pytest.raises(QueryError):
+        with manager.session():
+            # Force an error within the session
+            raise Exception("Test exception")

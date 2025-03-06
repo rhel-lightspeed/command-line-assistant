@@ -1,3 +1,4 @@
+from ssl import SSLError
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -119,3 +120,18 @@ def test_session_with_proxies(proxies, mock_config):
     session = get_session(mock_config)
 
     assert session.proxies == proxies
+
+
+def test_session_with_ssl_error(mock_config):
+    """Test session creation with SSL error"""
+    mock_config.backend.auth.verify_ssl = True
+
+    # Correctly patch the SSLAdapter class to raise an exception when initialized
+    with patch(
+        "command_line_assistant.daemon.http.adapters.SSLAdapter.__init__",
+        side_effect=SSLError("SSL error"),
+    ):
+        with pytest.raises(
+            RequestFailedError, match="Failed to load certificate in cert chain"
+        ):
+            get_session(mock_config)

@@ -193,3 +193,16 @@ def test_enable_terminal_capture(monkeypatch, default_kwargs, capsys):
         "Starting terminal reader. Press Ctrl + D to stop the capturing."
         in captured.out
     )
+
+
+def test_enable_terminal_capture_execution(default_kwargs, monkeypatch):
+    """Test that enable terminal capture executes correctly"""
+    default_kwargs["text_renderer"] = create_text_renderer()
+    monkeypatch.setattr(
+        "command_line_assistant.commands.shell.start_capturing", lambda: None
+    )
+    try:
+        operation = EnableTerminalCapture(**default_kwargs)
+        operation.execute()
+    except Exception as e:
+        pytest.fail(f"Unexpected exception: {e}")

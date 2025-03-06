@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
@@ -5,7 +6,7 @@ from dasbus.server.template import InterfaceTemplate
 
 from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
-from command_line_assistant.dbus.structures.history import HistoryList
+from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
 
@@ -187,3 +188,35 @@ def test_write_history(history_interface, caplog):
     assert (
         "Wrote a new entry to the user history for user." in caplog.records[-1].message
     )
+
+
+def test_history_filter_with_empty_keyword(history_interface, mock_config):
+    """Test filtering history with empty filter keyword"""
+    # Create a mock history entry directly without using a fixture
+    with patch(
+        "command_line_assistant.dbus.interfaces.history.HistoryManager"
+    ) as mock_manager:
+        # Create a mock HistoryList with one entry
+        mock_entry = HistoryEntry("test query", "test response", str(datetime.now()))
+
+        # Configure the mock manager to return our list for empty filter
+        mock_manager.return_value.read.return_value = [mock_entry]
+
+        # Replace the actual implementation
+        history_interface._history_manager = mock_manager.return_value
+
+        # Mock the filter function to return the same entry for empty filter
+        with patch(
+            "command_line_assistant.dbus.interfaces.history._filter_history_with_keyword"
+        ) as mock_filter:
+            mock_filter.return_value = [mock_entry]
+
+            # Call the method with empty filter
+            response = history_interface.GetFilteredConversation(
+                "test-user-id", filter=""
+            )
+
+            # Verify the result
+            filtered_history = HistoryList.from_structure(response)
+            assert len(filtered_history.histories) == 1
+            assert filtered_history.histories[0].question == "test query"

@@ -17,7 +17,6 @@ class UserSessionManager:
     def __init__(self) -> None:
         """Initialize the session manager."""
         self._machine_uuid: Optional[uuid.UUID] = None
-        self._user_id: Optional[uuid.UUID] = None
 
     @property
     def machine_id(self) -> uuid.UUID:
@@ -58,11 +57,8 @@ class UserSessionManager:
         Returns:
             str: The user ID
         """
-        if not self._user_id:
-            # Combine machine ID and effective user to create a unique namespace
-            namespace = self.machine_id
+        # Combine machine ID and effective user to create a unique namespace
+        namespace = self.machine_id
 
-            # Generate a UUID using the effective username as name in the namespace
-            self._user_id = uuid.uuid5(namespace, str(effective_user_id))
-
-        return str(self._user_id)
+        # Generate a UUID using the effective username as name in the namespace
+        return str(uuid.uuid5(namespace, str(effective_user_id)))

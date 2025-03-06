@@ -1,4 +1,5 @@
 import uuid
+from unittest import mock
 
 import pytest
 from sqlalchemy.engine.interfaces import Dialect
@@ -51,3 +52,18 @@ def test_guid_process_result_value(param_value, expected_value):
     guid = GUID()
 
     assert guid.process_result_value(param_value, dialect) == expected_value
+
+
+def test_guid_to_string_conversion():
+    """Test GUID conversion to/from string"""
+    guid = GUID()
+    original_uuid = uuid.uuid4()
+    str_uuid = str(original_uuid)
+
+    dialect = Dialect()
+    dialect.name = "postgresql"
+    # Test conversion from UUID to string format
+    assert guid.process_bind_param(original_uuid, dialect) == str_uuid
+
+    # Test conversion from string back to UUID
+    assert isinstance(guid.process_result_value(str_uuid, mock.Mock()), uuid.UUID)

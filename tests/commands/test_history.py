@@ -287,3 +287,16 @@ def test_operations_with_history_disabled(
         operation(**default_kwargs).execute()
 
     assert "History is not enabled. Nothing to do." in caplog.records[-1].message
+
+
+def test_show_empty_history_list(default_kwargs, capsys):
+    """Test rendering of empty history list"""
+    default_kwargs["text_renderer"] = create_text_renderer()
+    history_operation = BaseHistoryOperation(**default_kwargs)
+
+    # Create empty history list
+    empty_history = HistoryList([])
+    history_operation._show_history(empty_history)
+
+    captured = capsys.readouterr()
+    assert "No history entries found" in captured.out

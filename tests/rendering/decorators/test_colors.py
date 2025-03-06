@@ -102,3 +102,27 @@ def test_should_disable_color_output_with_other_env(env_vars, expected):
     """Test interaction with other environment variables"""
     with patch.dict(os.environ, env_vars, clear=True):
         assert should_disable_color_output() == expected
+
+
+def test_color_decorator_with_light_variants():
+    """Test color decorator with light color variants"""
+    decorator = ColorDecorator(foreground="lightblue")
+    text = "Test text"
+    result = decorator.decorate(text)
+    assert result.startswith("\x1b[94m")  # Light blue color code
+
+    decorator = ColorDecorator(background="lightgreen")
+    result = decorator.decorate(text)
+    assert "\x1b[102m" in result  # Light green background code
+
+
+def test_color_decorator_reset_color():
+    """Test color decorator reset color functionality"""
+    decorator = ColorDecorator(foreground="reset")
+    text = "Test text"
+    result = decorator.decorate(text)
+    assert "\x1b[39m" in result  # Reset foreground color code
+
+    decorator = ColorDecorator(background="reset")
+    result = decorator.decorate(text)
+    assert "\x1b[49m" in result  # Reset background color code

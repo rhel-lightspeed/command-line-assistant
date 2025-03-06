@@ -1,13 +1,16 @@
 from argparse import ArgumentParser, Namespace
+from unittest.mock import patch
 
 import pytest
 
 from command_line_assistant.commands.feedback import (
     DefaultFeedbackOperation,
     FeedbackCommand,
+    FeedbackOperationFactory,
     _command_factory,
     register_subcommand,
 )
+from command_line_assistant.exceptions import FeedbackCommandException
 from command_line_assistant.utils.renderers import (
     create_text_renderer,
     create_warning_renderer,
@@ -106,3 +109,18 @@ def test_command_factory(namespace):
 
     assert isinstance(command, FeedbackCommand)
     assert command._args.submit is True
+
+
+def test_feedback_command_exception_handling():
+    """Test exception handling in the feedback command"""
+    args = Namespace(submit=True)
+    command = FeedbackCommand(args)
+
+    with patch.object(
+        FeedbackOperationFactory,
+        "create_operation",
+        side_effect=FeedbackCommandException("Test error"),
+    ):
+        result = command.run()
+
+    assert result == 1  # Should return error code

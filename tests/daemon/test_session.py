@@ -9,7 +9,6 @@ from command_line_assistant.daemon.session import UserSessionManager
 def test_initialize_user_session_manager():
     session = UserSessionManager()
     assert not session._machine_uuid
-    assert not session._user_id
 
 
 def test_read_machine_id(tmp_path):
@@ -93,3 +92,14 @@ def test_machine_id_file_not_found(tmp_path):
         session = UserSessionManager()
         with pytest.raises(FileNotFoundError, match="Machine ID file not found at .*"):
             assert session.machine_id
+
+
+def test_missing_machine_id_file(tmp_path):
+    """Test behavior when machine ID file is missing"""
+    with patch(
+        "command_line_assistant.daemon.session.MACHINE_ID_PATH",
+        tmp_path / "nonexistent_file",
+    ):
+        session = UserSessionManager()
+        with pytest.raises(FileNotFoundError, match="Machine ID file not found"):
+            _ = session.machine_id

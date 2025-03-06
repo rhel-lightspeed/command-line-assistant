@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from command_line_assistant.utils.files import create_folder, guess_mimetype, write_file
@@ -77,3 +79,18 @@ def test_write_file(contents, path, mode, expected_mode, tmp_path):
         write_file(contents, test_file)
 
     assert oct(test_file.stat().st_mode).endswith(expected_mode)
+
+
+def test_write_file_permission_error(tmp_path, monkeypatch):
+    """Test write_file behavior with permission errors"""
+    test_file = tmp_path / "test.txt"
+
+    # Mock Path.write_text to raise PermissionError
+    def mock_write_text(self, content):
+        raise PermissionError("Permission denied")
+
+    monkeypatch.setattr(Path, "write_text", mock_write_text)
+
+    # Should log error and continue without raising exception
+    with pytest.raises(PermissionError):
+        write_file("test content", test_file)

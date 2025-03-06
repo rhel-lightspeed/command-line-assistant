@@ -148,3 +148,22 @@ testing
 )
 def test_format_header(text, level, expected, markdown_renderer):
     assert markdown_renderer._format_header(text, level) == expected
+
+
+def test_markdown_renderer_with_bold_italic_formatting(markdown_renderer):
+    """Test that bold and italic formatting works correctly"""
+    text = "This is **bold** and *italic* text"
+    markdown_renderer.render(text)
+    assert "bold" in markdown_renderer._stream.output
+    assert "italic" in markdown_renderer._stream.output
+
+
+def test_markdown_renderer_with_different_header_levels(markdown_renderer):
+    """Test that different header levels render correctly"""
+    text = "# Level 1 Header\n## Level 2 Header\n### Level 3 Header"
+    markdown_renderer.render(text)
+
+    output = markdown_renderer._stream.output
+    assert "LEVEL 1 HEADER" in output  # Level 1 headers are uppercase
+    assert "Level 2 Header" in output  # Level 2 headers have underlines
+    assert "Level 3 Header" in output  # Level 3 headers have dot underlines

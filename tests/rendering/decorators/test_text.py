@@ -1,3 +1,4 @@
+import os
 import shutil
 from typing import Iterator
 from unittest import mock
@@ -263,3 +264,19 @@ class TestWriteOncePerSessionDecorator:
         assert decorator.decorate("Test third") == "Test third"
 
         assert decorator._state_file.exists()
+
+
+def test_write_once_decorator_creates_state_file(tmp_path, monkeypatch):
+    """Test that WriteOncePerSessionDecorator creates a state file"""
+    monkeypatch.setattr(
+        "command_line_assistant.rendering.decorators.text.get_xdg_state_path",
+        lambda: tmp_path,
+    )
+
+    state_file = tmp_path / "test_state"
+    decorator = WriteOncePerSessionDecorator("test_state")
+    assert not state_file.exists()
+
+    decorator.decorate("Test text")
+    assert state_file.exists()
+    assert state_file.read_text() == str(os.getppid())

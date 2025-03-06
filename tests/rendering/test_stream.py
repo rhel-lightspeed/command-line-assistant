@@ -224,3 +224,26 @@ def test_stream_special_characters(StreamClass, capsys):
         captured = capsys.readouterr()
         output = captured.out if isinstance(stream, StdoutStream) else captured.err
         assert message in output
+
+
+@pytest.mark.parametrize("end_char", ["\n", "", "\r", ">>>"])
+def test_stream_with_different_end_characters(end_char, capsys):
+    """Test streams with different end characters"""
+    # Create streams with the test end character
+    stdout_stream = StdoutStream(end=end_char)
+    stderr_stream = StderrStream(end=end_char)
+
+    # Verify end character is set correctly
+    assert stdout_stream._end == end_char
+    assert stderr_stream._end == end_char
+
+    # Test writing using real stdout/stderr (captured by capsys)
+    stdout_stream.write("test-stdout")
+    stderr_stream.write("test-stderr")
+
+    # Capture the output
+    captured = capsys.readouterr()
+
+    # Check that the output includes the text and the custom end character
+    assert f"test-stdout{end_char}" in captured.out
+    assert f"test-stderr{end_char}" in captured.err

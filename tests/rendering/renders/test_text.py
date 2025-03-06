@@ -1,6 +1,9 @@
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.style import StyleDecorator
-from command_line_assistant.rendering.decorators.text import TextWrapDecorator
+from command_line_assistant.rendering.decorators.text import (
+    EmojiDecorator,
+    TextWrapDecorator,
+)
 from command_line_assistant.rendering.renders.text import TextRenderer
 
 
@@ -82,3 +85,27 @@ def test_text_renderer_render_multiline(capsys):
 
     captured = capsys.readouterr()
     assert len(captured.out.strip().split("\n")) == 3
+
+
+def test_text_renderer_with_mixed_decorators(mock_stream):
+    """Test text renderer with a mix of decorators"""
+    renderer = TextRenderer(stream=mock_stream)
+    renderer.update(
+        [
+            ColorDecorator(foreground="green"),
+            StyleDecorator("bright"),
+            EmojiDecorator("🔍"),
+            TextWrapDecorator(width=20, indent="  "),
+        ]
+    )
+
+    renderer.render(
+        "This is a long text that should be wrapped with emoji, color, and style"
+    )
+
+    # Check that all decorations were applied in correct order
+    output = "".join(mock_stream.written)
+    assert "🔍" in output  # Emoji
+    assert "\x1b[1m" in output  # Bright style
+    assert "\x1b[32m" in output  # Green color
+    assert "  " in output  # Indentation

@@ -55,3 +55,23 @@ def test_interactive_renderer_eof_error(mock_input, interactive_renderer):
         match="Detected keyboard interrupt. Stopping interactive mode.",
     ):
         interactive_renderer.render(">>> ")
+
+
+def test_interactive_renderer_banner_display(capsys):
+    """Test that interactive renderer displays banner on first render"""
+    banner = "Welcome to test interactive mode!"
+    renderer = InteractiveRenderer(banner=banner)
+
+    with patch("builtins.input", return_value="test"):
+        renderer.render(">>> ")
+
+    captured = capsys.readouterr()
+    assert banner in captured.out
+    assert "The current session does not include running context" in captured.out
+
+    # Second render should not show banner again
+    with patch("builtins.input", return_value="test"):
+        renderer.render(">>> ")
+
+    captured = capsys.readouterr()
+    assert banner not in captured.out
