@@ -28,11 +28,11 @@ def test_default_feedback_operation(default_kwargs, capsys):
     captured = capsys.readouterr()
 
     assert (
-        "Please do not include personal information or other sensitive data in\nyour feedback"
-        in captured.err.strip()
+        "Do not include any personal information or other sensitive information in\nyour feedback."
+        in captured.err
     )
     assert (
-        "Please submit feedback using the following email address"
+        "To submit feedback, use the following email address: <cla-feedback@redhat.com>."
         in captured.out.strip()
     )
 
@@ -69,11 +69,11 @@ def test_feedback_run(capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert (
-        "Please do not include personal information or other sensitive data in\nyour feedback"
-        in captured.err.strip()
+        "Do not include any personal information or other sensitive information in\nyour feedback."
+        in captured.err
     )
     assert (
-        "Please submit feedback using the following email address"
+        "To submit feedback, use the following email address: <cla-feedback@redhat.com>."
         in captured.out.strip()
     )
 

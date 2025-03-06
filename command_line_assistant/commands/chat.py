@@ -75,12 +75,12 @@ MAX_QUESTION_SIZE: int = 2048
 
 #: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
-    "This feature uses AI technology. Do not include personal information or "
+    "This feature uses AI technology. Do not include any personal information or "
     "other sensitive information in your input. Interactions may be used to "
     "improve Red Hat's products or services."
 )
 #: Always good to have legal message.
-ALWAYS_LEGAL_MESSAGE = "Always review AI generated content prior to use."
+ALWAYS_LEGAL_MESSAGE = "Always review AI-generated content prior to use."
 
 
 def _read_last_terminal_output(index: int) -> str:

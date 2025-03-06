@@ -24,7 +24,7 @@ from command_line_assistant.utils.renderers import (
     create_error_renderer,
 )
 
-WARNING_MESSAGE = "Please do not include personal information or other sensitive data in your feedback. Feedback may be used to improve Red Hat's products or services."
+WARNING_MESSAGE = "Do not include any personal information or other sensitive information in your feedback.  Feedback may be used to improve Red Hat's products or services."
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class DefaultFeedbackOperation(BaseFeedbackOperation):
         """Default method to execute the operation"""
         self.warning_renderer.render(WARNING_MESSAGE)
 
-        feedback_message = "Please submit feedback using the following email address: <cla-feedback@redhat.com>."
+        feedback_message = "To submit feedback, use the following email address: <cla-feedback@redhat.com>."
         self.text_renderer.render(feedback_message)
 
 
