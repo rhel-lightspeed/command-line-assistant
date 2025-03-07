@@ -667,7 +667,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "-n",
         "--name",
         nargs="?",
-        help="Give a name to the chat session",
+        help="Give a name to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect.",
         default="default",
     )
     chat_arguments.add_argument(
