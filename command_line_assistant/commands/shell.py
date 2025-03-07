@@ -200,7 +200,7 @@ def register_subcommand(parser: SubParsersAction):
     interactive_mode.add_argument(
         "--disable-interactive",
         action="store_true",
-        help="Disable the shell integrationfor interactive mode on the system.",
+        help="Disable the shell integration for interactive mode on the system.",
     )
 
     shell_parser.set_defaults(func=_command_factory)
