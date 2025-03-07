@@ -77,10 +77,13 @@ def write_file(contents: Union[str, bytes], path: Path, mode: int = 0o600) -> No
         mode (int): The permissions of the given file. Defaults to 0600.
     """
     try:
-        if not path.exists():
-            logger.debug(
-                "File %s does not exist. Creating it with permissions %s", path, mode
-            )
+        if path.exists():
+            logger.debug("File %s already exists. Skipping creation.", path)
+            return
+
+        logger.debug(
+            "File %s does not exist. Creating it with permissions %s", path, mode
+        )
 
         if isinstance(contents, bytes):
             path.write_bytes(contents)
