@@ -24,7 +24,7 @@ from command_line_assistant.utils.renderers import (
     create_error_renderer,
 )
 
-WARNING_MESSAGE = "Do not include any personal information or other sensitive information in your feedback.  Feedback may be used to improve Red Hat's products or services."
+WARNING_MESSAGE = "Do not include any personal information or other sensitive information in your feedback. Feedback may be used to improve Red Hat's products or services."
 
 logger = logging.getLogger(__name__)
 
