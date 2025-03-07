@@ -61,10 +61,11 @@ def find_output_by_index(index: int, output: list) -> str:
         str: In case it finds the output, otherwise, empty string.
     """
     try:
-        logger.info("Checking for output with index %s", index)
         found_output = output[index]["output"]
         logger.debug(
-            "Found output with index %s, and contents: %s", index, found_output
+            "Found output with index %s, and (partial) contents: %s",
+            index,
+            found_output[:1024],
         )
         return found_output
     except (IndexError, KeyError):

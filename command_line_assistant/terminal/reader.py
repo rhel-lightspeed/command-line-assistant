@@ -64,7 +64,7 @@ class TerminalRecorder:
         """
         fcntl.ioctl(fd, termios.TIOCSWINSZ, self._winsize)
 
-        data = os.read(fd, 1024)
+        data = os.read(fd, 4096)
         if data.startswith(self._prompt_marker):
             if not self._in_command:
                 self.write_json_block()
@@ -115,7 +115,7 @@ def start_capturing() -> None:
         lines,
     )
 
-    with OUTPUT_FILE_NAME.open(mode="wb") as handler:
+    with OUTPUT_FILE_NAME.open(mode="ab") as handler:
         recorder = TerminalRecorder(handler, struct.pack("HHHH", lines, columns, 0, 0))
 
         # Instantiate the TerminalRecorder and spawn a new shell with pty.
