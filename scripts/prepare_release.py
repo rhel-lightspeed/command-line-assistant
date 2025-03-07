@@ -4,6 +4,7 @@
 import argparse
 import datetime
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -19,6 +20,25 @@ VERSION_FILES = {
     "pyproject": PROJECT_ROOT / "pyproject.toml",
     "docs": PROJECT_ROOT / "docs" / "source" / "conf.py",
 }
+
+
+# Add to the main function before returning 0
+def run_make_man() -> None:
+    """Run 'make man' to update man pages with new version."""
+    print("\nUpdating man pages...")
+    try:
+        subprocess.run(
+            ["make", "man"],
+            cwd=PROJECT_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Error updating man pages: {e}")
+        print(f"stdout: {e.stdout}")
+        print(f"stderr: {e.stderr}")
+        raise RuntimeError("Failed to update man pages") from e
 
 
 def update_pyproject_version(new_version: str) -> None:
@@ -239,6 +259,9 @@ def main() -> int:
 
         update_docs_version(args.version)
         print("✓ Updated conf.py")
+
+        run_make_man()
+        print("✓ Successfully updated man pages")
 
         print("\nRelease preparation complete!")
         print("\nPlease review the changes and commit them.")
