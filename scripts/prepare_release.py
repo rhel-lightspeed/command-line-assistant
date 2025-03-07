@@ -3,6 +3,7 @@
 
 import argparse
 import datetime
+import os
 import re
 import subprocess
 import sys
@@ -21,8 +22,17 @@ VERSION_FILES = {
     "docs": PROJECT_ROOT / "docs" / "source" / "conf.py",
 }
 
+def is_in_virtualenv() -> bool:
+    """Check if running inside a virtual environment.
 
-# Add to the main function before returning 0
+    Returns:
+        bool: True if in a virtual environment, False otherwise
+    """
+    # Check for the presence of the VIRTUAL_ENV environment variable
+    # which is set by most virtual environment tools (venv, virtualenv)
+    return "VIRTUAL_ENV" in os.environ
+
+
 def run_make_man() -> None:
     """Run 'make man' to update man pages with new version."""
     print("\nUpdating man pages...")
@@ -207,6 +217,17 @@ def main() -> int:
     Returns:
         int: Exit code
     """
+    # Check if running in a virtual environment
+    if not is_in_virtualenv():
+        print(
+            "Error: This script must be run from within a virtual environment.",
+            file=sys.stderr,
+        )
+        print(
+            "Please activate your virtual environment and try again.", file=sys.stderr
+        )
+        return 1
+
     parser = argparse.ArgumentParser(
         description="Manage Command Line Assistant releases"
     )
