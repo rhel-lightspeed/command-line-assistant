@@ -38,5 +38,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+r0x0d[bot]@users.noreply.github.com"
-          git add data/release/man && git commit -m "New generated manpages"
+          git add data/release/man && git commit --amend --no-edit
           git push
