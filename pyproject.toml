@@ -39,7 +39,7 @@ pytest-sugar = "1.0.0"
 pytest-clarity = "1.0.1"
 tox = "4.24.2"
 responses = "0.25.6"
-PyGObject = "3.50.0"
+PyGObject = "3.52.1"
 # added here mainly for editor happines
 ruff = "0.9.10"
 
