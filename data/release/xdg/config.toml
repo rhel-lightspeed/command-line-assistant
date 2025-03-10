@@ -35,7 +35,7 @@ enabled = true
 # Backend settings for communicating with the external API.
 [backend]
 # The endpoint points to an API server.
-endpoint = "https://localhost:8080"
+endpoint = "https://console.redhat.com/api/lightspeed"
 # Define https proxy to route the request through it.
 # It accepts `username:password@localhost:8002`, for example.
 # proxies = { https = "https://localhost:8002" }
