@@ -5,7 +5,7 @@ import sys
 from command_line_assistant.daemon import clad
 
 
-def main():
+def main() -> int:
     """Main entrypoint for clad."""
     return clad.daemonize()
 

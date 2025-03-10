@@ -5,9 +5,9 @@ import sys
 from command_line_assistant import initialize
 
 
-def main():
+def main() -> int:
     """Main entrypoint for c."""
-    initialize.initialize()
+    return initialize.initialize()
 
 
 if __name__ == '__main__':
