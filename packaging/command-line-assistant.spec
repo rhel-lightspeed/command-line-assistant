@@ -1,6 +1,7 @@
 # RPM Specific
 %define python_package_src command_line_assistant
 %define binary_name c
+%define symlink_binary_name cla
 %define daemon_binary_name clad
 
 %define selinux_policyver 41.27-1
@@ -84,6 +85,10 @@ popd
 %{__install} -m 0755 %{buildroot}/%{_bindir}/%{daemon_binary_name} %{buildroot}/%{_sbindir}/%{daemon_binary_name}
 %{__rm} %{buildroot}/%{_bindir}/%{daemon_binary_name}
 
+# Symlink `c` to `cla`
+ln -sr %{buildroot}/%{_bindir}/%{binary_name} %{buildroot}/%{_bindir}/%{symlink_binary_name}
+ln -sr %{buildroot}%{_mandir}/man1/%{binary_name}.1 %{buildroot}%{_mandir}/man1/%{symlink_binary_name}.1
+
 # System units
 %{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
 
@@ -134,6 +139,7 @@ fi
 
 # Binaries
 %{_bindir}/%{binary_name}
+%{_bindir}/%{symlink_binary_name}
 %{_sbindir}/%{daemon_binary_name}
 
 # System units
@@ -147,6 +153,7 @@ fi
 
 # Manpages
 %{_mandir}/man1/%{binary_name}.1.gz
+%{_mandir}/man1/%{symlink_binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
 
 
