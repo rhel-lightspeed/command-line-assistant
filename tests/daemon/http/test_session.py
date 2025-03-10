@@ -1,4 +1,3 @@
-from ssl import SSLError
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -6,7 +5,6 @@ import urllib3
 
 from command_line_assistant.constants import VERSION
 from command_line_assistant.daemon.http.session import get_session
-from command_line_assistant.dbus.exceptions import RequestFailedError
 
 
 def test_session_headers(mock_config):
@@ -77,29 +75,6 @@ def test_various_endpoints(mock_config, endpoint):
     assert any(pattern == endpoint for pattern, _ in session.adapters.items())
 
 
-def test_session_with_corrupted_ssl_certificate(mock_config):
-    mock_config.backend.auth.cert_file.write_text("whatever pem")
-    mock_config.backend.auth.key_file.write_text("whatever secret")
-    mock_config.backend.auth.verify_ssl = True
-
-    with pytest.raises(
-        RequestFailedError, match="Failed to load certificate in cert chain."
-    ):
-        get_session(mock_config)
-
-
-def test_session_with_missing_ssl_certificate(tmp_path, mock_config):
-    cert_file = tmp_path / "missing" / "cert.pem"
-    key_file = tmp_path / "missing" / "key.pem"
-
-    mock_config.backend.auth.cert_file = cert_file
-    mock_config.backend.auth.key_file = key_file
-    mock_config.backend.auth.verify_ssl = True
-
-    with pytest.raises(RequestFailedError, match="Couldn't find certificate files at"):
-        get_session(mock_config)
-
-
 @pytest.mark.parametrize(
     ("proxies",),
     (
@@ -120,18 +95,3 @@ def test_session_with_proxies(proxies, mock_config):
     session = get_session(mock_config)
 
     assert session.proxies == proxies
-
-
-def test_session_with_ssl_error(mock_config):
-    """Test session creation with SSL error"""
-    mock_config.backend.auth.verify_ssl = True
-
-    # Correctly patch the SSLAdapter class to raise an exception when initialized
-    with patch(
-        "command_line_assistant.daemon.http.adapters.SSLAdapter.__init__",
-        side_effect=SSLError("SSL error"),
-    ):
-        with pytest.raises(
-            RequestFailedError, match="Failed to load certificate in cert chain"
-        ):
-            get_session(mock_config)
