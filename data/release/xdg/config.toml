@@ -13,7 +13,7 @@ connection_string = "/var/lib/command-line-assistant/history.db"
 # host = "localhost"
 # port = "5432"
 # database = "history"
-# user = "your-user"
+# username = "your-user"
 # password = "your-password"
 
 # Or, to use mysql, uncomment the following:
@@ -22,7 +22,7 @@ connection_string = "/var/lib/command-line-assistant/history.db"
 # host = "localhost"
 # port = "3306"
 # database = "history"
-# user = "your-user"
+# username = "your-user"
 # password = "your-password"
 
 # History management configuration
@@ -35,7 +35,7 @@ enabled = true
 # Backend settings for communicating with the external API.
 [backend]
 # The endpoint points to an API server.
-endpoint = "https://console.redhat.com/api/lightspeed"
+endpoint = "https://cert.console.redhat.com/api/lightspeed/v1"
 # Define https proxy to route the request through it.
 # It accepts `username:password@localhost:8002`, for example.
 # proxies = { https = "https://localhost:8002" }

@@ -109,7 +109,7 @@ class DatabaseSchema:
         """
         connection_urls = {
             "sqlite": f"sqlite:///{self.connection_string}",
-            "mysql": f"mysql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}",
+            "mysql": f"mysql+pymysql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}",
             "postgresql": f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}",
         }
 
