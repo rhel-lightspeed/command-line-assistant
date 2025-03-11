@@ -114,7 +114,10 @@ def test_database_get_connection_url():
         username="user",
         password="pass",
     )
-    assert mysql_db.get_connection_url() == "mysql://user:pass@localhost:3306/testdb"
+    assert (
+        mysql_db.get_connection_url()
+        == "mysql+pymysql://user:pass@localhost:3306/testdb"
+    )
 
     # PostgreSQL
     pg_db = DatabaseSchema(
