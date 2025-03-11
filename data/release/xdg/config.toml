@@ -13,7 +13,7 @@ connection_string = "/var/lib/command-line-assistant/history.db"
 # host = "localhost"
 # port = "5432"
 # database = "history"
-# user = "your-user"
+# username = "your-user"
 # password = "your-password"
 
 # Or, to use mysql, uncomment the following:
@@ -22,7 +22,7 @@ connection_string = "/var/lib/command-line-assistant/history.db"
 # host = "localhost"
 # port = "3306"
 # database = "history"
-# user = "your-user"
+# username = "your-user"
 # password = "your-password"
 
 # History management configuration
