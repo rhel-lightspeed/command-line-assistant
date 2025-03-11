@@ -1,11 +1,123 @@
 [Unit]
+# Defines the service name and purpose
 Description=Command Line Assistant Daemon Service
-Documentation=https://github.com/rhel-lightspeed/command-line-assistant
+
+# Points to documentation
+Documentation=man:clad(8)
+
+# Ensures this service starts after network is fully online and D-Bus is available
 After=network-online.service dbus.service
+
+# Makes network connectivity a hard requirement for this service
 Requires=network-online.target
 
 [Service]
+# Specifies the service is a simple, long-running process
 Type=simple
+
+# Creates and uses a private /tmp directory for the service
 PrivateTmp=yes
+
+# Service will exit when the process exits (won't stay around)
 RemainAfterExit=no
+
+# The actual command to run the Command Line Assistant Daemon
 ExecStart=/usr/sbin/clad
+
+# Filesystem access restrictions
+# Allows read-only access to user home directories
+ProtectHome=true
+
+# Makes the entire filesystem read-only for this service
+ProtectSystem=strict
+
+# Specifically allows write access only to the application data directory
+ReadWritePaths=/var/lib/command-line-assistant
+
+# Explicitly marks all paths as read-only
+# NOTE(r0x0d): This needs to happen after we set the ReadWritePaths.
+ReadOnlyPaths=/
+
+# Blocks any access to home directories for additional protection
+InaccessibleDirectories=/home
+
+# Device access restrictions
+# Prevents access to physical devices
+PrivateDevices=true
+
+# Only allows specific device access needed for operation
+DeviceAllow=/dev/null rw
+DeviceAllow=/dev/urandom r
+DeviceAllow=/dev/random r
+
+# Kernel and system protection measures
+# Prevents modification of control groups
+ProtectControlGroups=true
+
+# Prevents modification of kernel tunables
+ProtectKernelTunables=true
+
+# Prevents loading of kernel modules
+ProtectKernelModules=true
+
+# Prevents access to kernel logs
+ProtectKernelLogs=true
+
+# Prevents changing the system clock
+ProtectClock=true
+
+# Limits visibility of process information
+ProtectProc=invisible
+
+# Restricts which information is visible in /proc
+ProcSubset=pid
+
+# Network access restrictions
+# Only allows Unix domain and Internet sockets
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+# Prevents creation of new namespaces
+RestrictNamespaces=true
+
+# Limits potential privilege escalation
+# Removes all capabilities from the service
+CapabilityBoundingSet=
+
+# System call filtering
+# Only allows system calls needed for basic service operation
+SystemCallFilter=@system-service
+
+# Returns "operation not permitted" for blocked system calls
+SystemCallErrorNumber=EPERM
+
+# Additional security hardening
+# Prevents memory from being both writable and executable
+MemoryDenyWriteExecute=true
+
+# Resource limitations
+# Sets maximum number of open files
+LimitNOFILE=4096
+
+# Runtime directory configuration
+# Creates a dedicated runtime directory for this service
+RuntimeDirectory=command-line-assistant
+
+# Sets secure permissions on the runtime directory
+RuntimeDirectoryMode=0700
+
+# State directory configuration
+# Creates a dedicated state directory for this service
+StateDirectory=command-line-assistant
+
+# Sets secure permissions on the state directory
+StateDirectoryMode=0750
+
+# Additional security isolation
+# Uses a private user namespace for the service
+PrivateUsers=true
+
+# Prevents setting SUID/SGID bits
+RestrictSUIDSGID=true
+
+# Prevents changing the personality (execution domain)
+LockPersonality=true
