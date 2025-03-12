@@ -640,7 +640,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "--with-output",
         nargs="?",
         type=int,
-        help="Add output from terminal as context for the query. Use 1 to retrieve latest output, 2 to before last and so on...",
+        help="Add output from terminal as context for the query. Use 1 to retrieve latest output, 2 to before last and so on... First enable the terminal capture with 'c shell --enable-capture' in order for this to work.",
     )
     question_group.add_argument(
         "-r",
@@ -658,7 +658,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "--delete",
         nargs="?",
         default="",
-        help="Delete a chat session",
+        help="Delete a chat session. Specify chat session by its name.",
     )
     chat_arguments.add_argument(
         "--delete-all", action="store_true", help="Delete all chats"

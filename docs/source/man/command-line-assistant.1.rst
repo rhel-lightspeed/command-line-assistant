@@ -39,11 +39,11 @@ Example 1. Asking a simple question
 
         $ c chat "What is RHEL?"
 
-    In case `query` is not placed, the program will assume that anything that
+    In case a `query` is not placed, the program will assume that anything that
     comes after is a potential query. That includes the options for `chat`
     as well.
 
-    Alternativelly, you can also use `--interactive` to start an interactive session::
+    Alternatively, you can also use `--interactive` to start an interactive session::
 
         $ c --interactive
 
@@ -63,7 +63,7 @@ Example 2. Redirecting output to `c`
     Sometimes, only providing the error output might not be enough. For that, you
     can combine your redirect output with a question like this::
 
-        $ $ cat log_with_error.log | c "how do I solve this?"
+        $ cat log_with_error.log | c "how do I solve this?"
 
 Example 3. Attaching a file with your question
 
@@ -96,7 +96,7 @@ Example 4. History management
     With Command Line Assistant, you can also check your conversation history. For that, use the following command to retrieve all user
     history::
 
-        $ c history
+        $ c history --all
 
     If you don't want all history, you can filter it for either the first or last
     result with::
@@ -123,6 +123,7 @@ Example 5. Shell integrations
 
     The above command will place a file under ~/.bashrc.d folder that will
     be sourced by bash after the next time you open up your terminal.
+
     Currently, we only have one integration that aims to start the
     interactive mode with a keybind, like the following::
 
@@ -133,12 +134,13 @@ Example 5. Shell integrations
 
         # After the interactive was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
 
-    If you wish to disable the interactive, that can be done with::
+    If you wish to disable the interactive, it can be done with::
 
         $ c shell --disabled-interactive
 
     You can also enable terminal capture to aid in adding context to your queries with::
 
+        # This will create a file under the ~/.local/state/command-line-assistant/terminal.log
         $ c shell --enable-capture
 
     To quit the capture, just press `Ctrl + D`

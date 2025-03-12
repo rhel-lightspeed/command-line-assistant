@@ -346,7 +346,7 @@ def register_subcommand(parser: SubParsersAction):
         "-c",
         "--clear",
         action="store_true",
-        help="Clear the entire history. If no --from is specified, it will clear all history from all chats.",
+        help="Clear the entire history.",
     )
 
     history_parser.set_defaults(func=_command_factory)
