@@ -17,6 +17,7 @@ VERSION_FILES = {
     "selinux": PROJECT_ROOT / "data" / "release" / "selinux" / "clad.te",
     "spec": PROJECT_ROOT / "packaging" / "command-line-assistant.spec",
     "pyproject": PROJECT_ROOT / "pyproject.toml",
+    "docs": PROJECT_ROOT / "docs" / "source" / "conf.py",
 }
 
 
@@ -32,6 +33,23 @@ def update_pyproject_version(new_version: str) -> None:
     updated = re.sub(r'version = "[\d.]+"', f'version = "{new_version}"', content)
 
     with VERSION_FILES["pyproject"].open("w") as f:
+        f.write(updated)
+
+
+def update_docs_version(new_version: str) -> None:
+    """Update version in docs/source/conf.py.
+
+    Arguments:
+        new_version (str): New version to set
+    """
+    with VERSION_FILES["docs"].open("r") as f:
+        content = f.read()
+
+    updated = re.sub(
+        r'release = version = "[\d.]+"', f'release = version = "{new_version}"', content
+    )
+
+    with VERSION_FILES["docs"].open("w") as f:
         f.write(updated)
 
 
@@ -218,6 +236,9 @@ def main() -> int:
 
         update_pyproject_version(args.version)
         print("✓ Updated pyproject.toml")
+
+        update_docs_version(args.version)
+        print("✓ Updated conf.py")
 
         print("\nRelease preparation complete!")
         print("\nPlease review the changes and commit them.")
