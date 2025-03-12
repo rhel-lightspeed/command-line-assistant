@@ -12,17 +12,23 @@ class HistoryEntry(BaseDataMixin, DBusData):
     """Represents a single history item with query and response"""
 
     def __init__(
-        self, question: Str = "", response: Str = "", created_at: Str = ""
+        self,
+        question: Str = "",
+        response: Str = "",
+        chat_name: Str = "",
+        created_at: Str = "",
     ) -> None:
         """Constructor of class.
 
         Arguments:
             question (Str): The user question
             response (Str): The llm response
+            chat_name (Str): The name of the chat associated with the question
             created_at (Str): When the record was created.
         """
         self._question: Str = question
         self._response: Str = response
+        self._chat_name: Str = chat_name
         self._created_at: Str = created_at
         super().__init__()
 
@@ -61,6 +67,24 @@ class HistoryEntry(BaseDataMixin, DBusData):
             value (Str): Value to be set to the internal property
         """
         self._response = value
+
+    @property
+    def chat_name(self) -> Str:
+        """Property for internal chat_name attribute.
+
+        Returns:
+            Str: The value of chat_name
+        """
+        return self._chat_name
+
+    @chat_name.setter
+    def chat_name(self, value: Str) -> None:
+        """Set a new chat_name
+
+        Arguments:
+            value (Str): Value to be set to the internal property
+        """
+        self._chat_name = value
 
     @property
     def created_at(self) -> Str:

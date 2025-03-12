@@ -27,15 +27,19 @@ from command_line_assistant.utils.renderers import create_text_renderer
 @pytest.fixture
 def sample_history_entry():
     """Create a sample history entry for testing."""
-    entry = HistoryEntry("test query", "test response", str(datetime.now()))
-    last = HistoryEntry("test final query", "test final response", str(datetime.now()))
+    entry = HistoryEntry("test query", "test response", "test", str(datetime.now()))
+    last = HistoryEntry(
+        "test final query", "test final response", "test", str(datetime.now())
+    )
     history_entry = HistoryList([entry, last])
     return history_entry
 
 
 @pytest.fixture
 def default_namespace():
-    return Namespace(first=False, last=False, clear=False, filter="", all=False)
+    return Namespace(
+        first=False, last=False, clear=False, filter="", all=False, from_chat="default"
+    )
 
 
 def test_retrieve_all_conversations_success(
@@ -104,16 +108,14 @@ def test_retrieve_conversation_filtered_exception(
 
 
 def test_retrieve_first_conversation_success(
-    mock_dbus_service,
-    sample_history_entry,
-    capsys,
-    default_kwargs,
+    mock_dbus_service, sample_history_entry, capsys, default_kwargs, default_namespace
 ):
     """Test retrieving first conversation successfully."""
     mock_dbus_service.GetFirstConversation.return_value = (
         sample_history_entry.structure()
     )
     default_kwargs["text_renderer"] = create_text_renderer()
+    default_kwargs["args"] = default_namespace
     FirstHistoryOperation(**default_kwargs).execute()
     captured = capsys.readouterr()
     mock_dbus_service.GetFirstConversation.assert_called_once()
@@ -123,11 +125,14 @@ def test_retrieve_first_conversation_success(
     assert "test response" in captured.out
 
 
-def test_retrieve_first_conversation_exception(mock_dbus_service, default_kwargs):
+def test_retrieve_first_conversation_exception(
+    mock_dbus_service, default_kwargs, default_namespace
+):
     """Test catching first conversation successfully."""
     mock_dbus_service.GetFirstConversation.side_effect = HistoryNotAvailableError(
         "Not found history"
     )
+    default_kwargs["args"] = default_namespace
     with pytest.raises(
         HistoryCommandException,
         match="Looks like no history was found. Try asking something first!",
@@ -136,13 +141,14 @@ def test_retrieve_first_conversation_exception(mock_dbus_service, default_kwargs
 
 
 def test_retrieve_last_conversation_success(
-    mock_dbus_service, sample_history_entry, capsys, default_kwargs
+    mock_dbus_service, sample_history_entry, capsys, default_kwargs, default_namespace
 ):
     """Test retrieving last conversation successfully."""
     mock_dbus_service.GetLastConversation.return_value = (
         sample_history_entry.structure()
     )
     default_kwargs["text_renderer"] = create_text_renderer()
+    default_kwargs["args"] = default_namespace
     LastHistoryOperation(**default_kwargs).execute()
 
     captured = capsys.readouterr()
@@ -153,11 +159,14 @@ def test_retrieve_last_conversation_success(
     assert "test response" in captured.out
 
 
-def test_retrieve_last_conversation_exception(mock_dbus_service, default_kwargs):
+def test_retrieve_last_conversation_exception(
+    mock_dbus_service, default_kwargs, default_namespace
+):
     """Test retrieving last conversation successfully."""
     mock_dbus_service.GetLastConversation.side_effect = HistoryNotAvailableError(
         "Not found history"
     )
+    default_kwargs["args"] = default_namespace
     with pytest.raises(
         HistoryCommandException,
         match="Looks like no history was found. Try asking something first!",
@@ -165,20 +174,24 @@ def test_retrieve_last_conversation_exception(mock_dbus_service, default_kwargs)
         LastHistoryOperation(**default_kwargs).execute()
 
 
-def test_clear_history_success(mock_dbus_service, capsys, default_kwargs):
+def test_clear_history_success(
+    mock_dbus_service, capsys, default_kwargs, default_namespace
+):
     """Test clearing history successfully."""
     default_kwargs["text_renderer"] = create_text_renderer()
+    default_kwargs["args"] = default_namespace
     ClearHistoryOperation(**default_kwargs).execute()
     captured = capsys.readouterr()
     assert "Cleaning the history" in captured.out
     mock_dbus_service.ClearHistory.assert_called_once()
 
 
-def test_clear_history_exception(mock_dbus_service, default_kwargs):
+def test_clear_history_exception(mock_dbus_service, default_kwargs, default_namespace):
     """Test clearing history successfully."""
     mock_dbus_service.ClearHistory.side_effect = HistoryNotAvailableError(
         "Not found history"
     )
+    default_kwargs["args"] = default_namespace
     with pytest.raises(
         HistoryCommandException,
         match="Looks like no history was found. Try asking something first!",
@@ -190,7 +203,7 @@ def test_show_history(default_kwargs, capsys):
     default_kwargs["text_renderer"] = create_text_renderer()
     bash_history_operation = BaseHistoryOperation(**default_kwargs)
     bash_history_operation._show_history(
-        HistoryList([HistoryEntry("test", "test", str(datetime.now()))])
+        HistoryList([HistoryEntry("test", "test", "test", str(datetime.now()))])
     )
 
     captured = capsys.readouterr()
@@ -206,7 +219,9 @@ def test_show_history(default_kwargs, capsys):
 )
 def test_history_run_exceptions(exception, expected_msg, mock_dbus_service, capsys):
     mock_dbus_service.GetFirstConversation.side_effect = exception
-    args = Namespace(filter="", clear=False, first=True, last=False)
+    args = Namespace(
+        filter="", clear=False, first=True, last=False, from_chat="default"
+    )
     result = HistoryCommand(args).run()
 
     captured = capsys.readouterr()
@@ -218,7 +233,9 @@ def test_history_empty_response(mock_dbus_service, capsys):
     """Test handling empty history response"""
     mock_dbus_service.GetFirstConversation.return_value = HistoryList([]).structure()
 
-    args = Namespace(filter="", clear=False, first=True, last=False)
+    args = Namespace(
+        filter="", clear=False, first=True, last=False, from_chat="default"
+    )
     HistoryCommand(args).run()
 
     captured = capsys.readouterr()

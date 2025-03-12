@@ -15,6 +15,7 @@ class HistoryModel(BaseModel):
     chat_id = Column(GUID(), ForeignKey("chat.id"), nullable=False)
 
     interactions = relationship("InteractionModel", lazy="subquery", backref="history")
+    chats = relationship("ChatModel", lazy="subquery", backref="history")
 
 
 class InteractionModel(BaseModel):

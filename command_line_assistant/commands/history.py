@@ -53,6 +53,7 @@ class HistoryOperationType(CommandOperationType):
     """Enum to control the operations for the command"""
 
     CLEAR = auto()
+    CLEAR_ALL = auto()
     FIRST = auto()
     LAST = auto()
     FILTER = auto()
@@ -65,6 +66,7 @@ class HistoryOperationFactory(CommandOperationFactory):
     # Mapping of CLI arguments to operation types
     _arg_to_operation: ClassVar[dict[str, CommandOperationType]] = {
         "clear": HistoryOperationType.CLEAR,
+        "clear_all": HistoryOperationType.CLEAR_ALL,
         "first": HistoryOperationType.FIRST,
         "last": HistoryOperationType.LAST,
         "filter": HistoryOperationType.FILTER,
@@ -163,9 +165,11 @@ class BaseHistoryOperation(BaseOperation):
             answer_text = f"## 🤖 Answer\n{entry.response}"
             answer_renderer.render(answer_text)
 
-            created_at_message = f"\n*Created at: {format_datetime(entry.created_at)}*"
-            metadata_renderer.render(created_at_message)
+            from_chat_message = f"\n*From chat: {entry.chat_name}*"
+            metadata_renderer.render(from_chat_message)
 
+            created_at_message = f"*Created at: {format_datetime(entry.created_at)}*"
+            metadata_renderer.render(created_at_message)
             # Add separator between entries if needed
             if len(entries.histories) > 1:
                 self.text_renderer.render(
@@ -182,7 +186,25 @@ class ClearHistoryOperation(BaseHistoryOperation):
         try:
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             self.text_renderer.render("Cleaning the history.")
-            self.history_proxy.ClearHistory(user_id)
+            self.history_proxy.ClearHistory(user_id, self.args.from_chat)
+        except HistoryNotAvailableError as e:
+            logger.debug("Failed to clear the history: %s", str(e))
+            raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
+        except HistoryNotEnabledError as e:
+            logger.debug(HISTORY_NOT_ENABLED_DEBUG)
+            raise HistoryCommandException(HISTORY_NOT_ENABLED_MESSAGE) from e
+
+
+@HistoryOperationFactory.register(HistoryOperationType.CLEAR_ALL)
+class ClearAllHistoryOperation(BaseHistoryOperation):
+    """Class to hold the clean operation"""
+
+    def execute(self) -> None:
+        """Default method to execute the operation"""
+        try:
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            self.text_renderer.render("Cleaning the history.")
+            self.history_proxy.ClearAllHistory(user_id)
         except HistoryNotAvailableError as e:
             logger.debug("Failed to clear the history: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
@@ -200,7 +222,9 @@ class FirstHistoryOperation(BaseHistoryOperation):
         try:
             self.text_renderer.render("Getting first conversation from history.")
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            response = self.history_proxy.GetFirstConversation(user_id)
+            response = self.history_proxy.GetFirstConversation(
+                user_id, self.args.from_chat
+            )
             history = HistoryList.from_structure(response)
 
             # Display the conversation
@@ -222,7 +246,9 @@ class LastHistoryOperation(BaseHistoryOperation):
         try:
             self.text_renderer.render("Getting last conversation from history.")
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            response = self.history_proxy.GetLastConversation(user_id)
+            response = self.history_proxy.GetLastConversation(
+                user_id, self.args.from_chat
+            )
 
             history = HistoryList.from_structure(response)
             # Display the conversation
@@ -245,7 +271,7 @@ class FilteredHistoryOperation(BaseHistoryOperation):
             self.text_renderer.render("Filtering conversation history.")
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             response = self.history_proxy.GetFilteredConversation(
-                user_id, self.args.filter
+                user_id, self.args.filter, self.args.from_chat
             )
 
             # Handle and display the response
@@ -340,11 +366,21 @@ def register_subcommand(parser: SubParsersAction):
     filtering_options.add_argument(
         "-a", "--all", action="store_true", help="Get all conversation from history."
     )
+    filtering_options.add_argument(
+        "--from-chat",
+        help="Specify from which chat we should retrieve the history. Default chat is 'default'",
+        default="default",
+    )
 
     management_options = history_parser.add_argument_group("Management Options")
     management_options.add_argument(
         "-c",
         "--clear",
+        action="store_true",
+        help="Clear the entire history for a given chat. Use --from-chat with its given name to clear that particular history.",
+    )
+    management_options.add_argument(
+        "--clear-all",
         action="store_true",
         help="Clear the entire history.",
     )

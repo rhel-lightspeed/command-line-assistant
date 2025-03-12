@@ -121,3 +121,8 @@ def mock_stream():
 @pytest.fixture
 def mock_context(mock_config):
     return DaemonContext(mock_config)
+
+
+@pytest.fixture
+def universal_user_id():
+    return "ca427c50-ff49-11ef-9209-52b437312584"

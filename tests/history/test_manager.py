@@ -1,5 +1,6 @@
 import pytest
 
+from command_line_assistant.daemon.database.models.history import HistoryModel
 from command_line_assistant.dbus.exceptions import HistoryNotEnabledError
 from command_line_assistant.history.base import BaseHistoryPlugin
 from command_line_assistant.history.manager import HistoryManager
@@ -10,18 +11,27 @@ class MockHistoryPlugin(BaseHistoryPlugin):
     def __init__(self, config):
         super().__init__(config)
         self.read_called = False
+        self.read_from_chat_called = True
         self.write_called = False
         self.clear_called = False
+        self.clear_from_chat_called = True
 
     def read(self, user_id):
         self.read_called = True
         return []
+
+    def read_from_chat(self, user_id, from_chat):
+        self.read_from_chat_called = True
+        return HistoryModel
 
     def write(self, chat_id, user_id, query: str, response: str) -> None:
         self.write_called = True
 
     def clear(self, user_id) -> None:
         self.clear_called = True
+
+    def clear_from_chat(self, user_id, from_chat):
+        self._clear_from_chat_called = True
 
 
 @pytest.fixture

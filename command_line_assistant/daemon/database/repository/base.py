@@ -190,3 +190,22 @@ class BaseRepository:
 
         with self._manager.session() as session:
             session.execute(statement=statement)
+
+    def delete_by_chat_id(self, chat_id: Union[UUID, str]) -> None:
+        """Default method to remove entries from the database.
+
+        Note:
+            This method will actually call `update` internally to update the
+            `deleted_at` field in the table.
+
+        Arguments:
+            chat_id (Union[UUID, str]): The unique identifier to query in the database.
+        """
+        statement = (
+            update(self._model)
+            .values({"deleted_at": datetime.now()})
+            .where(self._model.chat_id == chat_id)
+        )
+
+        with self._manager.session() as session:
+            session.execute(statement=statement)

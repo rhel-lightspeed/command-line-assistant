@@ -1,12 +1,13 @@
-from datetime import datetime
 from unittest.mock import patch
 
 import pytest
 from dasbus.server.template import InterfaceTemplate
 
+from command_line_assistant.daemon.database.manager import DatabaseManager
+from command_line_assistant.daemon.database.repository.chat import ChatRepository
 from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
-from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
+from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
 
@@ -25,19 +26,36 @@ def history_interface(mock_context):
     return interface
 
 
-def test_history_interface_get_history(history_interface, mock_history_entry):
+@pytest.fixture(autouse=True)
+def _seed_test_database(universal_user_id, mock_config):
+    chat_repository = ChatRepository(DatabaseManager(mock_config))
+    chat_repository.insert(
+        {"user_id": universal_user_id, "name": "test", "description": "test"}
+    )
+
+
+@pytest.fixture
+def get_chat_id(mock_config):
+    chat_repository = ChatRepository(DatabaseManager(mock_config))
+    result = chat_repository.select_first()
+
+    return result[0].id
+
+
+def test_history_interface_get_history(
+    history_interface, mock_history_entry, universal_user_id, get_chat_id
+):
     """Test getting all history through history interface."""
     with patch(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
-        uid = "1710e580-dfce-11ef-a98f-52b437312584"
         manager.write(
-            uid,
-            uid,
+            get_chat_id,
+            universal_user_id,
             "test query",
             "test response",
         )
-        response = history_interface.GetHistory("1710e580-dfce-11ef-a98f-52b437312584")
+        response = history_interface.GetHistory(universal_user_id)
 
         reconstructed = HistoryList.from_structure(response)
         assert len(reconstructed.histories) == 1
@@ -55,18 +73,17 @@ def test_history_interface_get_history_exception(history_interface):
 
 
 def test_history_interface_get_first_conversation(
-    history_interface, mock_history_entry
+    history_interface, mock_history_entry, universal_user_id, get_chat_id
 ):
     """Test getting first conversation through history interface."""
 
     with patch(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
-        uid = "1710e580-dfce-11ef-a98f-52b437312584"
-        manager.write(uid, uid, "test query", "test response")
-        manager.write(uid, uid, "test query2", "test response2")
-        manager.write(uid, uid, "test query3", "test response3")
-        response = history_interface.GetFirstConversation(uid)
+        manager.write(get_chat_id, universal_user_id, "test query", "test response")
+        manager.write(get_chat_id, universal_user_id, "test query2", "test response2")
+        manager.write(get_chat_id, universal_user_id, "test query3", "test response3")
+        response = history_interface.GetFirstConversation(universal_user_id, "test")
 
         reconstructed = HistoryList.from_structure(response)
         assert len(reconstructed.histories) == 1
@@ -79,19 +96,20 @@ def test_history_interface_get_first_conversation_exception(history_interface):
     with pytest.raises(
         HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
-        history_interface.GetFirstConversation(uid)
+        history_interface.GetFirstConversation(uid, "test")
 
 
-def test_history_interface_get_last_conversation(history_interface, mock_history_entry):
+def test_history_interface_get_last_conversation(
+    history_interface, mock_history_entry, universal_user_id, get_chat_id
+):
     """Test getting first conversation through history interface."""
     with patch(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
-        uid = "1710e580-dfce-11ef-a98f-52b437312584"
-        manager.write(uid, uid, "test query", "test response")
-        manager.write(uid, uid, "test query2", "test response2")
-        manager.write(uid, uid, "test query3", "test response3")
-        response = history_interface.GetLastConversation(uid)
+        manager.write(get_chat_id, universal_user_id, "test query", "test response")
+        manager.write(get_chat_id, universal_user_id, "test query2", "test response2")
+        manager.write(get_chat_id, universal_user_id, "test query3", "test response3")
+        response = history_interface.GetLastConversation(universal_user_id, "test")
 
         reconstructed = HistoryList.from_structure(response)
         assert len(reconstructed.histories) == 1
@@ -104,20 +122,21 @@ def test_history_interface_get_last_conversation_exception(history_interface):
     with pytest.raises(
         HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
-        history_interface.GetLastConversation(uid)
+        history_interface.GetLastConversation(uid, "test")
 
 
 def test_history_interface_get_filtered_conversation(
-    history_interface, mock_history_entry
+    history_interface, mock_history_entry, universal_user_id, get_chat_id
 ):
     """Test getting filtered conversation through history interface."""
     with patch(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
-        uid = "1710e580-dfce-11ef-a98f-52b437312584"
-        manager.write(uid, uid, "test query", "test response")
-        manager.write(uid, uid, "not a query", "not a response")
-        response = history_interface.GetFilteredConversation(uid, filter="test")
+        manager.write(get_chat_id, universal_user_id, "test query", "test response")
+        manager.write(get_chat_id, universal_user_id, "not a query", "not a response")
+        response = history_interface.GetFilteredConversation(
+            universal_user_id, filter="test", from_chat="test"
+        )
 
         reconstructed = HistoryList.from_structure(response)
         assert len(reconstructed.histories) == 1
@@ -130,23 +149,25 @@ def test_history_interface_get_filtered_conversation_exception(history_interface
     with pytest.raises(
         HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
-        history_interface.GetFilteredConversation(uid, filter="test")
+        history_interface.GetFilteredConversation(uid, filter="test", from_chat="test")
 
 
 def test_history_interface_get_filtered_conversation_duplicate_entries_not_matching(
-    history_interface, mock_history_entry
+    history_interface, mock_history_entry, universal_user_id, get_chat_id
 ):
     """Test getting filtered conversation through duplicated history interface.
 
-    This test will have a duplicated entry, but not matching the "id". This should be enough to be considered a new entry
+    This test will have a duplicated entry, but not matching the "id". This
+    should be enough to be considered a new entry
     """
     with patch(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
-        uid = "1710e580-dfce-11ef-a98f-52b437312584"
-        manager.write(uid, uid, "test query", "test response")
-        manager.write(uid, uid, "test query", "test response")
-        response = history_interface.GetFilteredConversation(uid, filter="test")
+        manager.write(get_chat_id, universal_user_id, "test query", "test response")
+        manager.write(get_chat_id, universal_user_id, "test query", "test response")
+        response = history_interface.GetFilteredConversation(
+            universal_user_id, filter="test", from_chat="test"
+        )
 
         reconstructed = HistoryList.from_structure(response)
         assert len(reconstructed.histories) == 2
@@ -158,24 +179,24 @@ def test_history_interface_clear_history(history_interface, caplog):
     """Test clearing history through history interface."""
     with patch("command_line_assistant.dbus.interfaces.history.HistoryManager"):
         uid = "1710e580-dfce-11ef-a98f-52b437312584"
-        history_interface.ClearHistory(uid)
+        history_interface.ClearHistory(uid, from_chat="test")
         assert "Clearing history entries for user." in caplog.records[0].message
 
 
-def test_history_interface_empty_history(mock_history_entry, history_interface):
+def test_history_interface_empty_history(
+    mock_history_entry, history_interface, universal_user_id, get_chat_id
+):
     """Test handling empty history in all methods."""
     with patch(
         "command_line_assistant.history.manager.HistoryManager", mock_history_entry
     ) as manager:
-        uid = "1710e580-dfce-11ef-a98f-52b437312584"
-        manager.write(uid, uid, "test query", "test response")
+        manager.write(get_chat_id, universal_user_id, "test query", "test response")
         # Test all methods with empty history
         for method in [
-            history_interface.GetHistory,
             history_interface.GetFirstConversation,
             history_interface.GetLastConversation,
         ]:
-            response = method("1710e580-dfce-11ef-a98f-52b437312584")
+            response = method(universal_user_id, from_chat="test")
             reconstructed = HistoryList.from_structure(response)
             assert len(reconstructed.histories) == 1
 
@@ -188,35 +209,3 @@ def test_write_history(history_interface, caplog):
     assert (
         "Wrote a new entry to the user history for user." in caplog.records[-1].message
     )
-
-
-def test_history_filter_with_empty_keyword(history_interface, mock_config):
-    """Test filtering history with empty filter keyword"""
-    # Create a mock history entry directly without using a fixture
-    with patch(
-        "command_line_assistant.dbus.interfaces.history.HistoryManager"
-    ) as mock_manager:
-        # Create a mock HistoryList with one entry
-        mock_entry = HistoryEntry("test query", "test response", str(datetime.now()))
-
-        # Configure the mock manager to return our list for empty filter
-        mock_manager.return_value.read.return_value = [mock_entry]
-
-        # Replace the actual implementation
-        history_interface._history_manager = mock_manager.return_value
-
-        # Mock the filter function to return the same entry for empty filter
-        with patch(
-            "command_line_assistant.dbus.interfaces.history._filter_history_with_keyword"
-        ) as mock_filter:
-            mock_filter.return_value = [mock_entry]
-
-            # Call the method with empty filter
-            response = history_interface.GetFilteredConversation(
-                "test-user-id", filter=""
-            )
-
-            # Verify the result
-            filtered_history = HistoryList.from_structure(response)
-            assert len(filtered_history.histories) == 1
-            assert filtered_history.histories[0].question == "test query"

@@ -100,6 +100,24 @@ class HistoryManager:
         self._check_if_history_is_enabled()
         return self._instance.read(user_id)
 
+    def read_from_chat(self, user_id: str, from_chat: str) -> list[HistoryModel]:
+        """Read history entries using the current plugin.
+
+        Arguments:
+            user_id (str): The user's identifier
+
+        Raises:
+            RuntimeError: If no plugin is set
+
+        Returns:
+            Union[list, Sequence[Any]]: List of history entries
+        """
+        if not self._instance:
+            raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
+
+        self._check_if_history_is_enabled()
+        return self._instance.read_from_chat(user_id, from_chat)
+
     def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
         """Write a new history entry using the current plugin.
 
@@ -132,3 +150,18 @@ class HistoryManager:
 
         self._check_if_history_is_enabled()
         self._instance.clear(user_id)
+
+    def clear_from_chat(self, user_id: str, from_chat: str) -> None:
+        """Clear all history entries.
+
+        Arguments:
+            user_id (str): The user's identifier
+
+        Raises:
+            RuntimeError: If no plugin is set
+        """
+        if not self._instance:
+            raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
+
+        self._check_if_history_is_enabled()
+        self._instance.clear_from_chat(user_id, from_chat)

@@ -56,71 +56,86 @@ class HistoryInterface(InterfaceTemplate):
         if not history_entries:
             raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
 
-        history_entry = _parse_interactions(history_entries[0].interactions)
+        history_entry = _parse_interactions(history_entries)
         return history_entry.structure()
 
     # Add new methods with parameters
-    def GetFirstConversation(self, user_id: Str) -> Structure:
+    def GetFirstConversation(self, user_id: Str, from_chat: Str) -> Structure:
         """Get first conversation from history.
 
         Arguments:
             user_id (Str): The identifier of the user.
+            from_chat (Str): Chat name identifier
 
         Returns:
             Structure: A single history entry in a dbus structure format.
         """
-        logger.info("Getting the first history log for user '%s'", user_id)
-        history_entries = self._history_manager.read(user_id)
+        logger.info(
+            "Getting the first history log for user '%s' in chat '%s'",
+            user_id,
+            from_chat,
+        )
+        history_entries = self._history_manager.read_from_chat(user_id, from_chat)
 
         if not history_entries:
             raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
 
-        history_entry = _parse_interactions(history_entries[0].interactions[:1])
+        history_entries.interactions = history_entries.interactions[:1]  # type: ignore
+        history_entry = _parse_interactions([history_entries])  # type: ignore
         return history_entry.structure()
 
-    def GetLastConversation(self, user_id: Str) -> Structure:
+    def GetLastConversation(self, user_id: Str, from_chat: Str) -> Structure:
         """Get last conversation from history.
 
         Arguments:
             user_id (Str): The identifier of the user.
+            from_chat (Str): Chat name identifier
 
         Returns:
             Structure: A single history entyr in a dbus structure format.
         """
-        logger.info("Get the most recent history for user '%s'", user_id)
-        history_entries = self._history_manager.read(user_id)
+        logger.info(
+            "Get the most recent history for user '%s' in chat '%s'", user_id, from_chat
+        )
+        history_entries = self._history_manager.read_from_chat(user_id, from_chat)
 
         if not history_entries:
             raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
 
-        history_entry = _parse_interactions(history_entries[0].interactions[-1:])
+        history_entries.interactions = history_entries.interactions[-1:]  # type: ignore
+        history_entry = _parse_interactions([history_entries])  # type: ignore
         return history_entry.structure()
 
-    def GetFilteredConversation(self, user_id: Str, filter: Str) -> Structure:
+    def GetFilteredConversation(
+        self, user_id: Str, filter: Str, from_chat: Str
+    ) -> Structure:
         """Get last conversation from history.
 
         Arguments:
             user_id (Str): The identifier of the user.
             filter (str): The filter
+            from_chat (Str): Chat name identifier
 
         Returns:
             Structure: Structure of history entries.
         """
-        history_entries = self._history_manager.read(user_id)
+        history_entries = self._history_manager.read_from_chat(user_id, from_chat)
 
         if not history_entries:
             raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
 
         logger.info(
-            "Filtering the user history with keyword '%s' for user '%s'",
+            "Filtering the user history with keyword '%s' for user '%s' in chat '%s'",
             filter,
             user_id,
+            from_chat,
         )
-        filtered_entries = _filter_history_with_keyword(history_entries, filter)
-        history_entry = _parse_interactions(filtered_entries)
+        filtered_entries = _filter_history_with_keyword([history_entries], filter)  # type: ignore
+        history_entries.interactions = filtered_entries  # type: ignore
+        history_entry = _parse_interactions([history_entries])  # type: ignore
         return history_entry.structure()
 
-    def ClearHistory(self, user_id: Str) -> None:
+    def ClearAllHistory(self, user_id: Str) -> None:
         """Clear the user history.
 
         Arguments:
@@ -131,6 +146,18 @@ class HistoryInterface(InterfaceTemplate):
             extra={"audit": True, "user_id": user_id},
         )
         self._history_manager.clear(user_id)
+
+    def ClearHistory(self, user_id: Str, from_chat: Str) -> None:
+        """Clear the user history.
+
+        Arguments:
+            user_id (Str): The identifier of the user.
+        """
+        logger.info(
+            "Clearing history entries for user.",
+            extra={"audit": True, "user_id": user_id, "from_chat": from_chat},
+        )
+        self._history_manager.clear_from_chat(user_id, from_chat)
 
     def WriteHistory(
         self, chat_id: Str, user_id: Str, question: Str, response: Str
@@ -150,12 +177,11 @@ class HistoryInterface(InterfaceTemplate):
         )
 
 
-def _parse_interactions(interactions: list[InteractionModel]) -> HistoryList:
+def _parse_interactions(histories: list[HistoryModel]) -> HistoryList:
     """Parse the history interactions in a common format for all methods
 
     Arguments:
-        interactions (list[InteractionModel]): List of entries in a dictionary format
-        with only the necessary information.
+        histories (list[HistoryModel]): Histories fetched from the database.
 
     Returns:
         HistoryEntry: An instance of HistoryEntry with all necessary
@@ -172,9 +198,11 @@ def _parse_interactions(interactions: list[InteractionModel]) -> HistoryList:
         HistoryEntry(
             interaction.question,  # type: ignore
             interaction.response,  # type: ignore
+            history.chats.name,
             str(interaction.created_at),
         )
-        for interaction in interactions
+        for history in histories
+        for interaction in history.interactions
     ]
     return HistoryList(histories=history_entries)
 

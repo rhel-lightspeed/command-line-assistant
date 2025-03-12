@@ -32,6 +32,18 @@ class BaseHistoryPlugin(ABC):
         """
 
     @abstractmethod
+    def read_from_chat(self, user_id: str, from_chat: str) -> HistoryModel:
+        """Abstract method to represent a read operation from a specific chat
+
+        Arguments:
+            user_id (str): The user's identifier
+            from_chat (str): The chat name
+
+        Returns:
+            HistoryModel: Should return an instance of HistoryModel.
+        """
+
+    @abstractmethod
     def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
         """Abstract method to represent a write operation
 
@@ -48,4 +60,13 @@ class BaseHistoryPlugin(ABC):
 
         Arguments:
             user_id (str): The user's identifier
+        """
+
+    @abstractmethod
+    def clear_from_chat(self, user_id: str, from_chat: str) -> None:
+        """Abstract method to represent a clear from chat operation
+
+        Arguments:
+            user_id (str): The user's identifier
+            from_chat (str): The chat name
         """

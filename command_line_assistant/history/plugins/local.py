@@ -70,6 +70,27 @@ class LocalHistory(BaseHistoryPlugin):
             logger.error("Failed to read from database: %s", e)
             raise CorruptedHistoryError(f"Failed to read from database: {e}") from e
 
+    def read_from_chat(self, user_id: str, from_chat: str) -> HistoryModel:
+        """Reads the history from the database.
+
+        Arguments:
+            user_id (str): The user's identifier
+            from_chat (str): Chat name identifier
+
+        Returns:
+            HistoryModel: A single history entry
+
+        Raises:
+            CorruptedHistoryError: Raised when there's an error reading from the database.
+            MissingHistoryFileError: Raised when the database file is missing.
+        """
+        try:
+            chat_instance = self._chat_repository.select_by_name(user_id, from_chat)
+            return self._history_repository.select_by_chat_id(chat_instance[0].id)
+        except Exception as e:
+            logger.error("Failed to read from database: %s", e)
+            raise CorruptedHistoryError(f"Failed to read from database: {e}") from e
+
     def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
         """Write history to the database.
 
@@ -141,6 +162,26 @@ class LocalHistory(BaseHistoryPlugin):
         try:
             self._history_repository.delete_all(user_id)
             logger.info("Database cleared successfully")
+        except Exception as e:
+            logger.error("Failed to clear database: %s", e)
+            raise MissingHistoryFileError(f"Failed to clear database: {e}") from e
+
+    def clear_from_chat(self, user_id: str, from_chat: str) -> None:
+        """Clear the database by dropping and recreating tables.
+
+        Arguments:
+            user_id (str): The user's identifier
+            from_chat (str): Chat name identifier
+
+        Raises:
+            MissingHistoryFileError: Raised when the database file is missing.
+        """
+        try:
+            chat_instance = self._chat_repository.select_by_name(user_id, from_chat)
+            self._history_repository.delete_by_chat_id(chat_instance[0].id)
+            logger.info(
+                "Database cleared successfully for chat_id '%s'", chat_instance[0].id
+            )
         except Exception as e:
             logger.error("Failed to clear database: %s", e)
             raise MissingHistoryFileError(f"Failed to clear database: {e}") from e

@@ -11,16 +11,20 @@ def test_history_entry_init():
 
 
 @pytest.mark.parametrize(
-    ("question", "response", "created_at"),
+    ("question", "response", "chat_name", "created_at"),
     (
-        ("question", "response", ""),
-        ("", "response", "2025-01-31 09:10:22.991148"),
+        ("question", "response", "test", ""),
+        ("", "response", "test", "2025-01-31 09:10:22.991148"),
+        ("", "response", "", "2025-01-31 09:10:22.991148"),
+        ("", "", "", ""),
+        ("", "", "test", ""),
     ),
 )
-def test_history_entry_setter(question, response, created_at):
-    history = HistoryEntry(question, response, created_at)
+def test_history_entry_setter(question, response, chat_name, created_at):
+    history = HistoryEntry(question, response, chat_name, created_at)
     assert history.question == question
     assert history.response == response
+    assert history.chat_name == chat_name
     assert history.created_at == created_at
 
 
