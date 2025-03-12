@@ -105,12 +105,6 @@ RuntimeDirectory=command-line-assistant
 # Sets secure permissions on the runtime directory
 RuntimeDirectoryMode=0700
 
-# State directory configuration
-# Creates a dedicated state directory for this service
-StateDirectory=command-line-assistant
-
-# Sets secure permissions on the state directory
-StateDirectoryMode=0750
 
 # Additional security isolation
 # Uses a private user namespace for the service
