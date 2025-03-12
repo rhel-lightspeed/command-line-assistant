@@ -13,7 +13,9 @@ from command_line_assistant.utils.cli import (
     create_argument_parser,
     read_stdin,
 )
-from command_line_assistant.utils.renderers import create_error_renderer
+from command_line_assistant.utils.renderers import (
+    create_error_renderer,
+)
 
 
 def register_subcommands() -> ArgumentParser:
@@ -66,12 +68,8 @@ def initialize() -> int:
         error_renderer.render(str(e))
         return 1
     except DBusError as e:
-        logger.debug("Got exception from dbus: %s", e)
-        error_renderer.render(
-            f"Failed to communicate with CLAD through dbus. Reason: {str(e)}. Check the daemon logs with systemctl status clad"
-        )
+        error_renderer.render(str(e))
         return 1
-    except KeyboardInterrupt as e:
-        logger.debug("Got exception from keyboard handling: %s", str(e))
+    except KeyboardInterrupt:
         error_renderer.render("Uh, oh! Keyboard interrupt detected.")
         return 1

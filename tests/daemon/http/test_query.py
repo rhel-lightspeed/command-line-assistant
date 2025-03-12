@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 import responses
 
@@ -32,12 +34,11 @@ def test_handle_query(default_payload, mock_config):
 @responses.activate
 def test_handle_query_raising_status(mock_config, default_payload):
     responses.post(
-        url="http://localhost/infer",
-        status=404,
+        url="http://localhost/infer", status=404, json={"detail": "Not found"}
     )
     with pytest.raises(
         RequestFailedError,
-        match="There was a problem communicating with the server. Please, try again in a few minutes.",
+        match="Resource not found: The requested endpoint doesn't exist. Not found",
     ):
         query.submit(default_payload, config=mock_config)
 
@@ -73,3 +74,98 @@ def test_submit_empty_query(mock_config):
 
     result = query.submit(empty_payload, config=mock_config)
     assert result == ""
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    "status_code,detail,expected_error_message",
+    [
+        # 4xx Client Errors
+        (
+            HTTPStatus.BAD_REQUEST,
+            "Invalid request format",
+            "Bad request: The server couldn't understand the request. Invalid request format",
+        ),
+        (
+            HTTPStatus.UNAUTHORIZED,
+            "Invalid API key",
+            "Authentication failed: Please check your credentials. Invalid API key",
+        ),
+        (
+            HTTPStatus.PAYMENT_REQUIRED,
+            "Monthly token quota exceeded",
+            "Quota exceeded: You've reached your usage limit. Please upgrade your plan or try again later. Monthly token quota exceeded",
+        ),
+        (
+            HTTPStatus.FORBIDDEN,
+            "Access denied",
+            "Access forbidden: You don't have permission to access this resource. Access denied",
+        ),
+        (
+            HTTPStatus.NOT_FOUND,
+            "Endpoint not found",
+            "Resource not found: The requested endpoint doesn't exist. Endpoint not found",
+        ),
+        (
+            HTTPStatus.METHOD_NOT_ALLOWED,
+            "Method not allowed",
+            "Method not allowed: The request method is not supported for the requested resource. Method not allowed",
+        ),
+        (
+            HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+            "Proxy authentication required",
+            "Proxy authentication required: The request requires authentication with the proxy. Proxy authentication required",
+        ),
+        (
+            HTTPStatus.REQUEST_TIMEOUT,
+            "Request timed out",
+            "Request timeout: The server timed out waiting for the request. Request timed out",
+        ),
+        (
+            HTTPStatus.CONFLICT,
+            "Resource conflict",
+            "Conflict: The request conflicts with the current state of the server. Resource conflict",
+        ),
+        (
+            HTTPStatus.TOO_MANY_REQUESTS,
+            "Rate limit reached. Try again in 60 seconds.",
+            "Too many requests: Rate limit exceeded. Please try again later. Rate limit reached. Try again in 60 seconds.",
+        ),
+        # 5xx Server Errors
+        (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            "Backend service is experiencing issues",
+            "Server error: The backend service encountered an internal error. Please try again later. Backend service is experiencing issues",
+        ),
+        (
+            HTTPStatus.NOT_IMPLEMENTED,
+            "Feature not implemented",
+            "Not implemented: The server does not support the functionality required to fulfill the request. Feature not implemented",
+        ),
+    ],
+)
+def test_handle_error_responses(
+    mock_config, default_payload, status_code, detail, expected_error_message
+):
+    """Test handling various HTTP error codes from 4xx to 5xx"""
+    responses.post(
+        url="http://localhost/infer",
+        status=status_code,
+        json={"detail": detail},
+    )
+
+    with pytest.raises(RequestFailedError, match=expected_error_message):
+        query.submit(default_payload, config=mock_config)
+
+
+@responses.activate
+def test_extract_response_text_invalid_json(mock_config, default_payload):
+    """Test handling non-JSON responses"""
+    responses.post(
+        url="http://localhost/infer",
+        body="Not a JSON response",
+        content_type="text/plain",
+    )
+
+    result = query.submit(default_payload, config=mock_config)
+    assert result == "Not a JSON response"

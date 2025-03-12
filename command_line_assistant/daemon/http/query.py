@@ -1,9 +1,9 @@
 """Module to handle the query submission to the backend."""
 
-import json
 import logging
+from http import HTTPStatus
 
-from requests import RequestException
+from requests import RequestException, Response
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.http.session import get_session
@@ -11,34 +11,130 @@ from command_line_assistant.dbus.exceptions import RequestFailedError
 
 logger = logging.getLogger(__name__)
 
+#: Map status codes to error messages
+ERROR_MESSAGES: dict[int, str] = {
+    # 4xx status codes
+    HTTPStatus.BAD_REQUEST: "Bad request: The server couldn't understand the request. {detailed_message}",
+    HTTPStatus.UNAUTHORIZED: "Authentication failed: Please check your credentials. {detailed_message}",
+    HTTPStatus.PAYMENT_REQUIRED: "Quota exceeded: You've reached your usage limit. Please upgrade your plan or try again later. {detailed_message}",
+    HTTPStatus.FORBIDDEN: "Access forbidden: You don't have permission to access this resource. {detailed_message}",
+    HTTPStatus.NOT_FOUND: "Resource not found: The requested endpoint doesn't exist. {detailed_message}",
+    HTTPStatus.METHOD_NOT_ALLOWED: "Method not allowed: The request method is not supported for the requested resource. {detailed_message}",
+    HTTPStatus.PROXY_AUTHENTICATION_REQUIRED: "Proxy authentication required: The request requires authentication with the proxy. {detailed_message}",
+    HTTPStatus.CONFLICT: "Conflict: The request conflicts with the current state of the server. {detailed_message}",
+    HTTPStatus.GONE: "Gone: The requested resource is no longer available. {detailed_message}",
+    HTTPStatus.PRECONDITION_FAILED: "Precondition failed: The server does not meet one of the preconditions in the request. {detailed_message}",
+    HTTPStatus.REQUEST_ENTITY_TOO_LARGE: "Request entity too large: The request is larger than the server is willing to process. {detailed_message}",
+    HTTPStatus.REQUEST_URI_TOO_LONG: "Request URI too long: The URI provided was too long for the server to process. {detailed_message}",
+    HTTPStatus.UNSUPPORTED_MEDIA_TYPE: "Unsupported media type: The request content type is not supported. {detailed_message}",
+    HTTPStatus.REQUESTED_RANGE_NOT_SATISFIABLE: "Requested range not satisfiable: The requested range is not available. {detailed_message}",
+    HTTPStatus.EXPECTATION_FAILED: "Expectation failed: The server cannot meet the requirements of the Expect request-header field. {detailed_message}",
+    HTTPStatus.UNPROCESSABLE_ENTITY: "Unprocessable entity: The request was well-formed but semantically incorrect. {detailed_message}",
+    HTTPStatus.LOCKED: "Locked: The resource is locked. {detailed_message}",
+    HTTPStatus.FAILED_DEPENDENCY: "Failed dependency: The request failed due to failure of a previous request. {detailed_message}",
+    HTTPStatus.UPGRADE_REQUIRED: "Upgrade required: The client should switch to a different protocol. {detailed_message}",
+    HTTPStatus.PRECONDITION_REQUIRED: "Precondition required: The server requires the request to be conditional. {detailed_message}",
+    HTTPStatus.TOO_MANY_REQUESTS: "Too many requests: Rate limit exceeded. Please try again later. {detailed_message}",
+    HTTPStatus.REQUEST_HEADER_FIELDS_TOO_LARGE: "Request header fields too large: The header fields exceed the maximum size. {detailed_message}",
+    HTTPStatus.UNAVAILABLE_FOR_LEGAL_REASONS: "Unavailable for legal reasons: The requested resource is unavailable due to legal reasons. {detailed_message}",
+    HTTPStatus.REQUEST_TIMEOUT: "Request timeout: The server timed out waiting for the request. {detailed_message}",
+    # 5xx status codes
+    HTTPStatus.INTERNAL_SERVER_ERROR: "Server error: The backend service encountered an internal error. Please try again later. {detailed_message}",
+    HTTPStatus.NOT_IMPLEMENTED: "Not implemented: The server does not support the functionality required to fulfill the request. {detailed_message}",
+    HTTPStatus.BAD_GATEWAY: "Bad gateway: The backend server received an invalid response. Please try again later. {detailed_message}",
+    HTTPStatus.SERVICE_UNAVAILABLE: "Service unavailable: The backend service is temporarily unavailable. Please try again later. {detailed_message}",
+    HTTPStatus.GATEWAY_TIMEOUT: "Gateway timeout: The backend service took too long to respond. Please try again later. {detailed_message}",
+    HTTPStatus.HTTP_VERSION_NOT_SUPPORTED: "HTTP version not supported: The server does not support the HTTP protocol version used in the request. {detailed_message}",
+    HTTPStatus.VARIANT_ALSO_NEGOTIATES: "Variant also negotiates: The server has an internal configuration error. {detailed_message}",
+    HTTPStatus.INSUFFICIENT_STORAGE: "Insufficient storage: The server has insufficient storage to complete the request. {detailed_message}",
+    HTTPStatus.LOOP_DETECTED: "Loop detected: The server detected an infinite loop while processing the request. {detailed_message}",
+    HTTPStatus.NOT_EXTENDED: "Not extended: Further extensions to the request are required for the server to fulfill it. {detailed_message}",
+    HTTPStatus.NETWORK_AUTHENTICATION_REQUIRED: "Network authentication required: The client needs to authenticate to gain network access. {detailed_message}",
+}
+
 
 def submit(payload: dict, config: Config) -> str:
-    """Method to submit the query to the backend.
+    """Submit a query to the backend API.
 
-    Arguments:
-        payload (dict): User query config (Config): Instance of a config class
+    Args:
+        payload: JSON-serializable dictionary containing the query parameters
+        config: Configuration object with backend endpoint information
 
     Raises:
-        RequestFailedError: In case the request can't processed or there is an
-        internal error in the backend.
+        RequestFailedError: If the request fails due to network issues,
+                           authentication problems, or server errors
 
     Returns:
-        str: The response from the backend.
+        str: The response text from the backend
     """
     query_endpoint = f"{config.backend.endpoint}/infer"
 
     try:
-        with get_session(config) as session:
-            response = session.post(
-                query_endpoint, data=json.dumps(payload), timeout=30
-            )
-        logger.info("Got response from LLM backend")
-        response.raise_for_status()
-        data = response.json()
-        data = data.get("data", {})
-        return data.get("text", "")
-    except RequestException as e:
-        logger.error("Failed to get response from AI: %s", e)
+        response = _send_request(query_endpoint, payload, config)
+        logger.info("Received response from LLM backend")
+
+        if response.status_code != HTTPStatus.OK:
+            _handle_error_response(response)
+
+        return _extract_response_text(response)
+    except RequestException as exc:
+        logger.error("Failed to get response from AI: %s", exc)
         raise RequestFailedError(
-            "There was a problem communicating with the server. Please, try again in a few minutes."
-        ) from e
+            f"Communication error with the server: {str(exc)}. Please try again in a few minutes."
+        ) from exc
+
+
+def _send_request(endpoint: str, payload: dict, config: Config) -> Response:
+    """Send POST request to the backend.
+
+    Args:
+        endpoint: Full URL endpoint
+        payload: Request payload
+        config: Configuration with auth settings
+
+    Returns:
+        Response object
+    """
+    with get_session(config) as session:
+        return session.post(
+            endpoint,
+            json=payload,  # Uses json parameter instead of manually serializing
+            timeout=30,
+        )
+
+
+def _handle_error_response(response: Response) -> None:
+    """Check response for errors and raise appropriate exceptions.
+
+    Args:
+        response: Response object to check
+
+    Raises:
+        RequestFailedError: If response status code indicates an error
+    """
+    # Get the error message from the predefined map, or create a generic one
+    error_message = ERROR_MESSAGES.get(
+        response.status_code,
+        f"Unexpected error with status code {response.status_code}: {response.reason}",
+    )
+    error_message = error_message.format(detailed_message=response.json()["detail"])
+
+    logger.error("Status code: %s and message: %s", response.status_code, error_message)
+    raise RequestFailedError(error_message)
+
+
+def _extract_response_text(response: Response) -> str:
+    """Extract text from successful response.
+
+    Args:
+        response: Response object with JSON data
+
+    Returns:
+        Extracted text from response
+    """
+    try:
+        data = response.json()
+        return data.get("data", {}).get("text", "")
+    except ValueError:
+        logger.warning("Response didn't contain valid JSON")
+        return response.text or ""

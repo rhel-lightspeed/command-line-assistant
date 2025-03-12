@@ -176,4 +176,4 @@ def test_dbus_initialization_error(capsys):
         initialize()
 
     captured = capsys.readouterr()
-    assert "Failed to communicate with CLAD through dbus." in captured.err
+    assert "Name is not active" in captured.err
