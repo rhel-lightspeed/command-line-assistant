@@ -141,6 +141,7 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Str: The identifier of the chat session.
         """
+
         result = self._chat_repository.select_by_name(user_id, name)
 
         if not result:
@@ -171,7 +172,7 @@ class ChatInterface(InterfaceTemplate):
             {"user_id": user_id, "name": name, "description": description}
         )
         logger.info(
-            "New chat session created with for user.",
+            "New chat session created for user.",
             extra={"audit": True, "identifier": identifier, "chat_name": name},
         )
         return str(identifier[0])

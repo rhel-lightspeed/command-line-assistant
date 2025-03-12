@@ -47,9 +47,7 @@ class BaseRepository:
         Returns:
             Any: Information retrieved from the database
         """
-        statement = select(self._model).where(
-            self._model.deleted_at == None,  # noqa
-        )
+        statement = select(self._model).filter(self._model.deleted_at.is_(None))
 
         with self._manager.session() as session:
             return session.execute(statement=statement).scalars().all()
@@ -104,9 +102,7 @@ class BaseRepository:
         Returns:
             Any: The first information retrieved from the database
         """
-        statement = select(self._model).where(
-            self._model.deleted_at == None,  # noqa
-        )
+        statement = select(self._model).filter(self._model.deleted_at.is_(None))
 
         with self._manager.session() as session:
             return session.execute(statement=statement).first()
@@ -143,8 +139,9 @@ class BaseRepository:
         statement = (
             select(self._model)
             .where(
-                self._model.name == name and self._model.user_id == user_id,  # noqa
+                self._model.name == name,  # noqa
             )
+            .where(self._model.user_id == user_id)
             .filter(self._model.deleted_at.is_(None))
         )
 
