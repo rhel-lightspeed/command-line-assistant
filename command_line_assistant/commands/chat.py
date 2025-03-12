@@ -673,7 +673,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
     chat_arguments.add_argument(
         "--description",
         nargs="?",
-        help="Give a description to the chat session",
+        help="Give a description to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect.",
         default="Default Command Line Assistant Chat.",
     )
 
