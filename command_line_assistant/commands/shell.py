@@ -198,7 +198,7 @@ def register_subcommand(parser: SubParsersAction):
     interactive_mode.add_argument(
         "--enable-interactive",
         action="store_true",
-        help="Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.",
+        help="Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, you can hit Ctrl + G in your terminal to enable interactive mode.",
     )
     interactive_mode.add_argument(
         "--disable-interactive",

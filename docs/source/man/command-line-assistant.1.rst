@@ -134,7 +134,7 @@ Examples
         # After enabling the interactive, restart your terminal or run
         $ source ~/.bashrc
 
-        # After the interactive was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
+        # After the interactive was sourced, you can hit Ctrl + G in your terminal to enable interactive mode.
 
     If you wish to disable the interactive, it can be done with::
 

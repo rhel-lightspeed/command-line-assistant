@@ -33,6 +33,6 @@ __c_interactive() {
     cleanup
 }
 
-# Bind Ctrl+J to the interactive function
-bind -x '"\C-j": __c_interactive'
+# Bind Ctrl+g to the interactive function
+bind -x '"\C-g": __c_interactive'
 """
