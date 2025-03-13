@@ -1,6 +1,7 @@
 """Plugin for handling local history managemnet."""
 
 import logging
+from typing import Optional
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.manager import DatabaseManager
@@ -70,7 +71,7 @@ class LocalHistory(BaseHistoryPlugin):
             logger.error("Failed to read from database: %s", e)
             raise CorruptedHistoryError(f"Failed to read from database: {e}") from e
 
-    def read_from_chat(self, user_id: str, from_chat: str) -> HistoryModel:
+    def read_from_chat(self, user_id: str, from_chat: str) -> Optional[HistoryModel]:
         """Reads the history from the database.
 
         Arguments:
@@ -78,7 +79,7 @@ class LocalHistory(BaseHistoryPlugin):
             from_chat (str): Chat name identifier
 
         Returns:
-            HistoryModel: A single history entry
+            Optional[HistoryModel]: An optional single history entry
 
         Raises:
             CorruptedHistoryError: Raised when there's an error reading from the database.
@@ -86,6 +87,8 @@ class LocalHistory(BaseHistoryPlugin):
         """
         try:
             chat_instance = self._chat_repository.select_by_name(user_id, from_chat)
+            if not chat_instance:
+                return
             return self._history_repository.select_by_chat_id(chat_instance[0].id)
         except Exception as e:
             logger.error("Failed to read from database: %s", e)
@@ -178,6 +181,9 @@ class LocalHistory(BaseHistoryPlugin):
         """
         try:
             chat_instance = self._chat_repository.select_by_name(user_id, from_chat)
+            if not chat_instance:
+                return
+
             self._history_repository.delete_by_chat_id(chat_instance[0].id)
             logger.info(
                 "Database cleared successfully for chat_id '%s'", chat_instance[0].id

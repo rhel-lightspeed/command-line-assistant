@@ -91,7 +91,9 @@ def test_history_interface_get_first_conversation(
         assert reconstructed.histories[0].response == "test response"
 
 
-def test_history_interface_get_first_conversation_exception(history_interface):
+def test_history_interface_get_first_conversation_exception(
+    history_interface, _seed_test_database
+):
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
     with pytest.raises(
         HistoryNotAvailableError, match="Unfortunately, no history was found."

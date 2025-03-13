@@ -100,7 +100,7 @@ class HistoryManager:
         self._check_if_history_is_enabled()
         return self._instance.read(user_id)
 
-    def read_from_chat(self, user_id: str, from_chat: str) -> list[HistoryModel]:
+    def read_from_chat(self, user_id: str, from_chat: str) -> Optional[HistoryModel]:
         """Read history entries using the current plugin.
 
         Arguments:
@@ -110,7 +110,7 @@ class HistoryManager:
             RuntimeError: If no plugin is set
 
         Returns:
-            Union[list, Sequence[Any]]: List of history entries
+            Optional[HistoryModel]: An optional single history entry
         """
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)

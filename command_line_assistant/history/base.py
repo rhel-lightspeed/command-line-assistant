@@ -2,6 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.models.history import HistoryModel
@@ -32,7 +33,7 @@ class BaseHistoryPlugin(ABC):
         """
 
     @abstractmethod
-    def read_from_chat(self, user_id: str, from_chat: str) -> HistoryModel:
+    def read_from_chat(self, user_id: str, from_chat: str) -> Optional[HistoryModel]:
         """Abstract method to represent a read operation from a specific chat
 
         Arguments:
@@ -40,7 +41,7 @@ class BaseHistoryPlugin(ABC):
             from_chat (str): The chat name
 
         Returns:
-            HistoryModel: Should return an instance of HistoryModel.
+            Optional[HistoryModel]: An optional single history entry
         """
 
     @abstractmethod
