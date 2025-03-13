@@ -89,6 +89,34 @@ def test_chat_command_run_single_question(
     assert expected_output in captured.out
 
 
+@pytest.mark.parametrize(
+    (
+        "query_string",
+        "stdin",
+        "expected",
+    ),
+    (
+        ("h", "", "You query needs to have two or more characters."),
+        ("", "h", "You query needs to have two or more characters."),
+        ("h", "h", "You query needs to have two or more characters."),
+    ),
+)
+def test_chat_command_run_minimum_characters(
+    query_string,
+    stdin,
+    expected,
+    capsys,
+    default_namespace,
+):
+    default_namespace.query_string = query_string
+    default_namespace.stdin = stdin
+    command = ChatCommand(default_namespace)
+    assert command.run() == 1
+
+    captured = capsys.readouterr()
+    assert expected in captured.err.strip()
+
+
 def test_register_subcommand():
     """Test register_subcommand function"""
     parser = ArgumentParser()

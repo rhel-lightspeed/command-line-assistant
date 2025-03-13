@@ -589,6 +589,16 @@ class ChatCommand(BaseCLICommand):
         error_renderer = create_error_renderer()
         operation_factory = ChatOperationFactory()
         try:
+            if (self._args.query_string and len(self._args.query_string) <= 1) or (
+                self._args.stdin and len(self._args.stdin) <= 1
+            ):
+                logger.debug(
+                    "Either query or stdin had length 1. We require that they have at least 2 or more characters."
+                )
+                raise ChatCommandException(
+                    "You query needs to have two or more characters."
+                )
+
             operation = operation_factory.create_operation(
                 self._args,
                 self._context,
@@ -620,7 +630,10 @@ def register_subcommand(parser: SubParsersAction) -> None:
     question_group = chat_parser.add_argument_group("Question Options")
     # Positional argument, required only if no optional arguments are provided
     question_group.add_argument(
-        "query_string", nargs="?", help="The question that will be sent to the LLM"
+        "query_string",
+        nargs="?",
+        help="The question that will be sent to the LLM",
+        default="",
     )
     question_group.add_argument(
         "-a",
