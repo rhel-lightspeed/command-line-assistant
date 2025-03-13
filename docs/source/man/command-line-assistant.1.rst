@@ -28,70 +28,72 @@ incorporate information from resources such as the RHEL documentation.
 Examples
 --------
 
-Example 1. Asking a simple question
+* **Interacting and asking questions through `c`**
 
-    Asking questions with `c` is relatively simple. One can start using the
-    program by simply doing::
+    * **Asking a simple question**
 
-        $ c "What is RHEL?"
+        Asking questions with `c` is relatively simple. One can start using the
+        program by simply doing::
 
-    Alternatively, you can strictly specify that you want a query with::
+            $ c "What is RHEL?"
 
-        $ c chat "What is RHEL?"
+        Alternatively, you can strictly specify that you want a query with::
 
-    In case a `query` is not placed, the program will assume that anything that
-    comes after is a potential query. That includes the options for `chat`
-    as well.
+            $ c chat "What is RHEL?"
 
-    Alternatively, you can also use `--interactive` to start an interactive session::
+        In case a `query` is not placed, the program will assume that anything that
+        comes after is a potential query. That includes the options for `chat`
+        as well.
 
-        $ c --interactive
+        Alternatively, you can also use `--interactive` to start an interactive session::
 
-Example 2. Redirecting output to `c`
+            $ c --interactive
 
-    If you have any program in your system that is erroring out, or a log file
-    that contain something that you want to understand, you can redirect that
-    output to `c` and ask the tool to give you an answer on how to solve it::
+    * **Redirecting output to `c`**
 
-        $ cat log_with_error.log | c
+        If you have any program in your system that is erroring out, or a log file
+        that contain something that you want to understand, you can redirect that
+        output to `c` and ask the tool to give you an answer on how to solve it::
 
-    If you want to redirect directly from a command, that is also possible
-    with::
+            $ cat log_with_error.log | c
 
-        $ my-command | c
+        If you want to redirect directly from a command, that is also possible
+        with::
 
-    Sometimes, only providing the error output might not be enough. For that, you
-    can combine your redirect output with a question like this::
+            $ my-command | c
 
-        $ cat log_with_error.log | c "how do I solve this?"
+        Sometimes, only providing the error output might not be enough. For that, you
+        can combine your redirect output with a question like this::
 
-Example 3. Attaching a file with your question
+            $ cat log_with_error.log | c "how do I solve this?"
 
-    Alternatively to redirecting the output, you can attach a file to `c` with
-    the following::
+    * **Attaching a file with your question**
 
-        $ c --attachment log_with_error.log
+        Alternatively to redirecting the output, you can attach a file to `c` with
+        the following::
 
-    Optionally, you can use the short version::
+            $ c --attachment log_with_error.log
 
-        $ c -a log_with_error.log
+        Optionally, you can use the short version::
 
-    You can also combine the attachment with a question::
+            $ c -a log_with_error.log
 
-        $ c -a log_with_error.log "how do I solve this?"
+        You can also combine the attachment with a question::
 
-    And lastly, you can use redirect output as well::
+            $ c -a log_with_error.log "how do I solve this?"
 
-        echo "how do I solve this?" | c -a log_with_error.log
+        And lastly, you can use redirect output as well::
 
-    However, if you specify a redirect output and a query at the same time that you have
-    an attachment, only the attachment plus the query will be used. The
-    redirect output will be ignored::
+            echo "how do I solve this?" | c -a log_with_error.log
 
-        # The redirection output here will be ignored, as the query has precedence over redirection in this scenario.
-        echo "how do I solve this?" | c -a log_with_error.log "please?"
+        However, if you specify a redirect output and a query at the same time that you have
+        an attachment, only the attachment plus the query will be used. The
+        redirect output will be ignored::
 
-Example 4. History management
+            # The redirection output here will be ignored, as the query has precedence over redirection in this scenario.
+            echo "how do I solve this?" | c -a log_with_error.log "please?"
+
+* **History management**
 
     With Command Line Assistant, you can also check your conversation history. For that, use the following command to retrieve all user
     history::
@@ -114,7 +116,7 @@ Example 4. History management
 
         $ c history --clear
 
-Example 5. Shell integrations
+* **Shell integrations**
 
     With Command Line Assistant, you can also enable shell integrations to help
     in your experience::

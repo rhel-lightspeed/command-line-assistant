@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "CLAD" "8" "Mar 07, 2025" "0.1.0" "Command Line Assistant"
+.TH "CLAD" "8" "Mar 13, 2025" "0.3.0" "Command Line Assistant"
 .SH NAME
 clad \- Command Line Assistant Daemon
 .SH SYNOPSIS
@@ -59,6 +59,171 @@ $ systemctl status clad
 Command Line Assistant Daemon (clad) is the core of the Command Line Assistant
 tooling. It manages the communication with WatsonX API through an external
 backend, user history management and much more.
+.SH EXAMPLES
+.INDENT 0.0
+.IP \(bu 2
+\fBSetting a proxy configuration\fP
+.INDENT 2.0
+.INDENT 3.5
+\fBclad\fP supports proxy configuration via config file or via environment
+variables. To update them through the configuration file, one must change
+the following block:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# Backend settings for communicating with the external API.
+[backend]
+\&...
+# proxies = { http = \(dqhttp://example\-host:8002\(dq, https = \(dqhttps://example\-host:8002\(dq }
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+First, uncomment the \fBproxies\fP key and then you can define your \fBhttp\fP or
+\fBhttp(s)\fP proxy host as following:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+[backend]
+\&...
+# For a http proxy host
+proxies = { http = \(dqhttp://my\-super\-proxy\-host:1234\(dq}
+
+[backend]
+\&...
+# For a http proxy host
+proxies = { https = \(dqhttps://my\-super\-https\-proxy\-host:1234\(dq}
+.EE
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+\fBDatabase management\fP
+.INDENT 2.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fBChanging databases in the config file\fP
+.INDENT 2.0
+.INDENT 3.5
+By default, \fBclad\fP will use an uncrypted sqlite database to hold
+history and some other informations. If you want to change this
+default, you can simply comment the sqlite configuration and add either
+\fBpostgres\fP or \fBmysql\fP/ \fBmariadb\fP configs instead, like this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# History Database settings. By default, sqlite is used.
+[database]
+# type = \(dqsqlite\(dq
+# connection_string = \(dq/var/lib/command\-line\-assistant/history.db\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+To add a \fBpostgres\fP database config, add the following keys under the
+\fB[database]\fP field and configure to use the correct host, username and
+password:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# type = \(dqpostgresql\(dq
+# host = \(dqlocalhost\(dq
+# port = \(dq5432\(dq
+# username = \(dqyour\-user\(dq
+# password = \(dqyour\-password\(dq
+# database = \(dqhistory\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+In case you prefer \fBmysql\fP or \fBmariadb\fP, please use the following:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# type = \(dqmysql\(dq
+# host = \(dqlocalhost\(dq
+# port = \(dq3306\(dq
+# username = \(dqyour\-user\(dq
+# password = \(dqyour\-password\(dq
+# database = \(dqhistory\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+After changing the database type, restart \fBclad\fP unit to apply the changes:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+systemctl restart clad
+.EE
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+\fBAdding new secrets for database management\fP
+.INDENT 2.0
+.INDENT 3.5
+This setting will only work for \fBpostgres\fP and \fBmysql\fP databases for
+now. This is a more secure option as we use systemd to store the
+credentials for the database using \fBsystemd\-creds\fP\&. How it works is
+very simple, first, remove the \fBusername\fP and \fBpassword\fP from the
+configuration file, like this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+[database]
+type = \(dqpostgresql\(dq
+host = \(dqlocalhost\(dq
+port = \(dq5432\(dq
+database = \(dqhistory\(dq
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+After that, you can use the below \fBsystemd\-ask\-password\fP commands to
+generate encrypted credentials for your username/password:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# Generate an encrypted username
+systemd\-ask\-password \-n | ( echo \(dq[Service]\(dq && systemd\-creds encrypt \-\-name=database\-username \-p \- \- ) >/etc/systemd/system/clad.service.d/50\-username.conf
+
+# Generate an encrypted password
+systemd\-ask\-password \-n | ( echo \(dq[Service]\(dq && systemd\-creds encrypt \-\-name=database\-password \-p \- \- ) >/etc/systemd/system/clad.service.d/50\-password.conf
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+After changing the database type, restart \fBclad\fP unit to apply the changes:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+systemctl restart clad
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+> WARNING: \fBclad\fP needs the name to follow the above schema of
+\fBdatabase\-username\fP and \fBdatabase\-password\fP, otherwise, it won\(aqt load
+up the credentials properly.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
 .SH FILES
 .INDENT 0.0
 .TP
@@ -81,7 +246,7 @@ Service to enable dbus activation from history endpoint
 Systemd service file for clad
 .TP
 .B \fI/etc/systemd/system/clad.service.d/\fP
-Systemd unit override for clad
+Folder to override systemd unit configurations for clad. Mainly used for adding database secrets.
 .UNINDENT
 .SH REFERENCE
 .INDENT 0.0

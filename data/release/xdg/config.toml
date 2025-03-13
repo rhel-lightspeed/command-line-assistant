@@ -12,18 +12,18 @@ connection_string = "/var/lib/command-line-assistant/history.db"
 # type = "postgresql"
 # host = "localhost"
 # port = "5432"
-# database = "history"
 # username = "your-user"
 # password = "your-password"
+# database = "history"
 
 # Or, to use mysql, uncomment the following:
 # [database]
 # type = "mysql"
 # host = "localhost"
 # port = "3306"
-# database = "history"
 # username = "your-user"
 # password = "your-password"
+# database = "history"
 
 # History management configuration
 [history]
@@ -37,8 +37,8 @@ enabled = true
 # The endpoint points to an API server.
 endpoint = "https://cert.console.redhat.com/api/lightspeed/v1"
 # Define https proxy to route the request through it.
-# It accepts `username:password@localhost:8002`, for example.
-# proxies = { https = "https://localhost:8002" }
+# proxies = { http = "http://example-host:8002", https = "https://example-host:8002" }
+# The proxy also accepts `username:password@localhost:8002` as it's input
 
 # Configure authentication settings for backend
 [backend.auth]

@@ -99,9 +99,7 @@ def register_subcommand(parser: SubParsersAction):
         "Submit feedback about Command Line Assistant responses and interactions.",
     )
 
-    submit_group = feedback_parser.add_argument_group("Submit Options")
-
-    submit_group.add_argument(
+    feedback_parser.add_argument(
         "--submit",
         action="store_true",
         default=True,
