@@ -538,9 +538,45 @@ class InteractiveChatOperation(BaseChatOperation):
 class SingleQuestionOperation(BaseChatOperation):
     """Class that holds the single question ask operation"""
 
+    def _validate_query(self):
+        """Helper function to validate query.
+
+        Raises:
+            ChatCommandException: In case the query has invalid sizing (less than 1 character).
+        """
+        # If both are empty, raise exception
+        if not self.args.query_string and not self.args.stdin:
+            logger.debug("Both query_string and stdin are empty.")
+            raise ChatCommandException(
+                "Your query needs to have at least 2 characters. Either query or stdin are empty."
+            )
+
+        # If query_string has content but is too short
+        if self.args.query_string and len(self.args.query_string.strip()) <= 1:
+            logger.debug(
+                "Query string has only 1 or 0 characters after stripping: '%s'",
+                self.args.query_string,
+            )
+            raise ChatCommandException(
+                "Your query needs to have at least 2 characters."
+            )
+
+        # If stdin has content but is too short
+        if self.args.stdin and len(self.args.stdin.strip()) <= 1:
+            logger.debug(
+                "Stdin has only 1 or 0 characters after stripping: '%s'",
+                self.args.stdin,
+            )
+            raise ChatCommandException(
+                "Your stdin input needs to have at least 2 characters."
+            )
+
     @timing.timeit
     def execute(self) -> None:
         """Default method to execute the operation"""
+
+        self._validate_query()
+
         try:
             last_terminal_output = ""
             if self.args.with_output:
@@ -589,16 +625,6 @@ class ChatCommand(BaseCLICommand):
         error_renderer = create_error_renderer()
         operation_factory = ChatOperationFactory()
         try:
-            if (self._args.query_string and len(self._args.query_string) <= 1) or (
-                self._args.stdin and len(self._args.stdin) <= 1
-            ):
-                logger.debug(
-                    "Either query or stdin had length 1. We require that they have at least 2 or more characters."
-                )
-                raise ChatCommandException(
-                    "You query needs to have two or more characters."
-                )
-
             operation = operation_factory.create_operation(
                 self._args,
                 self._context,
