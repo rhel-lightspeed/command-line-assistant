@@ -539,7 +539,7 @@ class SingleQuestionOperation(BaseChatOperation):
     """Class that holds the single question ask operation"""
 
     def _validate_query(self):
-        """Helper function to validate query size.
+        """Helper function to validate query.
 
         Raises:
             ChatCommandException: In case the query has invalid sizing (less than 1 character).
