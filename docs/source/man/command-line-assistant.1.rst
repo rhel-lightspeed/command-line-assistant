@@ -13,7 +13,7 @@ Command Line Assistant
 Description
 -----------
 
-The Command Line Assistant powered by RHEL Lightspeed is an optional generative
+The command line assistant powered by RHEL Lightspeed is an optional generative
 AI assistant available within the RHEL command line interface. The Command Line
 Assistant can help with several tasks such as::
 
@@ -22,7 +22,7 @@ Assistant can help with several tasks such as::
     *. Assisting with understanding log entries
     *. And many other tasks.
 
-The Command Line Assistant provides a natural language interface, and can
+The command line assistant provides a natural language interface, and can
 incorporate information from resources such as the RHEL documentation.
 
 Examples
@@ -95,7 +95,7 @@ Examples
 
 * **History management**
 
-    With Command Line Assistant, you can also check your conversation history. For that, use the following command to retrieve all user
+    With command line assistant, you can also check your conversation history. For that, use the following command to retrieve all user
     history::
 
         $ c history --all
@@ -118,7 +118,7 @@ Examples
 
 * **Shell integrations**
 
-    With Command Line Assistant, you can also enable shell integrations to help
+    With command line assistant, you can also enable shell integrations to help
     in your experience::
 
         $ c shell --enable-interactive
@@ -176,7 +176,7 @@ Files
 Reference
 ---------
 
-1. Command Line Assistant source code: <https://github.com/rhel-lightspeed/command-line-assistant>
+1. Command line assistant source code: <https://github.com/rhel-lightspeed/command-line-assistant>
 
 Bugs
 ----

@@ -7,12 +7,11 @@ Command Line Assistant Daemon
 Synopsis
 --------
 
-In order to run Command Line Assistant Daemon (clad), one need to first enable
-the systemd service with the following::
+The command line assistant daemon (clad), is a dbus activated daemon, meaning
+that, any interaction with it will activate the service when it receive a
+message in the expected channels, like this::
 
-    $ systemctl enable clad
-
-All queries submitted through ``c`` will automatically activate the service.
+    $ c "what is selinux?"
 
 To check status and logs, run the following::
 
@@ -21,9 +20,9 @@ To check status and logs, run the following::
 Description
 -----------
 
-Command Line Assistant Daemon (clad) is the core of the Command Line Assistant
-tooling. It manages the communication with WatsonX API through an external
-backend, user history management and much more.
+Command line assistant daemon (clad) is the core of the command line assistant
+tooling. It manages the communication with Red Hat RHEL Lightspeed service,
+user history management and much more.
 
 Examples
 --------
