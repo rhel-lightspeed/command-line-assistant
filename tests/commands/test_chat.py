@@ -96,9 +96,14 @@ def test_chat_command_run_single_question(
         "expected",
     ),
     (
-        ("h", "", "You query needs to have two or more characters."),
-        ("", "h", "You query needs to have two or more characters."),
-        ("h", "h", "You query needs to have two or more characters."),
+        (
+            "",
+            "",
+            "Your query needs to have at least 2 characters. Either query or stdin are\nempty.",
+        ),
+        ("h", "", "Your query needs to have at least 2 characters."),
+        ("", "h", "Your stdin input needs to have at least 2 characters."),
+        ("h", "h", "Your query needs to have at least 2 characters."),
     ),
 )
 def test_chat_command_run_minimum_characters(
@@ -447,6 +452,7 @@ def test_display_response(default_kwargs, capsys):
 def test_single_question_operation_with_exception(
     monkeypatch, default_kwargs, default_namespace
 ):
+    default_namespace.query_string = "test"
     default_kwargs["args"] = default_namespace
     monkeypatch.setattr(
         chat, "_read_last_terminal_output", mock.Mock(side_effect=ValueError("test"))
