@@ -12,7 +12,8 @@
 	manpages \
 	docs \
 	distribution-tarball \
-	html-docs
+	html-docs \
+	release
 
 # Project directory path - /home/<user>/.../command-line-assistant
 PROJECT_DIR := $(shell pwd)
@@ -32,7 +33,7 @@ SYSTEMD_USER_UNITS := ~/.config/systemd/user
 XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
 
 PKGNAME := command-line-assistant
-VERSION := 0.2.2
+VERSION := 0.3.0
 
 default: help
 
@@ -137,3 +138,22 @@ distribution-tarball: clean ## Generate distribution tarball
 		--exclude=.roproject \
 		--transform s/^\./$(PKGNAME)-$(VERSION)/ \
 		. && mv /tmp/$(PKGNAME)-$(VERSION).tar.gz .
+
+release: ## Interactively bump the version (major, minor, or patch)
+	@echo "Current version: $(VERSION)"
+	@echo "Select version to bump:"
+	@echo "  1) Major ($(shell echo $(VERSION) | awk -F. '{print $$1+1".0.0"}'))"
+	@echo "  2) Minor ($(shell echo $(VERSION) | awk -F. '{print $$1"."($$2+1)".0"}'))"
+	@echo "  3) Patch ($(shell echo $(VERSION) | awk -F. '{print $$1"."$$2"."($$3+1)}'))"
+	@echo "  4) Custom version"
+	@echo -n "Enter choice [1-4]: "
+	@read choice; \
+	case $$choice in \
+		1) new_version=$$(echo $(VERSION) | awk -F. '{print $$1+1".0.0"}');; \
+		2) new_version=$$(echo $(VERSION) | awk -F. '{print $$1"."($$2+1)".0"}');; \
+		3) new_version=$$(echo $(VERSION) | awk -F. '{print $$1"."$$2"."($$3+1)}');; \
+		4) echo -n "Enter custom version (X.Y.Z format): "; read new_version;; \
+		*) echo "Invalid choice"; exit 1;; \
+	esac; \
+	echo "Bumping version to $$new_version"; \
+	python scripts/prepare_release.py $$new_version

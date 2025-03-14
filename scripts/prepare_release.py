@@ -20,7 +20,24 @@ VERSION_FILES = {
     "spec": PROJECT_ROOT / "packaging" / "command-line-assistant.spec",
     "pyproject": PROJECT_ROOT / "pyproject.toml",
     "docs": PROJECT_ROOT / "docs" / "source" / "conf.py",
+    "makefile": PROJECT_ROOT / "Makefile",
 }
+
+
+def update_makefile_version(new_version: str) -> None:
+    """Update version in Makefile.
+
+    Arguments:
+        new_version (str): New version to set
+    """
+    with VERSION_FILES["makefile"].open("r") as f:
+        content = f.read()
+
+    updated = re.sub(r"VERSION := [\d.]+", f"VERSION := {new_version}", content)
+
+    with VERSION_FILES["makefile"].open("w") as f:
+        f.write(updated)
+
 
 def is_in_virtualenv() -> bool:
     """Check if running inside a virtual environment.
@@ -280,6 +297,9 @@ def main() -> int:
 
         update_docs_version(args.version)
         print("✓ Updated conf.py")
+
+        update_makefile_version(args.version)
+        print("✓ Updated Makefile")
 
         run_make_man()
         print("✓ Successfully updated man pages")
