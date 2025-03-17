@@ -274,6 +274,8 @@ class BaseChatOperation(BaseOperation):
             history_proxy,
             user_proxy,
         )
+        # Call this for everything to validate that we can use the bus name.
+        self.chat_proxy.IsAllowed()
         self.spinner_renderer: SpinnerRenderer = create_spinner_renderer(
             message="Asking RHEL Lightspeed",
         )

@@ -121,6 +121,8 @@ class BaseHistoryOperation(BaseOperation):
             history_proxy,
             user_proxy,
         )
+        # Call this for everything to validate that we can use the bus name.
+        self.history_proxy.IsAllowed()
         # Add markdown renderer as a standard renderer
         self.markdown_renderer = create_markdown_renderer()
 
