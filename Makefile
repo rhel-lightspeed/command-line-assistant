@@ -33,7 +33,7 @@ SYSTEMD_USER_UNITS := ~/.config/systemd/user
 XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
 
 PKGNAME := command-line-assistant
-VERSION := 0.3.0
+VERSION := 0.3.1
 
 default: help
 

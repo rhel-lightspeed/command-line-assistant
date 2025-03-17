@@ -10,7 +10,7 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.3.0
+Version:        0.3.1
 Release:        1%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
@@ -170,6 +170,21 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Tue Mar 18 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.3.1
+- Add exception handling for RuntimeError
+- Disallow empty query arguments for query_string and stdin
+- Simpify cert loading
+- Fix dbus permissions for clad
+- Prevent one character input from query_string and stdin
+- Improve CLAD systemd unit security
+- Add explanation for --description in chat command
+- Add a --from-chat switch to history to filter out conversation
+- Specify pymysql in the mysql connection string
+- Fix incorrect key on database schema
+- Add cla binary and a symlink for c
+- Fix inconsistency in reading the terminal output
+- Fix typos in legal and feedback message
+
 * Mon Mar 03 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.3.0
 - Update markdown text from "Suggestion" to "Snippet"
 - Add small feedback command

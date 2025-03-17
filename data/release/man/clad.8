@@ -27,23 +27,22 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "CLAD" "8" "Mar 13, 2025" "0.3.0" "Command Line Assistant"
+.TH "CLAD" "8" "Mar 18, 2025" "0.3.1" "Command Line Assistant"
 .SH NAME
 clad \- Command Line Assistant Daemon
 .SH SYNOPSIS
 .sp
-In order to run Command Line Assistant Daemon (clad), one need to first enable
-the systemd service with the following:
+The command line assistant daemon (clad), is a dbus activated daemon, meaning
+that, any interaction with it will activate the service when it receive a
+message in the expected channels, like this:
 .INDENT 0.0
 .INDENT 3.5
 .sp
 .EX
-$ systemctl enable clad
+$ c \(dqwhat is selinux?\(dq
 .EE
 .UNINDENT
 .UNINDENT
-.sp
-All queries submitted through \fBc\fP will automatically activate the service.
 .sp
 To check status and logs, run the following:
 .INDENT 0.0
@@ -56,9 +55,9 @@ $ systemctl status clad
 .UNINDENT
 .SH DESCRIPTION
 .sp
-Command Line Assistant Daemon (clad) is the core of the Command Line Assistant
-tooling. It manages the communication with WatsonX API through an external
-backend, user history management and much more.
+Command line assistant daemon (clad) is the core of the command line assistant
+tooling. It manages the communication with Red Hat RHEL Lightspeed service,
+user history management and much more.
 .SH EXAMPLES
 .INDENT 0.0
 .IP \(bu 2

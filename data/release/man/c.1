@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Mar 13, 2025" "0.3.0" "Command Line Assistant"
+.TH "C" "1" "Mar 18, 2025" "0.3.1" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -71,7 +71,7 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELE
 .SS c chat Question Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
+\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fB\fP)
 .IP \(bu 2
 \fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
 .IP \(bu 2
@@ -170,13 +170,13 @@ c shell [\-h] [\-\-enable\-capture] [\-\-enable\-interactive] [\-\-disable\-inte
 .SS c shell Interactive Mode Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
+\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, you can hit Ctrl + G in your terminal to enable interactive mode.
 .IP \(bu 2
 \fI\%\-\-disable\-interactive\fP \- Disable the shell integration for interactive mode on the system.
 .UNINDENT
 .SH DESCRIPTION
 .sp
-The Command Line Assistant powered by RHEL Lightspeed is an optional generative
+The command line assistant powered by RHEL Lightspeed is an optional generative
 AI assistant available within the RHEL command line interface. The Command Line
 Assistant can help with several tasks such as:
 .INDENT 0.0
@@ -191,7 +191,7 @@ Assistant can help with several tasks such as:
 .UNINDENT
 .UNINDENT
 .sp
-The Command Line Assistant provides a natural language interface, and can
+The command line assistant provides a natural language interface, and can
 incorporate information from resources such as the RHEL documentation.
 .SH EXAMPLES
 .INDENT 0.0
@@ -345,7 +345,7 @@ echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
 \fBHistory management\fP
 .INDENT 2.0
 .INDENT 3.5
-With Command Line Assistant, you can also check your conversation history. For that, use the following command to retrieve all user
+With command line assistant, you can also check your conversation history. For that, use the following command to retrieve all user
 history:
 .INDENT 0.0
 .INDENT 3.5
@@ -395,7 +395,7 @@ $ c history \-\-clear
 \fBShell integrations\fP
 .INDENT 2.0
 .INDENT 3.5
-With Command Line Assistant, you can also enable shell integrations to help
+With command line assistant, you can also enable shell integrations to help
 in your experience:
 .INDENT 0.0
 .INDENT 3.5
@@ -483,7 +483,7 @@ State file that captures the terminal screen and store it as json.
 .SH REFERENCE
 .INDENT 0.0
 .IP 1. 3
-Command Line Assistant source code: <\X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'>
+Command line assistant source code: <\X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'>
 .UNINDENT
 .SH BUGS
 .sp
