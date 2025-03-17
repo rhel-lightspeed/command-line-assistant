@@ -117,7 +117,19 @@ def _handle_error_response(response: Response) -> None:
         response.status_code,
         f"Unexpected error with status code {response.status_code}: {response.reason}",
     )
-    error_message = error_message.format(detailed_message=response.json()["detail"])
+    detailed_message = "No additional details provided"
+    response_json = response.json()
+    if "errors" in response_json and isinstance(response_json["errors"], list):
+        # 3scale returns errors wrapped in a JSON object with a list of errors
+        for error in response.json()["errors"]:
+            if error["status"] == response.status_code and "detail" in error:
+                detailed_message = error["detail"]
+                break
+    elif "detail" in response_json:
+        # Assume the response is directly from the API that contains just a
+        # single "detail" field.
+        detailed_message = response_json["detail"]
+    error_message = error_message.format(detailed_message=detailed_message)
 
     logger.error("Status code: %s and message: %s", response.status_code, error_message)
     raise RequestFailedError(error_message)
