@@ -93,7 +93,7 @@ ln -sr %{buildroot}%{_mandir}/man1/%{binary_name}.1 %{buildroot}%{_mandir}/man1/
 %{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
 
 # d-bus policy config
-%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
+%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_datadir}/dbus-1/system.d/com.redhat.lightspeed.conf
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.chat.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.chat.service
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.history.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.user.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.user.service
@@ -146,7 +146,7 @@ fi
 %{_unitdir}/%{daemon_binary_name}.service
 
 # d-bus policy config
-%config %{_sysconfdir}/dbus-1/system.d/com.redhat.lightspeed.conf
+%{_datadir}/dbus-1/system.d/com.redhat.lightspeed.conf
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.chat.service
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
 %{_datadir}/dbus-1/system-services/com.redhat.lightspeed.user.service
