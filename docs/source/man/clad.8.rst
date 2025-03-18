@@ -153,9 +153,11 @@ Bugs
 ----
 
 To submit bug reports, please use the following link:
+
 <https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=1&components=12410340>
 
 In case to submit feature requests, please use the following link:
+
 <https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=3&components=12410340>
 
 See Also

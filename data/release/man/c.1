@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Mar 13, 2025" "0.3.0" "Command Line Assistant"
+.TH "C" "1" "Mar 18, 2025" "0.3.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -36,9 +36,11 @@ The Command Line Assistant powered by RHEL Lightspeed is an optional generative 
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 c [\-\-debug] [\-h] [\-v] {chat,feedback,history,shell} ...
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .SS c options
@@ -56,11 +58,13 @@ Command to ask a question to the LLM.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELETE]] [\-\-delete\-all]
        [\-n [NAME]] [\-\-description [DESCRIPTION]]
        [query_string]
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .SS c chat options
@@ -71,7 +75,7 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELE
 .SS c chat Question Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fBNone\fP)
+\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fB\fP)
 .IP \(bu 2
 \fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
 .IP \(bu 2
@@ -100,9 +104,11 @@ Submit feedback about Command Line Assistant responses and interactions.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 c feedback [\-h]
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .SS c feedback options
@@ -116,9 +122,11 @@ Manage Conversation History
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 c history [\-h] [\-f] [\-l] [\-\-filter FILTER] [\-a] [\-\-from\-chat FROM_CHAT] [\-c] [\-\-clear\-all]
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .SS c history options
@@ -152,9 +160,11 @@ Manage shell integrations
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 c shell [\-h] [\-\-enable\-capture] [\-\-enable\-interactive] [\-\-disable\-interactive]
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .SS c shell options
@@ -170,28 +180,30 @@ c shell [\-h] [\-\-enable\-capture] [\-\-enable\-interactive] [\-\-disable\-inte
 .SS c shell Interactive Mode Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, you can hit Ctrl + J in your terminal to enable interactive mode.
+\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, you can hit Ctrl + G in your terminal to enable interactive mode.
 .IP \(bu 2
 \fI\%\-\-disable\-interactive\fP \- Disable the shell integration for interactive mode on the system.
 .UNINDENT
 .SH DESCRIPTION
 .sp
-The Command Line Assistant powered by RHEL Lightspeed is an optional generative
+The command line assistant powered by RHEL Lightspeed is an optional generative
 AI assistant available within the RHEL command line interface. The Command Line
 Assistant can help with several tasks such as:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 *. Answering RHEL related questions
 *. Assisting with troubleshooting
 *. Assisting with understanding log entries
 *. And many other tasks.
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
-The Command Line Assistant provides a natural language interface, and can
+The command line assistant provides a natural language interface, and can
 incorporate information from resources such as the RHEL documentation.
 .SH EXAMPLES
 .INDENT 0.0
@@ -209,9 +221,11 @@ program by simply doing:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c \(dqWhat is RHEL?\(dq
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -219,9 +233,11 @@ Alternatively, you can strictly specify that you want a query with:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c chat \(dqWhat is RHEL?\(dq
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -233,9 +249,11 @@ Alternatively, you can also use \fB\-\-interactive\fP to start an interactive se
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c \-\-interactive
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -250,9 +268,11 @@ output to \fBc\fP and ask the tool to give you an answer on how to solve it:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ cat log_with_error.log | c
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -261,9 +281,11 @@ with:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ my\-command | c
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -272,9 +294,11 @@ can combine your redirect output with a question like this:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ cat log_with_error.log | c \(dqhow do I solve this?\(dq
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -288,9 +312,11 @@ the following:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c \-\-attachment log_with_error.log
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -298,9 +324,11 @@ Optionally, you can use the short version:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c \-a log_with_error.log
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -308,9 +336,11 @@ You can also combine the attachment with a question:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c \-a log_with_error.log \(dqhow do I solve this?\(dq
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -318,9 +348,11 @@ And lastly, you can use redirect output as well:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -330,10 +362,12 @@ redirect output will be ignored:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 # The redirection output here will be ignored, as the query has precedence over redirection in this scenario.
 echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -345,14 +379,16 @@ echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
 \fBHistory management\fP
 .INDENT 2.0
 .INDENT 3.5
-With Command Line Assistant, you can also check your conversation history. For that, use the following command to retrieve all user
+With command line assistant, you can also check your conversation history. For that, use the following command to retrieve all user
 history:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c history \-\-all
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -361,10 +397,12 @@ result with:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c history \-\-first
 $ c history \-\-last
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -373,10 +411,12 @@ keywords your history, like this:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 # This will retrieve all questions/responses that contain the work \(dqselinux\(dq
 $ c history \-\-filter \(dqselinux\(dq
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -384,9 +424,11 @@ And finally, to start a clean history, you can clear all the user history with:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c history \-\-clear
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -395,14 +437,16 @@ $ c history \-\-clear
 \fBShell integrations\fP
 .INDENT 2.0
 .INDENT 3.5
-With Command Line Assistant, you can also enable shell integrations to help
+With command line assistant, you can also enable shell integrations to help
 in your experience:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c shell \-\-enable\-interactive
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -414,14 +458,16 @@ interactive mode with a keybind, like the following:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c shell \-\-enable\-interactive
 
 # After enabling the interactive, restart your terminal or run
 $ source ~/.bashrc
 
 # After the interactive was sourced, you can hit Ctrl + G in your terminal to enable interactive mode.
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -429,9 +475,11 @@ If you wish to disable the interactive, it can be done with:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 $ c shell \-\-disabled\-interactive
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -439,10 +487,12 @@ You can also enable terminal capture to aid in adding context to your queries wi
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 # This will create a file under the ~/.local/state/command\-line\-assistant/terminal.log
 $ c shell \-\-enable\-capture
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .sp
@@ -458,7 +508,8 @@ order to maintain a correct order of querying. The rules can be seen here:
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.EX
+.nf
+.ft C
 1. Positional query only \-> use positional query
 2. Stdin query only \-> use stdin query
 3. File query only \-> use file query
@@ -468,7 +519,8 @@ order to maintain a correct order of querying. The rules can be seen here:
 7. Positional + last output \-> combine as \(dq{positional_query} {last_output}\(dq
 8. Positional + attachment + last output \-> combine as \(dq{positional_query} {attachment} {last_output}\(dq
 99. All three sources \-> use only positional and file as \(dq{positional_query} {file_query}\(dq
-.EE
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .SH FILES
@@ -483,7 +535,7 @@ State file that captures the terminal screen and store it as json.
 .SH REFERENCE
 .INDENT 0.0
 .IP 1. 3
-Command Line Assistant source code: <\X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'>
+Command line assistant source code: <\X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'>
 .UNINDENT
 .SH BUGS
 .sp
