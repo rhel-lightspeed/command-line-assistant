@@ -170,10 +170,17 @@ def test_initialize_command_selection(argv, expected_command):
         mock_command.assert_called_once()
 
 
-def test_dbus_initialization_error(capsys):
+@pytest.mark.parametrize(
+    ("exception", "expected"),
+    (
+        (DBusError, "Name is not active"),
+        (RuntimeError, "Oops! Something went wrong while processing your request."),
+    ),
+)
+def test_exception_initialization_error(exception, expected, capsys):
     with patch("command_line_assistant.initialize.read_stdin") as mock_stdin:
-        mock_stdin.side_effect = DBusError("Name is not active")
+        mock_stdin.side_effect = exception(expected)
         initialize()
 
     captured = capsys.readouterr()
-    assert "Name is not active" in captured.err
+    assert expected in captured.err

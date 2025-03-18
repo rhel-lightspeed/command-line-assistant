@@ -15,6 +15,7 @@ from command_line_assistant.utils.cli import (
 )
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
+    create_warning_renderer,
 )
 
 
@@ -45,6 +46,7 @@ def initialize() -> int:
     """
     parser = register_subcommands()
     error_renderer = create_error_renderer()
+    warning_renderer = create_warning_renderer()
 
     try:
         stdin = read_stdin()
@@ -64,11 +66,17 @@ def initialize() -> int:
 
         service = args.func(args)
         return service.run()
-    except ValueError as e:
+    except (ValueError, DBusError) as e:
         error_renderer.render(str(e))
         return 1
-    except DBusError as e:
-        error_renderer.render(str(e))
+    except RuntimeError as e:
+        logger.debug(str(e))
+        error_renderer.render(
+            "Oops! Something went wrong while processing your request."
+        )
+        warning_renderer.render(
+            "Try submitting your request one more time or contact an administrator."
+        )
         return 1
     except KeyboardInterrupt:
         error_renderer.render("Uh, oh! Keyboard interrupt detected.")
