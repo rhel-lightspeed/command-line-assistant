@@ -4,6 +4,7 @@ __pycache__/
 *.egg-info
 .vscode/
 .idea
+.python-version
 
 # ignore thirdy-party tool caches
 .ruff_cache
