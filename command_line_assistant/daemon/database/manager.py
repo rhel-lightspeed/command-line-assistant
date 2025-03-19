@@ -1,6 +1,7 @@
 """Database module to handle SQLAlchemy connections and interactions."""
 
 import logging
+import pathlib
 from contextlib import contextmanager
 from typing import Generator
 
@@ -59,6 +60,9 @@ class DatabaseManager:
             connection_url = self._config.database.get_connection_url()
             # SQLite-specific settings
             if self._config.database.type == "sqlite":
+                if self._config.database.connection_string is not None:
+                    db_path = pathlib.Path(self._config.database.connection_string)
+                    db_path.parent.mkdir(parents=True, exist_ok=True)
                 return create_engine(
                     connection_url,
                     echo=echo,
