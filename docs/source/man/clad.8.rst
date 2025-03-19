@@ -129,7 +129,7 @@ Files
 */var/lib/command-line-assistant/history.db*
     SQlite3 history database
 
-*/usr/shae/dbus-1/system.d/com.redhat.lightspeed.conf*
+*/usr/share/dbus-1/system.d/com.redhat.lightspeed.conf*
     D-Bus conf to control access of bus activation
 
 */usr/share/dbus-1/system-services/com.redhat.lightspeed.chat.service*
