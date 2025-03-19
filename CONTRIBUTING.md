@@ -60,11 +60,15 @@ Required packages:
 - Python 3.9 or greater
 - pip
 
-Before installing the dependencies with `poetry`, make sure to follow the
-installation instructions from
-[PyGObject](https://pygobject.gnome.org/getting_started.html#fedora-logo-fedora).
-This is required for running `clad`, and installing the rest of the
-dependencies.
+Before installing the dependencies with `poetry`, install the necessary
+development packages. This is required for running `clad`, and installing the
+rest of the dependencies.
+
+```sh
+sudo dnf install 'pkgconfig(cairo)' 'pkgconfig(cairo-gobject)' 'pkgconfig(gobject-introspection-1.0)' 'pkgconfig(mariadb)' /usr/bin/pg_config
+```
+
+The following will install the python dependencies:
 
 ```sh
 make install
