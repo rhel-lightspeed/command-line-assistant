@@ -199,3 +199,21 @@ class SpinnerRenderer(BaseRenderer):
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """The special contextmanager method to stop the spinner."""
         self.stop()
+
+
+class StaticSpinnerRenderer(SpinnerRenderer):
+    """A spinner renderer that does not animate."""
+
+    def __enter__(self) -> "StaticSpinnerRenderer":
+        """The special contextmanager method to start the "spinner".
+
+        Returns:
+            StaticSpinnerRenderer: Return itself.
+        """
+
+        self._stream.execute(f"{next(self._frames)} {self._message}")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """The special contextmanager method to stop the "spinner"."""
+        self._stream.execute("\n")

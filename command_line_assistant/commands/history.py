@@ -123,7 +123,9 @@ class BaseHistoryOperation(BaseOperation):
             user_proxy,
         )
         # Add markdown renderer as a standard renderer
-        self.markdown_renderer = create_markdown_renderer()
+        self.markdown_renderer = create_markdown_renderer(
+            plain=hasattr(args, "plain") and args.plain
+        )
 
     def _show_history(self, entries: HistoryList) -> None:
         """Internal method to show the history in a standardized way
@@ -139,19 +141,22 @@ class BaseHistoryOperation(BaseOperation):
         question_renderer = create_markdown_renderer(
             decorators=[
                 ColorDecorator(foreground="cyan"),
-            ]
+            ],
+            plain=hasattr(self.args, "plain") and self.args.plain,
         )
 
         answer_renderer = create_markdown_renderer(
             decorators=[
                 ColorDecorator(foreground="green"),
-            ]
+            ],
+            plain=hasattr(self.args, "plain") and self.args.plain,
         )
 
         metadata_renderer = create_text_renderer(
             decorators=[
                 ColorDecorator(foreground="yellow"),
-            ]
+            ],
+            plain=hasattr(self.args, "plain") and self.args.plain,
         )
 
         for entry in entries.histories:
@@ -343,7 +348,9 @@ class HistoryCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution.
         """
-        error_renderer: TextRenderer = create_error_renderer()
+        error_renderer: TextRenderer = create_error_renderer(
+            plain=hasattr(self._args, "plain") and self._args.plain
+        )
         operation_factory = HistoryOperationFactory()
         try:
             operation = operation_factory.create_operation(

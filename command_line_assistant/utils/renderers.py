@@ -10,14 +10,27 @@ from command_line_assistant.rendering.decorators.text import (
     TextWrapDecorator,
 )
 from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
-from command_line_assistant.rendering.renders.markdown import MarkdownRenderer
-from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
-from command_line_assistant.rendering.renders.text import TextRenderer
+from command_line_assistant.rendering.renders.markdown import (
+    MarkdownRenderer,
+    PlainMarkdownRenderer,
+)
+from command_line_assistant.rendering.renders.spinner import (
+    SpinnerRenderer,
+    StaticSpinnerRenderer,
+)
+from command_line_assistant.rendering.renders.text import (
+    PlainTextRenderer,
+    TextRenderer,
+)
 from command_line_assistant.rendering.stream import StderrStream, StdoutStream
 
 
-def create_error_renderer() -> TextRenderer:
+def create_error_renderer(plain: bool = False) -> TextRenderer:
     """Create a standardized instance of text rendering for error output
+
+    Arguments:
+        plain (bool): If True, it will create a plain text renderer without any
+        decorations. Defaults to False.
 
     Returns:
         TextRenderer: Instance of a TextRenderer with correct decorators for
@@ -29,13 +42,18 @@ def create_error_renderer() -> TextRenderer:
             ColorDecorator(foreground="red"),
         ],
         StderrStream(),
+        plain=plain,
     )
 
     return renderer
 
 
-def create_warning_renderer() -> TextRenderer:
+def create_warning_renderer(plain: bool = False) -> TextRenderer:
     """Create a standardized instance of text rendering for error output
+
+    Arguments:
+        plain (bool): If True, it will create a plain text renderer without any
+        decorations. Defaults to False.
 
     Returns:
         TextRenderer: Instance of a TextRenderer with correct decorators for
@@ -47,13 +65,14 @@ def create_warning_renderer() -> TextRenderer:
             ColorDecorator(foreground="yellow"),
         ],
         StderrStream(),
+        plain=plain,
     )
 
     return renderer
 
 
 def create_spinner_renderer(
-    message: str, decorators: Optional[list[BaseDecorator]] = None
+    message: str, decorators: Optional[list[BaseDecorator]] = None, plain: bool = False
 ) -> SpinnerRenderer:
     """Create a new instance of a spinner renderer.
 
@@ -68,7 +87,11 @@ def create_spinner_renderer(
     Returns:
         SpinnerRenderer: Instance of a SpinnerRenderer with decorators applied.
     """
-    spinner = SpinnerRenderer(message, stream=StdoutStream(end=""))
+    spinner = (
+        StaticSpinnerRenderer(message, stream=StdoutStream(end=""))
+        if plain
+        else SpinnerRenderer(message, stream=StdoutStream(end=""))
+    )
     decorators = decorators or []
     decorators.append(TextWrapDecorator())
     spinner.update(decorators)
@@ -90,6 +113,7 @@ def create_interactive_renderer() -> InteractiveRenderer:
 def create_text_renderer(
     decorators: Optional[list[BaseDecorator]] = None,
     stream: Optional[BaseStream] = None,
+    plain: bool = False,
 ) -> TextRenderer:
     """Create a new instance of a text renderer.
 
@@ -104,6 +128,8 @@ def create_text_renderer(
         decorators that can be applied to the text renderer. Defaults to None.
         stream (Optional[BaseStream], optional): Apply a different stream other
         than the StdoutStream. Defaults to None.
+        plain (bool): If True, it will create a plain text renderer without any
+        decorations. Defaults to False.
 
     Returns:
         TextRenderer: Instance of a TextRenderer with decorators applied.
@@ -111,7 +137,7 @@ def create_text_renderer(
     # In case it is None, default it to an empty list.
     decorators = decorators or []
 
-    text = TextRenderer(stream=stream)
+    text = PlainTextRenderer(stream=stream) if plain else TextRenderer(stream=stream)
     decorators.append(TextWrapDecorator())
     text.update(decorators)
 
@@ -140,6 +166,7 @@ def human_readable_size(size: float) -> str:
 def create_markdown_renderer(
     decorators: Optional[list[BaseDecorator]] = None,
     stream: Optional[BaseStream] = None,
+    plain: bool = False,
 ) -> MarkdownRenderer:
     """Create a new instance of a markdown renderer.
 
@@ -148,12 +175,18 @@ def create_markdown_renderer(
             that can be applied to the markdown renderer. Defaults to None.
         stream (Optional[BaseStream], optional): Apply a different stream other
             than the StdoutStream. Defaults to None.
+        plain (bool): If True, it will create a plain markdown renderer without
+        any decorations. Defaults to False.
 
     Returns:
         MarkdownRenderer: Instance of a MarkdownRenderer with decorators applied.
     """
     decorators = decorators or []
-    markdown = MarkdownRenderer(stream=stream)
+    markdown = (
+        PlainMarkdownRenderer(stream=stream)
+        if plain
+        else MarkdownRenderer(stream=stream)
+    )
     decorators.append(TextWrapDecorator())
     markdown.update(decorators)
     return markdown

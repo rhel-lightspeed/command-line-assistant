@@ -240,3 +240,15 @@ class MarkdownRenderer(BaseRenderer):
         final_text = "".join(block for block in processed_blocks if block)
         if final_text:
             self._stream.execute(final_text)
+
+
+class PlainMarkdownRenderer(MarkdownRenderer):
+    """Renders markdown-formatted text to the terminal without any styling."""
+
+    def render(self, text: str) -> None:
+        """Render markdown text to the terminal without any formatting.
+
+        Args:
+            text (str): Markdown text to render
+        """
+        self._stream.execute(text)
