@@ -13,19 +13,12 @@ from command_line_assistant.commands.base import (
     CommandOperationType,
 )
 from command_line_assistant.exceptions import ShellCommandException
-from command_line_assistant.integrations import (
-    BASH_INTERACTIVE,
-)
+from command_line_assistant.integrations import BASH_INTERACTIVE
 from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.reader import OUTPUT_FILE_NAME, start_capturing
-from command_line_assistant.utils.cli import (
-    SubParsersAction,
-    create_subparser,
-)
+from command_line_assistant.utils.cli import SubParsersAction, create_subparser
 from command_line_assistant.utils.files import create_folder, write_file
-from command_line_assistant.utils.renderers import (
-    create_error_renderer,
-)
+from command_line_assistant.utils.renderers import create_error_renderer
 
 #: The path to bashrc.d folder
 BASH_RC_D_PATH: Path = Path("~/.bashrc.d").expanduser()
@@ -161,7 +154,9 @@ class ShellCommand(BaseCLICommand):
         Returns:
             int: Return the status code for the operation
         """
-        error_renderer: TextRenderer = create_error_renderer()
+        error_renderer: TextRenderer = create_error_renderer(
+            plain=hasattr(self._args, "plain") and self._args.plain
+        )
         operation_factory = ShellOperationFactory()
         try:
             # Get and execute the appropriate operation
