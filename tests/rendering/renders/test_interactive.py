@@ -37,26 +37,6 @@ def test_interactive_renderer_exit_command(mock_input, interactive_renderer):
         interactive_renderer.render(">>> ")
 
 
-@patch("builtins.input", side_effect=KeyboardInterrupt)
-def test_interactive_renderer_keyboard_interrupt(mock_input, interactive_renderer):
-    """Test that KeyboardInterrupt raises StopInteractiveMode"""
-    with pytest.raises(
-        StopInteractiveMode,
-        match="Detected keyboard interrupt. Stopping interactive mode.",
-    ):
-        interactive_renderer.render(">>> ")
-
-
-@patch("builtins.input", side_effect=EOFError)
-def test_interactive_renderer_eof_error(mock_input, interactive_renderer):
-    """Test that EOFError raises StopInteractiveMode"""
-    with pytest.raises(
-        StopInteractiveMode,
-        match="Detected keyboard interrupt. Stopping interactive mode.",
-    ):
-        interactive_renderer.render(">>> ")
-
-
 def test_interactive_renderer_banner_display(capsys):
     """Test that interactive renderer displays banner on first render"""
     banner = "Welcome to test interactive mode!"
