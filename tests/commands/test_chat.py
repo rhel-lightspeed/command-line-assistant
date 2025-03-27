@@ -384,8 +384,30 @@ def test_interactive_mode_execution(default_namespace, default_kwargs):
         mock_renderer.return_value.render.side_effect = [None, StopInteractiveMode()]
         mock_renderer.return_value.output = "test"
         interactive_operation = InteractiveChatOperation(**default_kwargs)
-        with pytest.raises(ChatCommandException):
-            interactive_operation.execute()
+
+    try:
+        interactive_operation.execute()
+    except Exception as e:
+        pytest.fail(f"We got a failure in {interactive_operation} with stack: {str(e)}")
+
+
+@pytest.mark.parametrize("exception", ((KeyboardInterrupt,), (EOFError,)))
+def test_interactive_mode_sigkill_error(
+    default_namespace, default_kwargs, monkeypatch, exception
+):
+    """Test interactive mode emulating KeyboardInterrupt question"""
+    default_kwargs["args"] = default_namespace
+    default_kwargs["user_proxy"].GetUserId.return_value = 1000
+    default_kwargs["chat_proxy"].GetChatId.return_value = "1"
+    default_kwargs["error_renderer"] = create_error_renderer()
+
+    monkeypatch.setattr("builtins.input", mock.Mock(side_effect=exception))
+    interactive_operation = InteractiveChatOperation(**default_kwargs)
+    with pytest.raises(
+        ChatCommandException,
+        match="Detected keyboard interrupt. Stopping interactive mode.",
+    ):
+        interactive_operation.execute()
 
 
 def test_interactive_mode_empty_question(default_namespace, default_kwargs, capsys):
@@ -400,8 +422,7 @@ def test_interactive_mode_empty_question(default_namespace, default_kwargs, caps
         interactive_operation = InteractiveChatOperation(**default_kwargs)
         mock_renderer.return_value.render.side_effect = [None, StopInteractiveMode()]
         mock_renderer.return_value.output = ""
-        with pytest.raises(ChatCommandException):
-            interactive_operation.execute()
+        interactive_operation.execute()
 
         captured = capsys.readouterr()
         assert "Your question can't be empty" in captured.err
@@ -604,8 +625,7 @@ def test_interactive_mode_multiple_questions(default_kwargs, default_namespace):
 
         interactive_operation = InteractiveChatOperation(**default_kwargs)
 
-        with pytest.raises(ChatCommandException):
-            interactive_operation.execute()
+        interactive_operation.execute()
 
         # Verify multiple questions were answered
         assert default_kwargs["chat_proxy"].AskQuestion.call_count == 2

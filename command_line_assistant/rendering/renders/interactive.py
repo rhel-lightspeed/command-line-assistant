@@ -46,18 +46,13 @@ class InteractiveRenderer(BaseRenderer):
             self._stream.write("The current session does not include running context.")
             self._first_message = True
 
-        try:
-            user_input = input(text).strip()
+        user_input = input(text).strip()
 
-            # More commands can be added in the future, but for now, we only have .exit
-            if user_input == ".exit":
-                raise StopInteractiveMode("Stopping interactive mode.")
+        # More commands can be added in the future, but for now, we only have .exit
+        if user_input == ".exit":
+            raise StopInteractiveMode("Stopping interactive mode.")
 
-            self.output = user_input
-        except (KeyboardInterrupt, EOFError) as e:
-            raise StopInteractiveMode(
-                "Detected keyboard interrupt. Stopping interactive mode."
-            ) from e
+        self.output = user_input
 
     @property
     def output(self) -> str:
