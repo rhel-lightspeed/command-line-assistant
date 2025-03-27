@@ -6,7 +6,7 @@ connection_string = "~/.local/state/command-line-assistant/history.db"
 enabled = true
 
 [backend]
-endpoint = "https://rlsapi-rhel-lightspeed--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com"
+endpoint = "http://localhost:8000"
 # proxies = { http = "http://localhost:8002", https = "https://localhost:8002" }
 
 [backend.auth]
