@@ -530,8 +530,12 @@ class InteractiveChatOperation(BaseChatOperation):
                     skip_spinner=self.args.raw,
                 )
                 self._display_response(response)
-        except StopInteractiveMode as e:
-            raise ChatCommandException(str(e)) from e
+        except (KeyboardInterrupt, EOFError) as e:
+            raise ChatCommandException(
+                "Detected keyboard interrupt. Stopping interactive mode."
+            ) from e
+        except StopInteractiveMode:
+            return
 
 
 @ChatOperationFactory.register(ChatOperationType.SINGLE_QUESTION)
