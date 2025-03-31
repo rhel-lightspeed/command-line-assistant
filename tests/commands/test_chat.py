@@ -163,6 +163,74 @@ def test_command_factory(query_string, stdin, attachment, default_namespace):
 
 
 @pytest.mark.parametrize(
+    ("args", "expected"),
+    (
+        (
+            {"with_output": 9},
+            "Original index is 9",
+        ),
+        (
+            {"with_output": -1},
+            "Original index is -1",
+        ),
+    ),
+)
+def test_command_factory_with_output_normalization(
+    args, expected, default_namespace, caplog
+):
+    default_namespace.with_output = args["with_output"]
+
+    command = _command_factory(default_namespace)
+
+    assert isinstance(command, ChatCommand)
+
+    assert expected in caplog.records[-1].message
+    assert command._args.with_output == -abs(args["with_output"])
+
+
+def test_command_factory_missing_description_and_name(default_namespace, caplog):
+    """Test _command_factory function with missing description and name"""
+    default_namespace.description = ""
+    default_namespace.name = ""
+
+    command = _command_factory(default_namespace)
+
+    assert isinstance(command, ChatCommand)
+
+    assert (
+        "No name or description provided. Using default values."
+        in caplog.records[-1].message
+    )
+    assert command._args.description == "Default Command Line Assistant Chat."
+    assert command._args.name == "default"
+
+
+@pytest.mark.parametrize(
+    ("args", "expected"),
+    (
+        (
+            {"description": "test", "name": ""},
+            "Chat name not provided.",
+        ),
+        (
+            {"description": "", "name": "test"},
+            "Chat description not provided.",
+        ),
+    ),
+)
+def test_command_factory_validations(args, expected, capsys, default_namespace):
+    default_namespace.description = args["description"]
+    default_namespace.name = args["name"]
+
+    command = _command_factory(default_namespace)
+
+    assert isinstance(command, ChatCommand)
+
+    captured = capsys.readouterr()
+    assert expected in captured.err.strip()
+
+
+@pytest.mark.parametrize(
     ("query_string", "stdin", "attachment", "last_output", "expected"),
     (
         ("test query", None, None, "", "test query"),

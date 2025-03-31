@@ -54,6 +54,7 @@ from command_line_assistant.utils.renderers import (
     create_markdown_renderer,
     create_spinner_renderer,
     create_text_renderer,
+    create_warning_renderer,
     format_datetime,
     human_readable_size,
 )
@@ -82,6 +83,12 @@ LEGAL_NOTICE = (
 )
 #: Always good to have legal message.
 ALWAYS_LEGAL_MESSAGE = "Always review AI-generated content prior to use."
+
+#: Default chat description when none is given
+DEFAULT_CHAT_DESCRIPTION = "Default Command Line Assistant Chat."
+
+#: Default chat name when none is given
+DEFAULT_CHAT_NAME = "default"
 
 
 def _read_last_terminal_output(index: int) -> str:
@@ -654,6 +661,7 @@ class ChatCommand(BaseCLICommand):
                 ),
                 error_renderer=error_renderer,
             )
+
             if operation:
                 operation.execute()
             return 0
@@ -731,14 +739,12 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "-n",
         "--name",
         nargs="?",
-        help="Give a name to the chat session. The parameter has to be used together with sending a query. Otherwise it has no effect.",
-        default="default",
+        help="Give a name to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect.",
     )
     chat_arguments.add_argument(
         "--description",
         nargs="?",
-        help="Give a description to the chat session. The parameter has to be used together with sending a query. Otherwise it has no effect.",
-        default="Default Command Line Assistant Chat.",
+        help="Give a description to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect.",
     )
 
     chat_parser.set_defaults(func=_command_factory)
@@ -751,7 +757,7 @@ def _command_factory(args: Namespace) -> ChatCommand:
         args (Namespace): The arguments processed with argparse.
 
     Returns:
-        QueryCommand: Return an instance of class
+        ChatCommand: Return an instance of class
     """
     if args.with_output:
         logger.debug(
@@ -759,5 +765,29 @@ def _command_factory(args: Namespace) -> ChatCommand:
         )
         logger.debug("Original index is %s", args.with_output)
         args.with_output = -abs(args.with_output)
+
+    warning_renderer = create_warning_renderer()
+
+    # Overriding the default description in case the user has not given us any.
+    # We don't log this as warning to avoid spamming the user terminal with
+    # this message.
+    if not args.description and not args.name:
+        args.description = DEFAULT_CHAT_DESCRIPTION
+        args.name = DEFAULT_CHAT_NAME
+        logger.debug("No name or description provided. Using default values.")
+
+    if not args.description and args.name:
+        args.description = DEFAULT_CHAT_DESCRIPTION
+        warning_renderer.render(
+            "Chat description not provided. Using the default description: "
+            f"'{DEFAULT_CHAT_DESCRIPTION}'. You can specify a custom description using the '--description' option."
+        )
+
+    if not args.name and args.description:
+        args.name = DEFAULT_CHAT_NAME
+        warning_renderer.render(
+            "Chat name not provided. Using the default name: "
+            f"'{DEFAULT_CHAT_NAME}'. You can specify a custom name using the '--name' option."
+        )
 
     return ChatCommand(args)
