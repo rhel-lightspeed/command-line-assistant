@@ -187,6 +187,9 @@ def create_subparser(parser: SubParsersAction, name: str, help: str) -> Argument
         name,
         help=help,
         add_help=False,
+        # If allow_abbrev is set to True, then we can use --from instead of
+        # --from-chat, for example.
+        allow_abbrev=False,
     )
     custom_parser.add_argument(
         "-h",
