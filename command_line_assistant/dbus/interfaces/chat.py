@@ -128,6 +128,33 @@ class ChatInterface(InterfaceTemplate):
         result = self._chat_repository.select_latest_chat(user_id)
         return str(result.id)
 
+    def IsChatAvailable(self, user_id: Str, name: Str) -> bool:
+        """Check if a chat session is available for a given user.
+
+        Arguments:
+            user_id (Str): The identifier of the user.
+            name (Str): The name of the chat.
+
+        Returns:
+            bool: True if the chat session is available, False otherwise.
+        """
+        result = self._chat_repository.select_by_name(user_id, name)
+
+        if not result:
+            logger.info(
+                "Chat session with name '%s' not found for user '%s'.",
+                name,
+                user_id,
+            )
+            return False
+
+        logger.info(
+            "Chat session with name '%s' found for user '%s'.",
+            name,
+            user_id,
+        )
+        return True
+
     def GetChatId(self, user_id: Str, name: Str) -> Str:
         """Get the chat id for a given user and chat name.
 

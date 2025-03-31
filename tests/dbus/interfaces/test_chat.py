@@ -125,8 +125,35 @@ def test_get_chat_id_exception(chat_interface):
         chat_interface.GetChatId(uid, "test")
 
 
-def test_create_chat(chat_interface, caplog):
+def test_create_chat(
+    chat_interface,
+):
     uid = "2345f9e6-dfea-11ef-9ae9-52b437312584"
     result = chat_interface.CreateChat(uid, "test", "test")
     assert result
     assert "-" in result
+
+
+@pytest.mark.parametrize(
+    ("available", "name", "expected"), ((True, "test", True), (False, "test", False))
+)
+def test_is_chat_available(
+    chat_interface, mock_repository, caplog, available, name, expected
+):
+    uid = "2345f9e6-dfea-11ef-9ae9-52b437312584"
+    chat_interface.IsChatAvailable(uid, name)
+    if available:
+        mock_repository.insert({"name": name, "description": "test", "user_id": uid})
+
+    result = chat_interface.IsChatAvailable(uid, name)
+    assert result == expected
+    if available:
+        assert (
+            f"Chat session with name '{name}' found for user '{uid}'."
+            in caplog.records[-1].message
+        )
+    else:
+        assert (
+            f"Chat session with name '{name}' not found for user '{uid}'."
+            in caplog.records[-1].message
+        )

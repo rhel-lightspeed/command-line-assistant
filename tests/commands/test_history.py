@@ -6,6 +6,7 @@ import pytest
 from command_line_assistant.commands.history import (
     AllHistoryOperation,
     BaseHistoryOperation,
+    ClearAllHistoryOperation,
     ClearHistoryOperation,
     FilteredHistoryOperation,
     FirstHistoryOperation,
@@ -17,6 +18,7 @@ from command_line_assistant.dbus.exceptions import (
     HistoryNotAvailableError,
     HistoryNotEnabledError,
 )
+from command_line_assistant.dbus.structures.chat import ChatList
 from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
 from command_line_assistant.exceptions import (
     HistoryCommandException,
@@ -174,6 +176,20 @@ def test_retrieve_last_conversation_exception(
         LastHistoryOperation(**default_kwargs).execute()
 
 
+def test_clear_history_no_chat_available(
+    mock_dbus_service, default_kwargs, default_namespace
+):
+    """Test clearing history with no chat available."""
+    default_kwargs["text_renderer"] = create_text_renderer()
+    default_kwargs["args"] = default_namespace
+    mock_dbus_service.IsChatAvailable.return_value = False
+    with pytest.raises(
+        HistoryCommandException,
+        match="Nothing to clean as default chat is not available",
+    ):
+        ClearHistoryOperation(**default_kwargs).execute()
+
+
 def test_clear_history_success(
     mock_dbus_service, capsys, default_kwargs, default_namespace
 ):
@@ -282,6 +298,7 @@ def test_command_factory(first, last, clear, filter, all, default_namespace):
     ("operation",),
     (
         (ClearHistoryOperation,),
+        (ClearAllHistoryOperation,),
         (FirstHistoryOperation,),
         (LastHistoryOperation,),
         (FilteredHistoryOperation,),
@@ -289,7 +306,7 @@ def test_command_factory(first, last, clear, filter, all, default_namespace):
     ),
 )
 def test_operations_with_history_disabled(
-    operation, default_kwargs, mock_dbus_service, caplog
+    mock_dbus_service, operation, default_kwargs, caplog
 ):
     """Test all operations with history disabled"""
     mock_dbus_service.GetUserId.side_effect = HistoryNotEnabledError(
@@ -317,3 +334,17 @@ def test_show_empty_history_list(default_kwargs, capsys):
 
     captured = capsys.readouterr()
     assert "No history entries found" in captured.out
+
+
+def test_clear_all_history_no_chat_available(
+    mock_dbus_service, default_kwargs, default_namespace
+):
+    """Test clearing history with no chat available."""
+    default_kwargs["text_renderer"] = create_text_renderer()
+    default_kwargs["args"] = default_namespace
+    mock_dbus_service.GetAllChatFromUser.return_value = ChatList(chats=[]).structure()
+    with pytest.raises(
+        HistoryCommandException,
+        match="Nothing to clean as there is no chat session in place.",
+    ):
+        ClearAllHistoryOperation(**default_kwargs).execute()

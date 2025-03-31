@@ -18,6 +18,7 @@ from command_line_assistant.dbus.exceptions import (
 from command_line_assistant.dbus.interfaces.chat import ChatInterface
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
 from command_line_assistant.dbus.interfaces.user import UserInterface
+from command_line_assistant.dbus.structures.chat import ChatList
 from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.exceptions import HistoryCommandException
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
@@ -185,8 +186,18 @@ class ClearHistoryOperation(BaseHistoryOperation):
         """Default method to execute the operation"""
         try:
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            self.text_renderer.render("Cleaning the history.")
+            is_chat_available = self.chat_proxy.IsChatAvailable(
+                user_id, self.args.from_chat
+            )
+
+            if not is_chat_available:
+                raise HistoryCommandException(
+                    "Nothing to clean as %s chat is not available."
+                    % self.args.from_chat
+                )
+
             self.history_proxy.ClearHistory(user_id, self.args.from_chat)
+            self.text_renderer.render("Cleaning the history.")
         except HistoryNotAvailableError as e:
             logger.debug("Failed to clear the history: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
@@ -202,6 +213,16 @@ class ClearAllHistoryOperation(BaseHistoryOperation):
     def execute(self) -> None:
         """Default method to execute the operation"""
         try:
+            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            all_user_chats = ChatList.from_structure(
+                self.chat_proxy.GetAllChatFromUser(user_id)
+            )
+
+            if not all_user_chats.chats:
+                raise HistoryCommandException(
+                    "Nothing to clean as there is no chat session in place."
+                )
+
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             self.text_renderer.render("Cleaning the history.")
             self.history_proxy.ClearAllHistory(user_id)
@@ -220,8 +241,8 @@ class FirstHistoryOperation(BaseHistoryOperation):
     def execute(self) -> None:
         """Default method to execute the operation"""
         try:
-            self.text_renderer.render("Getting first conversation from history.")
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
+            self.text_renderer.render("Getting first conversation from history.")
             response = self.history_proxy.GetFirstConversation(
                 user_id, self.args.from_chat
             )
