@@ -19,6 +19,9 @@ files_config_file(clad_etc_r_t)
 type clad_var_lib_rw_t;
 files_type(clad_var_lib_rw_t)
 
+type clad_tmpfs_t;
+files_tmpfs_file(clad_tmpfs_t);
+
 ########################################
 #
 # clad local policy
@@ -72,3 +75,8 @@ auth_read_passwd(clad_t)
 can_exec(clad_t, bin_t)
 corecmd_exec_bin(clad_t)
 domain_use_interactive_fds(clad_t)
+
+# Allow clad to create and use mmap files
+manage_files_pattern(clad_t, clad_tmpfs_t, clad_tmpfs_t)
+fs_tmpfs_filetrans(clad_t, clad_tmpfs_t, file)
+can_exec(clad_t, clad_tmpfs_t)
