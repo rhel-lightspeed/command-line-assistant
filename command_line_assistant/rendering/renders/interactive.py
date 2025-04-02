@@ -50,7 +50,7 @@ class InteractiveRenderer(BaseRenderer):
 
         # More commands can be added in the future, but for now, we only have .exit
         if user_input == ".exit":
-            raise StopInteractiveMode("Stopping interactive mode.")
+            raise StopInteractiveMode
 
         self.output = user_input
 

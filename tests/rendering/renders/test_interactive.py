@@ -33,7 +33,7 @@ def test_interactive_renderer_input(mock_input, interactive_renderer):
 @patch("builtins.input", return_value=".exit")
 def test_interactive_renderer_exit_command(mock_input, interactive_renderer):
     """Test that .exit command raises StopInteractiveMode"""
-    with pytest.raises(StopInteractiveMode, match="Stopping interactive mode."):
+    with pytest.raises(StopInteractiveMode):
         interactive_renderer.render(">>> ")
 
 
