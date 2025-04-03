@@ -676,14 +676,18 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "-i",
         "--interactive",
         action="store_true",
-        help="Start interactive chat session",
+        help="Start an interactive chat session",
     )
     question_group.add_argument(
         "-w",
         "--with-output",
         nargs="?",
         type=int,
-        help="Add output from terminal as context for the query. Use 1 to retrieve latest output, 2 to before last and so on... First enable the terminal capture with 'c shell --enable-capture' in order for this to work.",
+        help=(
+            "Add output from terminal as context for the query. Use 1 to retrieve "
+            "the latest output, 2 to and so on. First, enable the terminal "
+            "capture with 'c shell --enable-capture' for this option to work."
+        ),
     )
     question_group.add_argument(
         "-r",
@@ -701,7 +705,7 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "--delete",
         nargs="?",
         default="",
-        help="Delete a chat session. Specify chat session by its name.",
+        help="Delete a chat session. Specify the chat session by its name.",
     )
     chat_arguments.add_argument(
         "--delete-all", action="store_true", help="Delete all chats"
@@ -710,13 +714,13 @@ def register_subcommand(parser: SubParsersAction) -> None:
         "-n",
         "--name",
         nargs="?",
-        help="Give a name to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect.",
+        help="Give a name to the chat session. The parameter has to be used together with sending a query. Otherwise it has no effect.",
         default="default",
     )
     chat_arguments.add_argument(
         "--description",
         nargs="?",
-        help="Give a description to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect.",
+        help="Give a description to the chat session. The parameter has to be used together with sending a query. Otherwise it has no effect.",
         default="Default Command Line Assistant Chat.",
     )
 

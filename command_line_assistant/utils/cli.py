@@ -133,7 +133,7 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
         "--help",
         action="help",
         default=argparse.SUPPRESS,
-        help="Show this help message and exit.",
+        help="Show help message and exit.",
     )
     parser.add_argument(
         "-v",
@@ -195,7 +195,7 @@ def create_subparser(parser: SubParsersAction, name: str, help: str) -> Argument
         "--help",
         action="help",
         default=argparse.SUPPRESS,
-        help="Show this help message and exit.",
+        help="Show help message and exit.",
     )
 
     return custom_parser
