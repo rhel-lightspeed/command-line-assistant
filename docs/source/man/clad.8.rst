@@ -56,7 +56,7 @@ Examples
     * **Changing databases in the config file**
 
         By default, `clad` will use an uncrypted sqlite database to hold
-        history and some other informations. If you want to change this
+        history and some other information. If you want to change this
         default, you can simply comment the sqlite configuration and add either
         `postgres` or `mysql`/ `mariadb` configs instead, like this::
 

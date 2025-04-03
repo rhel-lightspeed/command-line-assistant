@@ -96,7 +96,7 @@ def register_subcommand(parser: SubParsersAction):
     feedback_parser = create_subparser(
         parser,
         "feedback",
-        "Submit feedback about Command Line Assistant responses and interactions.",
+        "Submit feedback about the Command Line Assistant responses and interactions.",
     )
 
     feedback_parser.add_argument(
