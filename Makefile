@@ -25,12 +25,14 @@ DATA_DEVELOPMENT_PATH := $(PROJECT_DIR)/data/development
 CLAD_VENV_BIN := $(subst /,\/,$(PROJECT_DIR)/.venv/bin/clad)
 # Systemd development unit
 CLAD_SYSTEMD_DEVEL_PATH := $(DATA_DEVELOPMENT_PATH)/systemd/clad-devel.service
+# DBus development conf
+CLAD_DBUS_DEVEL_PATH := $(DATA_DEVELOPMENT_PATH)/dbus/com.redhat.lightspeed.conf
 # Systemd user unit, which is generated from devel unit
 CLAD_SYSTEMD_USER_PATH := $(DATA_DEVELOPMENT_PATH)/systemd/clad-user.service
 # Systemd path on the system to place the user unit
 SYSTEMD_USER_UNITS := ~/.config/systemd/user
 # Path to local XDG_CONFIG_DIRS to load config file
-XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/config)
+XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/xdg)
 
 PKGNAME := command-line-assistant
 VERSION := 0.3.1
@@ -94,10 +96,12 @@ link-systemd-units: ## Link the systemd units to ~/.config/systemd/user
 		 -e 's/{{ DBUS_SESSION_ADDRESS }}/$(subst /,\/,$(DBUS_SESSION_BUS_ADDRESS))/' \
 	     $(CLAD_SYSTEMD_DEVEL_PATH) > $(CLAD_SYSTEMD_USER_PATH)
 	@ln -s $(CLAD_SYSTEMD_USER_PATH) $(SYSTEMD_USER_UNITS)/clad.service
+	@sudo ln -s $(CLAD_DBUS_DEVEL_PATH) /etc/dbus-1/system.d/com.redhat.lightspeed.conf
 
 unlink-systemd-units: ## Unlink the systemd units from ~/.config/systemd/user
 	@echo "Unlinking the systemd units from $(SYSTEMD_USER_UNITS)/clad.service"
 	@unlink $(SYSTEMD_USER_UNITS)/clad.service
+	@sudo unlink /etc/dbus-1/system.d/com.redhat.lightspeed.conf
 
 clad: ## Run clad on the system
 	@XDG_CONFIG_DIRS=$(XDG_CONFIG_DIRS) $(CLAD_VENV_BIN)
