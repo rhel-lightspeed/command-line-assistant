@@ -385,7 +385,7 @@ def register_subcommand(parser: SubParsersAction):
         help="Search for a specific keyword of text in the history.",
     )
     filtering_options.add_argument(
-        "-a", "--all", action="store_true", help="Get all conversation from history."
+        "-a", "--all", action="store_true", help="Get all the conversation history."
     )
     filtering_options.add_argument(
         "--from-chat",

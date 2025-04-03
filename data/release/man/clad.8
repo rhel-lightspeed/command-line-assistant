@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "CLAD" "8" "Mar 18, 2025" "0.3.1" "Command Line Assistant"
+.TH "CLAD" "8" "Apr 03, 2025" "0.3.1" "Command Line Assistant"
 .SH NAME
 clad \- Command Line Assistant Daemon
 .SH SYNOPSIS
@@ -109,7 +109,7 @@ proxies = { https = \(dqhttps://my\-super\-https\-proxy\-host:1234\(dq}
 .INDENT 2.0
 .INDENT 3.5
 By default, \fBclad\fP will use an uncrypted sqlite database to hold
-history and some other informations. If you want to change this
+history and some other information. If you want to change this
 default, you can simply comment the sqlite configuration and add either
 \fBpostgres\fP or \fBmysql\fP/ \fBmariadb\fP configs instead, like this:
 .INDENT 0.0
@@ -232,7 +232,7 @@ System configuration file
 .B \fI/var/lib/command\-line\-assistant/history.db\fP
 SQlite3 history database
 .TP
-.B \fI/etc/dbus\-1/system.d/com.redhat.lightspeed.conf\fP
+.B \fI/usr/share/dbus\-1/system.d/com.redhat.lightspeed.conf\fP
 D\-Bus conf to control access of bus activation
 .TP
 .B \fI/usr/share/dbus\-1/system\-services/com.redhat.lightspeed.chat.service\fP

@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Mar 18, 2025" "0.3.1" "Command Line Assistant"
+.TH "C" "1" "Apr 03, 2025" "0.3.1" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -46,7 +46,7 @@ c [\-\-debug] [\-h] [\-v] {chat,feedback,history,shell} ...
 .IP \(bu 2
 \fI\%\-\-debug\fP \- Enable debug logging information
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show help message and exit.
 .IP \(bu 2
 \fI\%\-v\fP, \fI\%\-\-version\fP \- Show program version
 .UNINDENT
@@ -73,11 +73,11 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELE
 .IP \(bu 2
 \fI\%query_string\fP \- The question that will be sent to the LLM (default: \fB\fP)
 .IP \(bu 2
-\fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
+\fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fB\fP)
 .IP \(bu 2
-\fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start interactive chat session
+\fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start an interactive chat session
 .IP \(bu 2
-\fI\%\-w\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 1 to retrieve latest output, 2 to before last and so on... First enable the terminal capture with \fB\(aqc shell \-\-enable\-capture\(aq\fP in order for this to work. (default: \fBNone\fP)
+\fI\%\-w\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 1 to retrieve the latest output, 2 to and so on. First, enable the terminal capture with \fB\(aqc shell \-\-enable\-capture\(aq\fP for this option to work. (default: \fBNone\fP)
 .IP \(bu 2
 \fI\%\-r\fP, \fI\%\-\-raw\fP \- Interact with the backend in raw mode. No spinners, emojis or anything.
 .UNINDENT
@@ -86,17 +86,17 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELE
 .IP \(bu 2
 \fI\%\-l\fP, \fI\%\-\-list\fP \- List all chats
 .IP \(bu 2
-\fI\%\-d\fP \fBDELETE\fP, \fI\%\-\-delete\fP \fBDELETE\fP \- Delete a chat session. Specify chat session by its name. (default: \fB\fP)
+\fI\%\-d\fP \fBDELETE\fP, \fI\%\-\-delete\fP \fBDELETE\fP \- Delete a chat session. Specify the chat session by its name. (default: \fB\fP)
 .IP \(bu 2
 \fI\%\-\-delete\-all\fP \- Delete all chats
 .IP \(bu 2
-\fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect. (default: \fBdefault\fP)
+\fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session. The parameter has to be used together with sending a query. Otherwise it has no effect. (default: \fBdefault\fP)
 .IP \(bu 2
-\fI\%\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect. (default: \fBDefault Command Line Assistant Chat.\fP)
+\fI\%\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session. The parameter has to be used together with sending a query. Otherwise it has no effect. (default: \fBDefault Command Line Assistant Chat.\fP)
 .UNINDENT
 .SS c feedback
 .sp
-Submit feedback about Command Line Assistant responses and interactions.
+Submit feedback about the Command Line Assistant responses and interactions.
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -108,7 +108,7 @@ c feedback [\-h]
 .SS c feedback options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show help message and exit.
 .UNINDENT
 .SS c history
 .sp
@@ -124,7 +124,7 @@ c history [\-h] [\-f] [\-l] [\-\-filter FILTER] [\-a] [\-\-from\-chat FROM_CHAT]
 .SS c history options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show help message and exit.
 .UNINDENT
 .SS c history Filtering Options
 .INDENT 0.0
@@ -135,7 +135,7 @@ c history [\-h] [\-f] [\-l] [\-\-filter FILTER] [\-a] [\-\-from\-chat FROM_CHAT]
 .IP \(bu 2
 \fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. (default: \fBNone\fP)
 .IP \(bu 2
-\fI\%\-a\fP, \fI\%\-\-all\fP \- Get all conversation from history.
+\fI\%\-a\fP, \fI\%\-\-all\fP \- Get all the conversation history.
 .IP \(bu 2
 \fI\%\-\-from\-chat\fP \fBFROM_CHAT\fP \- Specify from which chat we should retrieve the history. Default chat is \fB\(aqdefault\(aq\fP (default: \fBdefault\fP)
 .UNINDENT
@@ -160,7 +160,7 @@ c shell [\-h] [\-\-enable\-capture] [\-\-enable\-interactive] [\-\-disable\-inte
 .SS c shell options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- Show this help message and exit.
+\fI\%\-h\fP, \fI\%\-\-help\fP \- Show help message and exit.
 .UNINDENT
 .SS c shell Terminal Capture Options
 .INDENT 0.0
@@ -170,7 +170,7 @@ c shell [\-h] [\-\-enable\-capture] [\-\-enable\-interactive] [\-\-disable\-inte
 .SS c shell Interactive Mode Options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, you can hit Ctrl + G in your terminal to enable interactive mode.
+\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, hit Ctrl + G in your terminal to enable interactive mode.
 .IP \(bu 2
 \fI\%\-\-disable\-interactive\fP \- Disable the shell integration for interactive mode on the system.
 .UNINDENT
