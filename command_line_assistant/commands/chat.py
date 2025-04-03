@@ -41,6 +41,7 @@ from command_line_assistant.terminal.parser import (
     find_output_by_index,
     parse_terminal_output,
 )
+from command_line_assistant.terminal.reader import TERMINAL_CAPTURE_FILE
 from command_line_assistant.utils.benchmark import TimingLogger
 from command_line_assistant.utils.cli import (
     CommandContext,
@@ -573,6 +574,13 @@ class SingleQuestionOperation(BaseChatOperation):
             )
             raise ChatCommandException(
                 "Your stdin input needs to have at least 2 characters."
+            )
+
+        # If the user tries to do "c -w 1" or "c -w 1 "help me figure this out"
+        # and there is no terminal capture log file, we just error out.
+        if self.args.with_output and not TERMINAL_CAPTURE_FILE.exists():
+            raise ChatCommandException(
+                "Adding context from terminal output is only allowed if terminal capture is active."
             )
 
     @timing.timeit

@@ -17,7 +17,10 @@ from command_line_assistant.integrations import (
     BASH_INTERACTIVE,
 )
 from command_line_assistant.rendering.renders.text import TextRenderer
-from command_line_assistant.terminal.reader import OUTPUT_FILE_NAME, start_capturing
+from command_line_assistant.terminal.reader import (
+    TERMINAL_CAPTURE_FILE,
+    start_capturing,
+)
 from command_line_assistant.utils.cli import (
     SubParsersAction,
     create_subparser,
@@ -146,7 +149,7 @@ class EnableTerminalCapture(BaseShellOperation):
             "Starting terminal reader. Press Ctrl + D to stop the capturing."
         )
         self.text_renderer.render(
-            f"Terminal capture log is being written to {OUTPUT_FILE_NAME}"
+            f"Terminal capture log is being written to {TERMINAL_CAPTURE_FILE}"
         )
         self._initialize_bash_folder()
         start_capturing()

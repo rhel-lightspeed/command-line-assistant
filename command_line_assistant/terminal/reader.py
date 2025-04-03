@@ -18,7 +18,7 @@ from command_line_assistant.utils.files import create_folder, write_file
 PROMPT_MARKER: str = "\x1b]"
 
 #: The name of the output file to store the logs.
-OUTPUT_FILE_NAME: Path = Path(get_xdg_state_path(), "terminal.log")
+TERMINAL_CAPTURE_FILE: Path = Path(get_xdg_state_path(), "terminal.log")
 
 logger = logging.getLogger(__name__)
 
@@ -101,10 +101,10 @@ def start_capturing() -> None:
     shell = os.environ.get("SHELL", "/usr/bin/sh")
 
     # The create_folder function will silently fail in case the folder exists.
-    create_folder(OUTPUT_FILE_NAME.parent, parents=True)
+    create_folder(TERMINAL_CAPTURE_FILE.parent, parents=True)
 
     # Initialize the file
-    write_file("", OUTPUT_FILE_NAME)
+    write_file("", TERMINAL_CAPTURE_FILE)
 
     columns, lines = shutil.get_terminal_size()
     logger.debug(
@@ -115,11 +115,16 @@ def start_capturing() -> None:
         lines,
     )
 
-    with OUTPUT_FILE_NAME.open(mode="ab") as handler:
-        recorder = TerminalRecorder(handler, struct.pack("HHHH", lines, columns, 0, 0))
+    try:
+        with TERMINAL_CAPTURE_FILE.open(mode="ab") as handler:
+            recorder = TerminalRecorder(
+                handler, struct.pack("HHHH", lines, columns, 0, 0)
+            )
 
-        # Instantiate the TerminalRecorder and spawn a new shell with pty.
-        pty.spawn([shell], recorder.read)
+            # Instantiate the TerminalRecorder and spawn a new shell with pty.
+            pty.spawn([shell], recorder.read)
 
-        # Write the final json block if it exists.
-        recorder.write_json_block()
+            # Write the final json block if it exists.
+            recorder.write_json_block()
+    finally:
+        TERMINAL_CAPTURE_FILE.unlink(missing_ok=True)
