@@ -669,3 +669,30 @@ def test_chat_command_with_invalid_args(default_namespace):
 
     # TODO(r0x0d): Fix this later. It should exit with 1 and give the help message.
     assert result == 0  # Command should fail
+
+
+@pytest.mark.parametrize(
+    ("args", "expected"),
+    (
+        (
+            {"query_string": "", "stdin": "", "with_output": ""},
+            "Your query needs to have at least 2 characters. Either query or stdin are empty.",
+        ),
+        (
+            {"query_string": "a", "stdin": "", "with_output": ""},
+            "Your query needs to have at least 2 characters.",
+        ),
+        (
+            {"query_string": "", "stdin": "a", "with_output": ""},
+            "Your stdin input needs to have at least 2 characters.",
+        ),
+        (
+            {"query_string": "aa", "stdin": "", "with_output": 1},
+            "Adding context from terminal output is only allowed if terminal capture is active.",
+        ),
+    ),
+)
+def test_validate_query(args, expected, default_kwargs):
+    default_kwargs["args"] = Namespace(**args)
+    with pytest.raises(ChatCommandException, match=expected):
+        SingleQuestionOperation(**default_kwargs).execute()
