@@ -27,8 +27,9 @@ CODE_BLOCK_MARKER = "```"
 SECTION_WIDTH: int = 16
 
 # Color decorators for terminal output
-HIGHLIGHT_DEFAULT_COLOR: ColorDecorator = ColorDecorator(foreground="lightblue")
-LLM_RESPONSE_COLOR: ColorDecorator = ColorDecorator(foreground="red")
+CODEBLOCK_HIGHLIGHT_COLOR: ColorDecorator = ColorDecorator(foreground="lightcyan")
+LLM_RESPONSE_COLOR: ColorDecorator = ColorDecorator(foreground="white")
+HEADER_HIGHLIGHT_COLOR: ColorDecorator = ColorDecorator(foreground="lightblack")
 
 
 @dataclass
@@ -91,8 +92,8 @@ class MarkdownRenderer(BaseRenderer):
             str: Formatted section header
         """
         if language:
-            title = f"{HIGHLIGHT_DEFAULT_COLOR.decorate(f'[{language}]')} {title}"
-        return f"{title} {'─' * SECTION_WIDTH}"
+            title = f"'[{language}]' {title}"
+        return HEADER_HIGHLIGHT_COLOR.decorate(f"{title} {'─' * SECTION_WIDTH}")
 
     def _process_inline_formatting(self, text: str) -> str:
         """Process inline markdown formatting (bold, italic, code, links).
@@ -114,11 +115,11 @@ class MarkdownRenderer(BaseRenderer):
             ),
             (
                 INLINE_CODE_REGEX,
-                lambda m: f"{HIGHLIGHT_DEFAULT_COLOR.decorate(m.group(1))}{LLM_RESPONSE_COLOR.start()}",
+                lambda m: f"{CODEBLOCK_HIGHLIGHT_COLOR.decorate(m.group(1))}{LLM_RESPONSE_COLOR.start()}",
             ),
             (
                 HANDLE_LINKS_REGEX,
-                lambda m: f"{m.group(1)} ({HIGHLIGHT_DEFAULT_COLOR.decorate(m.group(2))}){LLM_RESPONSE_COLOR.start()}",
+                lambda m: f"{m.group(1)} ({CODEBLOCK_HIGHLIGHT_COLOR.decorate(m.group(2))}){LLM_RESPONSE_COLOR.start()}",
             ),
         ]
 
@@ -141,8 +142,8 @@ class MarkdownRenderer(BaseRenderer):
         header = self._format_section_header(title, language)
         content = content.strip().lstrip("$").lstrip()
         bottom_width = SECTION_WIDTH + len(title) + 1
-        bottom = f"{'─' * bottom_width}"
-        return f"\n{header}\n{HIGHLIGHT_DEFAULT_COLOR.decorate(content)}\n{bottom}\n"
+        bottom = HEADER_HIGHLIGHT_COLOR.decorate(f"{'─' * bottom_width}")
+        return f"\n{header}\n{CODEBLOCK_HIGHLIGHT_COLOR.decorate(content)}\n{bottom}\n"
 
     def _process_references(self, line: str) -> str:
         """Process reference section formatting.
