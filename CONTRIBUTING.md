@@ -51,14 +51,8 @@ requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-reque
 
 ### Setting up the environment
 
-The commands below will create a python3 virtual environment with all the
-necessary dependencies installed. This is done via
-[poetry](https://python-poetry.org/docs/). If you don't have `poetry`
-installed, the command below will take care of it for you.
-
 Required packages:
 - Python 3.9 or greater
-- pip
 
 Before installing the dependencies with `poetry`, install the necessary
 development packages. This is required for running `clad`, and installing the
@@ -68,41 +62,13 @@ rest of the dependencies.
 sudo dnf install 'pkgconfig(cairo)' 'pkgconfig(cairo-gobject)' 'pkgconfig(gobject-introspection-1.0)' 'pkgconfig(mariadb)' /usr/bin/pg_config
 ```
 
-The following will install the python dependencies:
+The commands below will create a python3 virtual environment with all the
+necessary dependencies installed. This is done via
+[poetry](https://python-poetry.org/docs/). If you don't have `poetry`
+installed, the command below will take care of it for you.
 
 ```sh
 make install
-```
-
-### Update config to your needs
-
-The project root contains a [basic configuration](./config.toml) file that
-captures a set of options for Command Line Assistant. You can use it the way it
-is, or, if needed, can update to your needs.
-
-```toml
-[output]
-# otherwise recording via script session will be enforced
-enforce_script = false
-# file with output(s) of regular commands (e.g. ls, echo, etc.)
-file = "/tmp/command-line-assistant_output.txt"
-# Keep non-empty if your file contains only output of commands (not prompt itself)
-prompt_separator = "$"
-
-[history]
-enabled = true
-file = "~/.local/share/command-line-assistant/command-line-assistant_history.json"
-
-[backend]
-endpoint = "http://localhost:8080"
-
-[backend.auth]
-cert_file = "data/development/certificate/fake-certificate.pem"
-key_file = "data/development/certificate/fake-key.pem"
-verify_ssl = false
-
-[logging]
-level = "DEBUG"
 ```
 
 ### Asking questions through Command Line Assistant
@@ -115,51 +81,6 @@ c "How to uninstall RHEL?"
 echo "How to uninstall RHEL?" | c
 echo "How to uninstall RHEL?" | c "Text that will be appended to the stdin"
 
-# Usage of caret '^'
-# Takes last command output as query context (must be available from output_file value in config)
-c "How to uninstall RHEL? ^"
-#
-# The query then is in following format:
-# 2024-09-11 14:27:01,667 - INFO - Query:
-# Context data: context text from file specified in config
-# Question: How to uninstall RHEL?
+# For more example usages, check out our man page
+man c
 ```
-
-### How to capture cmd output for usage of `^`
-
-1. Use `script` tool and it's session
-2. Use `tee` command to simply save output of command to some file
-3. Use `tmux` workaround below
-
-#### `tmux` workaround to capture output of every command
-
-Please note that this is up to the user to decide if this is the best way to capture output of every command including
-potential sensitive data.
-
-Install `tmux` and put the following code in your `~/.bashrc`. It will invoke `tmux`, capturing the output of the
-previous command and store it in a temporary file for `Command Line Assistant` to use. (Desclaimer: I didn't test it with other shells
-other than `bash`.)
-
-``` bash
-# Set the PROMPT_COMMAND to capture the output after each command
-SHELL_OUTPUT="$/tmp/command-line-assistant_output.tmp"
-SHELL_OUTPUT_CLEANED="/tmp/command-line-assistant/command-line-assistant_output_cleaned.tmp"
-# Function to capture the pane's output
-function capture_pane_output() {
-    tmux capture-pane -p > "$SHELL_OUTPUT"
-    grep -v '^$' ${SHELL_OUTPUT} > ${SHELL_OUTPUT_CLEANED}
-    rm -f ${SHELL_OUTPUT}
-}
-PROMPT_COMMAND="capture_pane_output"
-```
-
-If you get `ImportError: urllib3 v2.0 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with LibreSSL
-2.8.3`, try this:
-
-```sh
-pip uninstall urllib3
-pip install 'urllib3<2.0'
-```
-
-All temporary files created during the usage (context, code blocks, command call output, captured shell output) are
-stored in `/tmp/command-line-assistant/*`
