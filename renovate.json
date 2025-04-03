@@ -6,8 +6,13 @@
   "poetry": {
     "enabled": true,
     "schedule": [
-        "after 5am"
+      "after 5am"
+    ],
+    "labels": [
+      "kind/dependencies",
+      "skip/changelog",
+      "tests/skip"
     ]
-},
-"dependencyDashboard": true
+  },
+  "dependencyDashboard": true
 }
