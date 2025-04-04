@@ -1,6 +1,7 @@
 """Database module to handle SQLAlchemy connections and interactions."""
 
 import logging
+import pathlib
 from contextlib import contextmanager
 from typing import Generator
 
@@ -11,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.models.base import BaseModel
+from command_line_assistant.utils.files import create_folder
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,11 @@ class DatabaseManager:
             connection_url = self._config.database.get_connection_url()
             # SQLite-specific settings
             if self._config.database.type == "sqlite":
+                if self._config.database.connection_string is not None:
+                    create_folder(
+                        pathlib.Path(self._config.database.connection_string).parent,
+                        parents=True,
+                    )
                 return create_engine(
                     connection_url,
                     echo=echo,
