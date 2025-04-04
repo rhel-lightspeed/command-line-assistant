@@ -81,3 +81,7 @@ def initialize() -> int:
     except KeyboardInterrupt:
         error_renderer.render("Uh, oh! Keyboard interrupt detected.")
         return 1
+
+
+if __name__ == "__main__":
+    sys.exit(initialize())
