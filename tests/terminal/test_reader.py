@@ -33,7 +33,7 @@ def mock_pty_spawn():
 
 def test_start_capturing(mock_pty_spawn, monkeypatch, tmp_path):
     terminal_log = tmp_path / "terminal.log"
-    monkeypatch.setattr(reader, "OUTPUT_FILE_NAME", terminal_log)
+    monkeypatch.setattr(reader, "TERMINAL_CAPTURE_FILE", terminal_log)
     monkeypatch.setenv("SHELL", "/usr/bin/bash")
     monkeypatch.setenv(
         "CLA_USER_SHELL_PROMPT_COMMAND",
@@ -43,8 +43,7 @@ def test_start_capturing(mock_pty_spawn, monkeypatch, tmp_path):
     start_capturing()
 
     mock_pty_spawn.assert_called_once()
-    assert terminal_log.exists()
-    assert oct(terminal_log.stat().st_mode).endswith("600")
+    assert not terminal_log.exists()
 
 
 def test_terminal_recorder_can_initialize(tmp_path, get_terminal_size_packed):

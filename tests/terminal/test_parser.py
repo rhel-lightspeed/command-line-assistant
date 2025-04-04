@@ -28,7 +28,7 @@ TERMINAL_LOG_MOCK = [
 @pytest.fixture(autouse=True)
 def mock_terminal_log(monkeypatch, tmp_path):
     terminal_log_file = tmp_path / "terminal.log"
-    monkeypatch.setattr(parser, "OUTPUT_FILE_NAME", terminal_log_file)
+    monkeypatch.setattr(parser, "TERMINAL_CAPTURE_FILE", terminal_log_file)
     with terminal_log_file.open(mode="ab") as handler:
         for block in TERMINAL_LOG_MOCK:
             handler.write(json.dumps(block).encode() + b"\n")
@@ -36,7 +36,7 @@ def mock_terminal_log(monkeypatch, tmp_path):
 
 def test_parse_terminal_output_file_not_present(monkeypatch, tmp_path):
     terminal_log_file = tmp_path / "test-file.log"
-    monkeypatch.setattr(parser, "OUTPUT_FILE_NAME", terminal_log_file)
+    monkeypatch.setattr(parser, "TERMINAL_CAPTURE_FILE", terminal_log_file)
     assert not parser.parse_terminal_output()
 
 
