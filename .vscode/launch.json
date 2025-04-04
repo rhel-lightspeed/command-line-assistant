@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "CLA",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "command_line_assistant.initialize",
+            "console": "integratedTerminal",
+            "args": "${command:pickArgs}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+            }
+        },
+        {
+            "name": "CLA(D)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "command_line_assistant.daemon.clad",
+            "console": "internalConsole",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "XDG_CONFIG_DIRS": "${workspaceFolder}/data/development/xdg"
+            }
+        }
+    ]
+}
