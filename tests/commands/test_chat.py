@@ -48,7 +48,7 @@ def default_namespace():
         name="test",
         description="test",
         with_output=1,
-        raw=False,
+        plain=False,
     )
 
 

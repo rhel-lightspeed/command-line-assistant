@@ -35,3 +35,17 @@ class TextRenderer(BaseRenderer):
         for line in lines:
             decorated_text = self._apply_decorators(line)
             self._stream.execute(decorated_text)
+
+
+class PlainTextRenderer(TextRenderer):
+    """Specialized class to render plain text output without any decorations"""
+
+    def render(self, text: str) -> None:
+        """The main function to render the text.
+
+        Arguments:
+            text (str): The textual value that will be represented in the terminal.
+        """
+        lines = text.splitlines()
+        for line in lines:
+            self._stream.execute(line)
