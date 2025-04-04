@@ -4,7 +4,7 @@ import json
 import logging
 import re
 
-from command_line_assistant.terminal.reader import OUTPUT_FILE_NAME
+from command_line_assistant.terminal.reader import TERMINAL_CAPTURE_FILE
 
 #: The compiled regex to clean the ANSI escape sequence
 ANSI_ESCAPE_SEQ = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
@@ -22,14 +22,14 @@ def parse_terminal_output() -> list[dict[str, str]]:
     """
     result = []
 
-    if not OUTPUT_FILE_NAME.exists():
+    if not TERMINAL_CAPTURE_FILE.exists():
         logger.warning(
             "Terminal output requested but couldn't find file at %s. Returning empty list.",
-            OUTPUT_FILE_NAME,
+            TERMINAL_CAPTURE_FILE,
         )
         return result
 
-    with OUTPUT_FILE_NAME.open(mode="r") as handler:
+    with TERMINAL_CAPTURE_FILE.open(mode="r") as handler:
         for block in handler:
             # Parse the JSON
             try:

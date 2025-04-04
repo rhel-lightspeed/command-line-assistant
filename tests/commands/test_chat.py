@@ -47,7 +47,7 @@ def default_namespace():
         delete_all=False,
         name="test",
         description="test",
-        with_output=1,
+        with_output=None,
         raw=False,
     )
 
@@ -96,11 +96,6 @@ def test_chat_command_run_single_question(
         "expected",
     ),
     (
-        (
-            "",
-            "",
-            "Your query needs to have at least 2 characters. Either query or stdin are\nempty.",
-        ),
         ("h", "", "Your query needs to have at least 2 characters."),
         ("", "h", "Your stdin input needs to have at least 2 characters."),
         ("h", "h", "Your query needs to have at least 2 characters."),
@@ -476,7 +471,7 @@ def test_single_question_operation_with_exception(
     default_namespace.query_string = "test"
     default_kwargs["args"] = default_namespace
     monkeypatch.setattr(
-        chat, "_read_last_terminal_output", mock.Mock(side_effect=ValueError("test"))
+        chat, "_parse_attachment_file", mock.Mock(side_effect=ValueError("test"))
     )
     with pytest.raises(
         ChatCommandException, match="Failed to get a response from LLM. test"
@@ -669,3 +664,30 @@ def test_chat_command_with_invalid_args(default_namespace):
 
     # TODO(r0x0d): Fix this later. It should exit with 1 and give the help message.
     assert result == 0  # Command should fail
+
+
+@pytest.mark.parametrize(
+    ("args", "expected"),
+    (
+        (
+            {"query_string": "", "stdin": "", "with_output": ""},
+            "Your query needs to have at least 2 characters. Either query or stdin are empty.",
+        ),
+        (
+            {"query_string": "a", "stdin": "", "with_output": ""},
+            "Your query needs to have at least 2 characters.",
+        ),
+        (
+            {"query_string": "", "stdin": "a", "with_output": ""},
+            "Your stdin input needs to have at least 2 characters.",
+        ),
+        (
+            {"query_string": "aa", "stdin": "", "with_output": 1},
+            "Adding context from terminal output is only allowed if terminal capture is active.",
+        ),
+    ),
+)
+def test_validate_query(args, expected, default_kwargs):
+    default_kwargs["args"] = Namespace(**args)
+    with pytest.raises(ChatCommandException, match=expected):
+        SingleQuestionOperation(**default_kwargs).execute()
