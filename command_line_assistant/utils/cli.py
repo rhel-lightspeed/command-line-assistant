@@ -155,7 +155,8 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
         "-p",
         "--plain",
         action="store_true",
-        help="Enable plain output. This will disable colors, animations, and other rich content.",
+        help=argparse.SUPPRESS,
+        default=True,
     )
     commands_parser = parser.add_subparsers(dest="command")
     return parser, commands_parser
