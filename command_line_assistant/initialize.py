@@ -1,7 +1,6 @@
 """Main module for the cli."""
 
 import logging
-import os
 import sys
 from argparse import ArgumentParser, Namespace
 
@@ -48,8 +47,6 @@ def initialize() -> int:
     parser = register_subcommands()
     error_renderer = create_error_renderer()
     warning_renderer = create_warning_renderer()
-
-    os.environ["NO_COLOR"] = "1"
 
     try:
         stdin = read_stdin()
