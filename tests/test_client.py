@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 from dasbus.error import DBusError
 
-from command_line_assistant.client import initialize
+from command_line_assistant.client import main
 from command_line_assistant.commands.base import BaseCLICommand
 from command_line_assistant.constants import VERSION
 
@@ -20,7 +20,7 @@ def test_initialize_with_no_args(capsys):
         patch("sys.argv", ["c"]),
         patch("command_line_assistant.client.read_stdin", lambda: None),
     ):
-        result = initialize()
+        result = main()
         captured = capsys.readouterr()
 
         assert result == 1
@@ -50,7 +50,7 @@ def test_initialize_with_query_command(argv, stdin):
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
-        result = initialize()
+        result = main()
 
         assert result == 1
         mock_command.assert_called_once()
@@ -68,7 +68,7 @@ def test_initialize_with_history_command():
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
-        result = initialize()
+        result = main()
 
         assert result == 1
         mock_command.assert_called_once()
@@ -87,7 +87,7 @@ def test_initialize_with_shell_command():
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
-        result = initialize()
+        result = main()
 
         assert result == 1
         mock_command.assert_called_once()
@@ -100,7 +100,7 @@ def test_initialize_with_version(capsys):
         patch("command_line_assistant.client.read_stdin", lambda: None),
     ):
         with pytest.raises(SystemExit):
-            initialize()
+            main()
 
         captured = capsys.readouterr()
         assert VERSION in captured.out
@@ -113,7 +113,7 @@ def test_initialize_with_help(capsys):
         patch("command_line_assistant.client.read_stdin", lambda: None),
     ):
         with pytest.raises(SystemExit):
-            initialize()
+            main()
 
         captured = capsys.readouterr()
         assert "usage:" in captured.out
@@ -122,7 +122,7 @@ def test_initialize_with_help(capsys):
 def test_initialize_bad_stdin(capsys):
     with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = ValueError("Binary input are not supported.")
-        initialize()
+        main()
 
     captured = capsys.readouterr()
     assert "\x1b[31m🙁 Binary input are not supported.\x1b[0m\n" in captured.err
@@ -131,7 +131,7 @@ def test_initialize_bad_stdin(capsys):
 def test_initialize_keyboard_interrupt(capsys):
     with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = KeyboardInterrupt("Interrupted")
-        initialize()
+        main()
 
     captured = capsys.readouterr()
     assert "\x1b[31m🙁 Uh, oh! Keyboard interrupt detected.\x1b[0m\n" in captured.err
@@ -164,7 +164,7 @@ def test_initialize_command_selection(argv, expected_command):
         mock_parse.return_value.func = mock_command
         mock_parse.return_value.command = expected_command
 
-        result = initialize()
+        result = main()
 
         assert result == 1
         mock_command.assert_called_once()
@@ -180,7 +180,7 @@ def test_initialize_command_selection(argv, expected_command):
 def test_exception_initialization_error(exception, expected, capsys):
     with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = exception(expected)
-        initialize()
+        main()
 
     captured = capsys.readouterr()
     assert expected in captured.err

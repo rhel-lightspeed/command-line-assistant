@@ -38,7 +38,7 @@ def register_subcommands() -> ArgumentParser:
 logger = logging.getLogger(__name__)
 
 
-def initialize() -> int:
+def main() -> int:
     """Main function for the cli entrypoint
 
     Returns:
@@ -84,4 +84,4 @@ def initialize() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(initialize())
+    sys.exit(main())
