@@ -1,6 +1,7 @@
 """Main module for the cli."""
 
 import logging
+import os
 import sys
 from argparse import ArgumentParser, Namespace
 
@@ -58,7 +59,7 @@ def main() -> int:
         args = parser.parse_args(args, namespace=namespace)
         if not hasattr(args, "func"):
             parser.print_help()
-            return 1
+            return os.EX_USAGE
 
         # In case the uder specify the --debug, we will enable the logging here.
         if args.debug:
@@ -66,9 +67,12 @@ def main() -> int:
 
         service = args.func(args)
         return service.run()
-    except (ValueError, DBusError) as e:
+    except ValueError as e:
         error_renderer.render(str(e))
-        return 1
+        return os.EX_DATAERR
+    except DBusError as e:
+        error_renderer.render(str(e))
+        return os.EX_UNAVAILABLE
     except RuntimeError as e:
         logger.debug(str(e))
         error_renderer.render(
@@ -77,10 +81,10 @@ def main() -> int:
         warning_renderer.render(
             "Try submitting your request one more time or contact an administrator."
         )
-        return 1
+        return os.EX_SOFTWARE
     except KeyboardInterrupt:
-        error_renderer.render("Uh, oh! Keyboard interrupt detected.")
-        return 1
+        error_renderer.render("Keyboard interrupt detected. Exiting...")
+        return os.EX_OK
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ def test_initialize_with_no_args(capsys):
         result = main()
         captured = capsys.readouterr()
 
-        assert result == 1
+        assert result == 64  # os.EX_USAGE
         assert "usage:" in captured.out
 
 
@@ -134,7 +134,7 @@ def test_initialize_keyboard_interrupt(capsys):
         main()
 
     captured = capsys.readouterr()
-    assert "\x1b[31m🙁 Uh, oh! Keyboard interrupt detected.\x1b[0m\n" in captured.err
+    assert "\x1b[31m🙁 Keyboard interrupt detected. Exiting...\x1b[0m\n" in captured.err
 
 
 @pytest.mark.parametrize(

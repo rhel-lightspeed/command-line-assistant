@@ -450,6 +450,39 @@ To quit the capture, just press \fBCtrl + D\fP
 .UNINDENT
 .UNINDENT
 .UNINDENT
+.SH EXIT STATUS
+.INDENT 0.0
+.TP
+.B 0
+success
+.TP
+.B 1
+general failure
+.TP
+.B 64
+incorrect usage
+.TP
+.B 65
+incorrect input data
+.TP
+.B 69
+a required service was unavailable
+.TP
+.B 70
+an internal software error
+.TP
+.B 80
+an error occurred in the chat command
+.TP
+.B 81
+an error occurred in the shell command
+.TP
+.B 82
+an error ocurred in the history command
+.TP
+.B 83
+an error occurred in the feedback command
+.UNINDENT
 .SH NOTES
 .sp
 In the above examples, we mention that one particular use case where redirected

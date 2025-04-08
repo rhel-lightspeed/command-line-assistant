@@ -187,7 +187,7 @@ class ShellCommand(BaseCLICommand):
         except ShellCommandException as e:
             logger.info("Failed to execute shell command: %s", str(e))
             error_renderer.render(str(e))
-            return 1
+            return e.code
 
 
 def register_subcommand(parser: SubParsersAction):

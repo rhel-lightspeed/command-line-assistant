@@ -20,9 +20,7 @@ from command_line_assistant.dbus.exceptions import (
 )
 from command_line_assistant.dbus.structures.chat import ChatList
 from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
-from command_line_assistant.exceptions import (
-    HistoryCommandException,
-)
+from command_line_assistant.exceptions import HistoryCommandException
 from command_line_assistant.utils.renderers import create_text_renderer
 
 
@@ -241,7 +239,7 @@ def test_history_run_exceptions(exception, expected_msg, mock_dbus_service, caps
     result = HistoryCommand(args).run()
 
     captured = capsys.readouterr()
-    assert result == 1
+    assert result == 82
     assert expected_msg in captured.err
 
 

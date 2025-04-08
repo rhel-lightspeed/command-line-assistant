@@ -354,8 +354,9 @@ class HistoryCommand(BaseCLICommand):
                 operation.execute()
             return 0
         except HistoryCommandException as e:
+            logger.info("Failed to execute history command: %s", str(e))
             error_renderer.render(str(e))
-            return 1
+            return e.code
 
 
 def register_subcommand(parser: SubParsersAction):

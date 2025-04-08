@@ -147,6 +147,39 @@ Examples
 
     To quit the capture, just press `Ctrl + D`
 
+Exit Status
+-----------
+
+0
+    success
+
+1
+    general failure
+
+64
+    incorrect usage
+
+65
+    incorrect input data
+
+69
+    a required service was unavailable
+
+70
+    an internal software error
+
+80
+    an error occurred in the chat command
+
+81
+    an error occurred in the shell command
+
+82
+    an error ocurred in the history command
+
+83
+    an error occurred in the feedback command
+
 Notes
 -----
 
