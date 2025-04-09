@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   generate:
-    name: Generate cross-platform builds
+    name: Generate  builds
     runs-on: ubuntu-latest
     steps:
       - uses: olegtarasov/get-tag@v2.1
@@ -22,14 +22,17 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
+      - name: Install dependencies
+        run: |
+          # TODO(r0x0d): Refactor this https://issues.redhat.com/browse/RSPEED-339
+          sudo apt update -y
+          sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
+          make install
 
       - name: Generate distribution tarball
         run: |
-          mkdir dist && make distribution-tarball
-          sudo mv *.tar.gz dist/
+          VENV_PATH=$(poetry env info --path)
+          make distribution-tarball SPHINXBUILD=$VENV_PATH/bin/sphinx-build
         env:
           VERSION: '${{ steps.tagName.outputs.tag }}'
 
