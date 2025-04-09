@@ -88,7 +88,7 @@ class LocalHistory(BaseHistoryPlugin):
         try:
             chat_instance = self._chat_repository.select_by_name(user_id, from_chat)
             if not chat_instance:
-                return
+                return None
             return self._history_repository.select_by_chat_id(chat_instance[0].id)
         except Exception as e:
             logger.error("Failed to read from database: %s", e)

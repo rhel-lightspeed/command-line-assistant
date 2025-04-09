@@ -68,8 +68,10 @@ def get_xdg_config_path() -> Path:
 
     Ref: https://specifications.freedesktop.org/basedir-spec/latest/
     """
-    xdg_config_dirs = os.getenv("XDG_CONFIG_DIRS", "")
-    xdg_config_dirs = xdg_config_dirs.split(os.pathsep) if xdg_config_dirs else []
+    xdg_config_dirs_env: str = os.getenv("XDG_CONFIG_DIRS", "")
+    xdg_config_dirs: list[str] = (
+        xdg_config_dirs_env.split(os.pathsep) if xdg_config_dirs_env else []
+    )
 
     # In case XDG_CONFIG_DIRS is not set yet, we return the path we want.
     if not xdg_config_dirs:

@@ -1,13 +1,13 @@
+import sys
+
 import pytest
 
 from command_line_assistant import config
 
-# tomllib is available in the stdlib after Python3.11. Before that, we import
-# from tomli.
-try:
-    import tomllib  # pyright: ignore[reportMissingImports]
-except ImportError:
-    import tomli as tomllib  # pyright: ignore[reportMissingImports]
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 
 @pytest.fixture

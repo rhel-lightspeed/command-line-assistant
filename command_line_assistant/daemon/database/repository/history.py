@@ -17,7 +17,9 @@ from command_line_assistant.daemon.database.repository.base import BaseRepositor
 class HistoryRepository(BaseRepository):
     """Class that implements the history repository methods."""
 
-    def __init__(self, manager: DatabaseManager, model: HistoryModel = HistoryModel):
+    def __init__(
+        self, manager: DatabaseManager, model: type[HistoryModel] = HistoryModel
+    ):
         """Default constructor for history repository.
 
         Arguments:
@@ -87,7 +89,7 @@ class InteractionRepository(BaseRepository):
     """Class that implements the interaction repository methods."""
 
     def __init__(
-        self, manager: DatabaseManager, model: InteractionModel = InteractionModel
+        self, manager: DatabaseManager, model: type[InteractionModel] = InteractionModel
     ):
         """Default constructor for interaction repository.
 

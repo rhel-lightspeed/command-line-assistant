@@ -220,7 +220,7 @@ def _setup_logging(logging_level: str, handlers: list[str]) -> None:
         logging_level (str): The mininaml level to enable
         handlers (list[str]): A list of handlers to add to the root loger.
     """
-    logging_configuration = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
+    logging_configuration: dict = copy.deepcopy(LOGGING_CONFIG_DICTIONARY)
     logging_configuration["level"] = logging_level
     logging_configuration["loggers"]["root"]["level"] = logging_level
     logging_configuration["loggers"]["root"]["handlers"].extend(handlers)
