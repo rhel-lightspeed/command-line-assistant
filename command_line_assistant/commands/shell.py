@@ -149,7 +149,7 @@ class EnableTerminalCapture(BaseShellOperation):
 
         if file_lock.is_locked:
             raise ShellCommandException(
-                "Another instance of terminal capture is already running."
+                "Terminal capture is already enabled. Press Ctrl + D to stop capturing."
             )
 
         with file_lock:

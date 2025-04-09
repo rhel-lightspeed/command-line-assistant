@@ -114,11 +114,11 @@ class NamedFileLock:
         # Lock is automatically released
     """
 
-    def __init__(self, name: str = "lock"):
+    def __init__(self, name: str):
         """Initialize the named file lock mechanism."""
         self._pid = os.getpid()
         self._name = name
-        self._lock_file = Path(get_xdg_state_path(), name + ".pid")
+        self._lock_file = Path(get_xdg_state_path(), name + ".lock")
 
     @property
     def is_locked(self) -> bool:
