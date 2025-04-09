@@ -126,7 +126,7 @@ html-docs: ## Build html docs
 	$(MAKE) -C docs html
 
 distribution-tarball: clean ## Generate distribution tarball
-	mkdir dist 
+	mkdir dist
 	tar --create \
 		--gzip \
 		--file /tmp/$(PKGNAME)-$(VERSION).tar.gz \
