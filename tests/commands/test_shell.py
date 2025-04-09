@@ -14,6 +14,7 @@ from command_line_assistant.commands.shell import (
     register_subcommand,
 )
 from command_line_assistant.exceptions import ShellCommandException
+from command_line_assistant.utils.files import NamedFileLock
 from command_line_assistant.utils.renderers import create_text_renderer
 
 
@@ -193,6 +194,19 @@ def test_enable_terminal_capture(monkeypatch, default_kwargs, capsys):
         "Starting terminal reader. Press Ctrl + D to stop the capturing."
         in captured.out
     )
+
+
+def test_enable_terminal_capture_twice(monkeypatch, default_kwargs):
+    default_kwargs["text_renderer"] = create_text_renderer()
+    monkeypatch.setattr(shell, "start_capturing", mock.Mock())
+    with (
+        NamedFileLock(name="terminal"),
+        pytest.raises(
+            ShellCommandException,
+            match="Another instance of terminal capture is already running.",
+        ),
+    ):
+        EnableTerminalCapture(**default_kwargs).execute()
 
 
 def test_enable_terminal_capture_execution(default_kwargs, monkeypatch):

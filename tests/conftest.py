@@ -14,6 +14,7 @@ from command_line_assistant.config.schemas.logging import LoggingSchema
 from command_line_assistant.dbus import constants as dbus_constants
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
+from command_line_assistant.utils import files
 from command_line_assistant.utils.cli import CommandContext
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
@@ -21,6 +22,12 @@ from command_line_assistant.utils.renderers import (
     create_warning_renderer,
 )
 from tests.helpers import MockStream
+
+
+@pytest.fixture(autouse=True)
+def mock_xdg_path(tmp_path, monkeypatch):
+    monkeypatch.setattr(files, "get_xdg_state_path", lambda: tmp_path)
+    return tmp_path
 
 
 @pytest.fixture

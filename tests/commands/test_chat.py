@@ -24,6 +24,7 @@ from command_line_assistant.dbus.exceptions import (
 )
 from command_line_assistant.dbus.structures.chat import ChatEntry, ChatList, Response
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
+from command_line_assistant.utils.files import NamedFileLock
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
     create_text_renderer,
@@ -421,6 +422,20 @@ def test_interactive_mode_empty_question(default_namespace, default_kwargs, caps
 
         captured = capsys.readouterr()
         assert "Your question can't be empty" in captured.err
+
+
+def test_interactive_chat_while_in_terminal_capture(default_namespace, default_kwargs):
+    default_kwargs["args"] = default_namespace
+    default_kwargs["error_renderer"] = create_error_renderer()
+    with (
+        NamedFileLock(name="terminal"),
+        pytest.raises(
+            ChatCommandException,
+            match="Interactive chat mode is not available while terminal capture is active.",
+        ),
+    ):
+        interactive_operation = InteractiveChatOperation(**default_kwargs)
+        interactive_operation.execute()
 
 
 @pytest.mark.parametrize(
