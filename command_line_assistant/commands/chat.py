@@ -47,7 +47,7 @@ from command_line_assistant.utils.cli import (
     CommandContext,
     SubParsersAction,
 )
-from command_line_assistant.utils.files import guess_mimetype
+from command_line_assistant.utils.files import NamedFileLock, guess_mimetype
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
     create_interactive_renderer,
@@ -502,6 +502,14 @@ class InteractiveChatOperation(BaseChatOperation):
 
     def execute(self) -> None:
         """Default method to execute the operation"""
+
+        terminal_file_lock = NamedFileLock(name="terminal")
+
+        if terminal_file_lock.is_locked:
+            raise ChatCommandException(
+                "Interactive chat mode is not available while terminal capture is active."
+            )
+
         try:
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             chat_id = self._create_chat_session(

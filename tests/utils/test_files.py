@@ -1,8 +1,15 @@
+import os
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
-from command_line_assistant.utils.files import create_folder, guess_mimetype, write_file
+from command_line_assistant.utils.files import (
+    NamedFileLock,
+    create_folder,
+    guess_mimetype,
+    write_file,
+)
 
 
 def test_guess_mimetype():
@@ -94,3 +101,86 @@ def test_write_file_permission_error(tmp_path, monkeypatch):
     # Should log error and continue without raising exception
     with pytest.raises(PermissionError):
         write_file("test content", test_file)
+
+
+class TestNamedFileLock:
+    def test_acquire(self, mock_xdg_path):
+        lock = NamedFileLock(name="test")
+        lock.acquire()
+
+        expected_pid = os.getpid()
+        expected_path = Path(mock_xdg_path, "test.pid")
+        assert os.path.exists(expected_path)
+        assert int(expected_path.read_text()) == expected_pid
+
+    def test_acquire_as_context_manager(self, mock_xdg_path):
+        with NamedFileLock(name="test"):
+            expected_pid = os.getpid()
+            expected_path = Path(mock_xdg_path, "test.pid")
+            assert os.path.exists(expected_path)
+            assert int(expected_path.read_text()) == expected_pid
+
+        # After we leave the context manager, the file should be gone.
+        assert not os.path.exists(expected_path)
+
+    def test_acquire_multiple_locks(self, mock_xdg_path):
+        lock_names = ["test", "terminal", "files", "star-trek"]
+
+        for lock_name in lock_names:
+            lock = NamedFileLock(name=lock_name)
+            lock.acquire()
+
+        expected_pid = os.getpid()
+
+        assert len(os.listdir(mock_xdg_path)) == len(lock_names)
+
+        for lock_name in lock_names:
+            expected_path = Path(mock_xdg_path, f"{lock_name}.pid")
+            assert os.path.exists(expected_path)
+            assert int(expected_path.read_text()) == expected_pid
+
+    def test_acquire_twice_same_lock(self, mock_xdg_path):
+        lock = NamedFileLock(name="test")
+        lock.acquire()
+
+        expected_pid = os.getpid()
+        expected_path = Path(mock_xdg_path, "test.pid")
+        assert os.path.exists(expected_path)
+        assert int(expected_path.read_text()) == expected_pid
+
+        with pytest.raises(
+            RuntimeError,
+            match="A lock is already active in another process. "
+            "Please, remove the lock before trying to acquire again.",
+        ):
+            lock.acquire()
+
+    def test_is_locked_success(self, mock_xdg_path):
+        lock = NamedFileLock(name="test")
+        lock.acquire()
+
+        expected_path = Path(mock_xdg_path, "test.pid")
+        assert os.path.exists(expected_path)
+        assert lock.is_locked
+
+    def test_is_locked_file_not_exist(self):
+        lock = NamedFileLock(name="test")
+        assert not lock.is_locked
+
+    def test_is_locked_exception(self, mock_xdg_path, monkeypatch):
+        monkeypatch.setattr(os, "kill", mock.Mock(side_effect=ValueError("oh no.")))
+
+        lock = NamedFileLock(name="test")
+        lock.acquire()
+
+        expected_path = Path(mock_xdg_path, "test.pid")
+        assert not lock.is_locked
+        assert not os.path.exists(expected_path)
+
+    def test_release_lock(self, mock_xdg_path):
+        lock = NamedFileLock(name="test")
+        lock.acquire()
+        lock.release()
+
+        expected_path = Path(mock_xdg_path, "test.pid")
+        assert not os.path.exists(expected_path)

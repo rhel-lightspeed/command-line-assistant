@@ -25,7 +25,7 @@ from command_line_assistant.utils.cli import (
     SubParsersAction,
     create_subparser,
 )
-from command_line_assistant.utils.files import create_folder, write_file
+from command_line_assistant.utils.files import NamedFileLock, create_folder, write_file
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
 )
@@ -145,14 +145,22 @@ class EnableTerminalCapture(BaseShellOperation):
 
     def execute(self) -> None:
         """Default method to execute the operation"""
-        self.text_renderer.render(
-            "Starting terminal reader. Press Ctrl + D to stop the capturing."
-        )
-        self.text_renderer.render(
-            f"Terminal capture log is being written to {TERMINAL_CAPTURE_FILE}"
-        )
-        self._initialize_bash_folder()
-        start_capturing()
+        file_lock = NamedFileLock(name="terminal")
+
+        if file_lock.is_locked:
+            raise ShellCommandException(
+                "Another instance of terminal capture is already running."
+            )
+
+        with file_lock:
+            self.text_renderer.render(
+                "Starting terminal reader. Press Ctrl + D to stop the capturing."
+            )
+            self.text_renderer.render(
+                f"Terminal capture log is being written to {TERMINAL_CAPTURE_FILE}"
+            )
+            self._initialize_bash_folder()
+            start_capturing()
 
 
 class ShellCommand(BaseCLICommand):

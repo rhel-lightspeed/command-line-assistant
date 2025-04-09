@@ -1,10 +1,17 @@
 """Utilitary module to handle file operations"""
 
+import errno
+import fcntl
 import logging
 import mimetypes
+import os
+import stat
+import tempfile
 from io import TextIOWrapper
 from pathlib import Path
 from typing import Optional, Union
+
+from command_line_assistant.utils.environment import get_xdg_state_path
 
 logger = logging.getLogger(__name__)
 
@@ -93,3 +100,94 @@ def write_file(contents: Union[str, bytes], path: Path, mode: int = 0o600) -> No
             path,
             str(e),
         )
+
+
+class NamedFileLock:
+    """File-based lock mechanism for general locking purposes.
+
+    This class provides a way to track state across processes
+    using a lock file. The lock file contains the PID of the capturing process.
+
+    Usage:
+        with NamedFileLock() as lock:
+            # Execute your operations
+        # Lock is automatically released
+    """
+
+    def __init__(self, name: str = "lock"):
+        """Initialize the named file lock mechanism."""
+        self._pid = os.getpid()
+        self._name = name
+        self._lock_file = Path(get_xdg_state_path(), name + ".pid")
+
+    @property
+    def is_locked(self) -> bool:
+        """Check if a lock is currently active.
+
+        This checks if the lock file exists and if the PID in it is still running.
+
+        Returns:
+            bool: True if a lock is active, False otherwise
+        """
+        if not self._lock_file.exists():
+            return False
+
+        try:
+            pid = int(self._lock_file.read_text().strip())
+            # Check if process is still running
+            os.kill(pid, 0)
+            return True
+        except (ValueError, OSError, FileNotFoundError):
+            # Clean up stale lock file
+            self._lock_file.unlink(missing_ok=True)
+            return False
+
+    def acquire(self) -> None:
+        """Acquire the lock.
+
+        Raises:
+            RuntimeError: If a lock is already active
+        """
+        if self.is_locked:
+            raise RuntimeError(
+                "A lock is already active in another process. "
+                "Please, remove the lock before trying to acquire again."
+            )
+
+        create_folder(self._lock_file.parent, parents=True)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".pid", prefix=self._name, dir=self._lock_file.parent
+        ) as handler:
+            # Write current process ID
+            handler.write(str(os.getpid()))
+            handler.flush()
+
+            # stat.S_IRUSR = Owner has read permission
+            # stat.S_IWUSR = Owner has write permission
+            os.chmod(handler.name, stat.S_IRUSR | stat.S_IWUSR)
+            # Use fcntl for file locking
+            fcntl.flock(handler.file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+            try:
+                os.link(handler.name, self._lock_file)
+            except FileExistsError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+
+    def release(self) -> None:
+        """Release the terminal lock."""
+        self._lock_file.unlink(missing_ok=True)
+
+    def __enter__(self) -> "NamedFileLock":
+        """Context manager entry.
+
+        Returns:
+            NamedFileLock: Instance of itself
+        """
+        self.acquire()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Context manager exit."""
+        self.release()
