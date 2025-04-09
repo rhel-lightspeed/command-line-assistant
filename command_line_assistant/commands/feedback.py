@@ -12,17 +12,10 @@ from command_line_assistant.commands.base import (
     CommandOperationFactory,
     CommandOperationType,
 )
-from command_line_assistant.exceptions import (
-    FeedbackCommandException,
-)
+from command_line_assistant.exceptions import FeedbackCommandException
 from command_line_assistant.rendering.renders.text import TextRenderer
-from command_line_assistant.utils.cli import (
-    SubParsersAction,
-    create_subparser,
-)
-from command_line_assistant.utils.renderers import (
-    create_error_renderer,
-)
+from command_line_assistant.utils.cli import SubParsersAction, create_subparser
+from command_line_assistant.utils.renderers import create_error_renderer
 
 WARNING_MESSAGE = "Do not include any personal information or other sensitive information in your feedback. Feedback may be used to improve Red Hat's products or services."
 
@@ -69,7 +62,9 @@ class FeedbackCommand(BaseCLICommand):
         Returns:
             int: Return the status code for the operation
         """
-        error_renderer: TextRenderer = create_error_renderer()
+        error_renderer: TextRenderer = create_error_renderer(
+            plain=hasattr(self._args, "plain") and self._args.plain
+        )
         operation_factory = FeedbackOperationFactory()
         try:
             # Get and execute the appropriate operation
