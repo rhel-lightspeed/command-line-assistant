@@ -85,6 +85,7 @@ clean: ## Clean project files
 	   .tox \
 	   junit.xml \
 	   coverage.xml \
+	   .mypy_cache \
 	   $(PKGNAME)-$(VERSION).tar.gz
 	$(MAKE) -C docs clean
 	$(MAKE) -C data/release/selinux
@@ -139,7 +140,17 @@ distribution-tarball: clean ## Generate distribution tarball
 		--exclude=scripts \
 		--exclude=docs \
 		--exclude=tests \
-		--exclude=.roproject \
+		--exclude=.ropeproject \
+		--exclude=.gitlab-ci.yml \
+		--exclude=.readthedocs.yaml \
+		--exclude=podman-compose.yaml \
+		--exclude=schemas \
+		--exclude=tox.ini \
+		--exclude=renovate.json \
+		--exclude=.pre-commit-config.yaml \
+		--exclude=.packit.yaml \
+		--exclude=sonar-project.properties \
+		--exclude=poetry.toml \
 		--transform s/^\./$(PKGNAME)-$(VERSION)/ \
 		. && mv /tmp/$(PKGNAME)-$(VERSION).tar.gz .
 

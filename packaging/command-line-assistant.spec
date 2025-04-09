@@ -16,7 +16,7 @@ Summary:        A simple wrapper to interact with RAG
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
-Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
+Source0:        %{url}/releases/download/v%{version}/%{name}-%{version}.tar.gz
 # noarch because there is no extension module for this package.
 BuildArch:      noarch
 
