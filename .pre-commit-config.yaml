@@ -1,7 +1,5 @@
 ci:
   skip:
-    # https://github.com/pre-commit-ci/issues/issues/55
-    - pyright
     # rpm library is not available in the CI
     - rpmlint
 
@@ -47,18 +45,17 @@ repos:
           - https://github.com/rhel-lightspeed/command-line-assistant.git
         stages: [manual, pre-push]
 
-  - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.398
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0  # Use the sha / tag you want to point at
     hooks:
-    - id: pyright
+    - id: mypy
       additional_dependencies:
-        - pyright[nodejs]
         - pytest
-        - requests
+        - types-requests
         - dasbus
         - setuptools
         - responses
-        - tomli; python_version<"3.11"
+        - tomli
         - setuptools
         - sqlalchemy
 

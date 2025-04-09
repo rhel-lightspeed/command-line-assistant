@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
+import sys
 from pathlib import Path
 
 from command_line_assistant.config.schemas.backend import BackendSchema
@@ -14,10 +15,11 @@ from command_line_assistant.utils.environment import get_xdg_config_path
 
 # tomllib is available in the stdlib after Python3.11. Before that, we import
 # from tomli.
-try:
-    import tomllib  # pyright: ignore[reportMissingImports]
-except ImportError:
-    import tomli as tomllib  # pyright: ignore[reportMissingImports]
+# We are using if/else due to https://github.com/hukkin/tomli/issues/219
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 
 #: Define the config file path.

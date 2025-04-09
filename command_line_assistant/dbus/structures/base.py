@@ -26,4 +26,4 @@ class BaseDataMixin:
         #
         # It's weird for static analysis cases, but good for API usage in our
         # own codebase.
-        return self.to_structure(data=self)  # type: ignore[reportAttributeAccessIssue]
+        return self.to_structure(data=self)  # type: ignore[attr-defined]

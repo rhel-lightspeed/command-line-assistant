@@ -10,7 +10,7 @@ from command_line_assistant.daemon.database.repository.base import BaseRepositor
 class ChatRepository(BaseRepository):
     """Class that implements the chat repository methods."""
 
-    def __init__(self, manager: DatabaseManager, model: ChatModel = ChatModel):
+    def __init__(self, manager: DatabaseManager, model: type[ChatModel] = ChatModel):
         """Default constructor for chat repository.
 
         Arguments:

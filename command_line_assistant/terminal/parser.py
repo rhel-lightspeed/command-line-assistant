@@ -20,7 +20,7 @@ def parse_terminal_output() -> list[dict[str, str]]:
         list[dict[str, str]]: A reversed list containing the parsed data. If no
         file was found, we just return empty list.
     """
-    result = []
+    result: list[dict[str, str]] = []
 
     if not TERMINAL_CAPTURE_FILE.exists():
         logger.warning(
