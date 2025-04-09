@@ -81,10 +81,11 @@ clean: ## Clean project files
 	   command_line_assistant.egg-info \
 	   .ruff_cache \
 	   .coverage \
-	   dist \
 	   .tox \
 	   junit.xml \
 	   coverage.xml \
+	   .mypy_cache \
+	   dist \
 	   $(PKGNAME)-$(VERSION).tar.gz
 	$(MAKE) -C docs clean
 	$(MAKE) -C data/release/selinux
@@ -125,6 +126,7 @@ html-docs: ## Build html docs
 	$(MAKE) -C docs html
 
 distribution-tarball: clean ## Generate distribution tarball
+	mkdir dist
 	tar --create \
 		--gzip \
 		--file /tmp/$(PKGNAME)-$(VERSION).tar.gz \
@@ -139,9 +141,20 @@ distribution-tarball: clean ## Generate distribution tarball
 		--exclude=scripts \
 		--exclude=docs \
 		--exclude=tests \
-		--exclude=.roproject \
+		--exclude=.ropeproject \
+		--exclude=.gitlab-ci.yml \
+		--exclude=.readthedocs.yaml \
+		--exclude=podman-compose.yaml \
+		--exclude=schemas \
+		--exclude=tox.ini \
+		--exclude=renovate.json \
+		--exclude=.pre-commit-config.yaml \
+		--exclude=.packit.yaml \
+		--exclude=sonar-project.properties \
+		--exclude=poetry.toml \
+		--exclude=dist \
 		--transform s/^\./$(PKGNAME)-$(VERSION)/ \
-		. && mv /tmp/$(PKGNAME)-$(VERSION).tar.gz .
+		. && mv /tmp/$(PKGNAME)-$(VERSION).tar.gz dist
 
 release: ## Interactively bump the version (major, minor, or patch)
 	@echo "Current version: $(VERSION)"

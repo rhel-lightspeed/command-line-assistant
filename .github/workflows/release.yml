@@ -1,0 +1,46 @@
+name: Generate release-artifacts
+
+on:
+  push:
+    tags:
+        - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: Generate  builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: olegtarasov/get-tag@v2.1
+        id: tagName
+        with:
+          tagRegex: "v(.*)"  # Optional. Returns specified group text as tag name. Full tag string is returned if regex is not defined.
+          tagRegexGroup: 1 # Optional. Default is 1.
+
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          # TODO(r0x0d): Refactor this https://issues.redhat.com/browse/RSPEED-339
+          sudo apt update -y
+          sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
+          make install
+
+      - name: Generate distribution tarball
+        run: |
+          VENV_PATH=$(poetry env info --path)
+          make distribution-tarball SPHINXBUILD=$VENV_PATH/bin/sphinx-build
+        env:
+          VERSION: '${{ steps.tagName.outputs.tag }}'
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
