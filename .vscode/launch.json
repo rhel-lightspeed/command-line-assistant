@@ -27,7 +27,7 @@
             "console": "internalConsole",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}",
-                "XDG_CONFIG_DIRS": "${workspaceFolder}/data/development/xdg"
+                "XDG_CONFIG_DIRS": "${env:HOME}/.config:${workspaceFolder}/data/development/xdg"
             }
         },
     ]

@@ -58,7 +58,7 @@ def get_xdg_config_path() -> Path:
 
     $XDG_CONFIG_DIRS defines the preference-ordered set of base directories to
     search for configuration files in addition to the $XDG_CONFIG_HOME base
-    directory.
+    directory. The first entry in the variable that exists will be returned.
 
         .. note::
             Usually, XDG_CONFIG_DIRS is represented as multi-path separated by a
@@ -84,9 +84,9 @@ def get_xdg_config_path() -> Path:
     if len(xdg_config_dirs) == 1:
         return Path(xdg_config_dirs[0])
 
-    # Try to find the first occurrence of the wanted_xdg_dir in the path, in
-    # case it is not present, return the default value.
+    # Try to find the first occurrence of a directory in the path that exists
+    # and return it. If no path exists, return the default value.
     xdg_dir_found = next(
-        (dir for dir in xdg_config_dirs if dir == WANTED_XDG_PATH), WANTED_XDG_PATH
+        (dir for dir in xdg_config_dirs if os.path.exists(dir)), WANTED_XDG_PATH
     )
     return Path(xdg_dir_found)
