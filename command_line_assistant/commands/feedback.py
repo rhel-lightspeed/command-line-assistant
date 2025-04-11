@@ -82,8 +82,8 @@ class FeedbackCommand(BaseCLICommand):
             return 0
         except FeedbackCommandException as e:
             logger.info("Failed to execute feedback command: %s", str(e))
-            error_renderer.render(f"Failed to execute feedback command: {str(e)}")
-            return 1
+            error_renderer.render(str(e))
+            return e.code
 
 
 def register_subcommand(parser: SubParsersAction):

@@ -18,8 +18,8 @@ Welcome to Command Line Assistant documentation
    rendering/index
    terminal/index
    utils/index
+   client
    constants
-   initialize
    logger
    meta
    exceptions
