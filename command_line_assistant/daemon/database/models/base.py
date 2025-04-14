@@ -3,11 +3,10 @@
 import uuid
 from typing import Any
 
-from sqlalchemy import DateTime, func
+from sqlalchemy import Column, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.types import CHAR, TypeDecorator
 
@@ -102,14 +101,10 @@ class BaseMixin:
 
     __name__ = "BaseMixin"
 
-    id: Mapped[GUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
-    created_at: Mapped[DateTime] = mapped_column(
-        DateTime, server_default=func.now(), nullable=False
-    )
-    updated_at: Mapped[DateTime] = mapped_column(
-        DateTime, server_default=func.now(), nullable=False
-    )
-    deleted_at: Mapped[DateTime] = mapped_column(DateTime, default=None, nullable=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)  # type: ignore[var-annotated]
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)  # type: ignore[var-annotated]
+    updated_at = Column(DateTime, server_default=func.now(), nullable=False)  # type: ignore[var-annotated]
+    deleted_at = Column(DateTime, default=None, nullable=True)  # type: ignore[var-annotated]
 
 
 #: The declarative base model for SQLAlchemy models
