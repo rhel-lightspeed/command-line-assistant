@@ -109,7 +109,7 @@ class NamedFileLock:
     using a lock file. The lock file contains the PID of the capturing process.
 
     Usage:
-        with NamedFileLock() as lock:
+        with NamedFileLock(name="my_file") as lock:
             # Execute your operations
         # Lock is automatically released
     """
@@ -117,8 +117,9 @@ class NamedFileLock:
     def __init__(self, name: str):
         """Initialize the named file lock mechanism."""
         self._pid = os.getpid()
-        self._name = name
+        self._name = name.replace("-", "_")
         self._lock_file = Path(get_xdg_state_path(), name + ".lock")
+
 
     @property
     def is_locked(self) -> bool:
@@ -134,7 +135,7 @@ class NamedFileLock:
 
         try:
             pid = int(self._lock_file.read_text().strip())
-            # Check if process is still running
+            # Check if process is still running 
             os.kill(pid, 0)
             return True
         except (ValueError, OSError, FileNotFoundError):
