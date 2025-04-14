@@ -120,7 +120,6 @@ class NamedFileLock:
         self._name = name.replace("-", "_")
         self._lock_file = Path(get_xdg_state_path(), name + ".lock")
 
-
     @property
     def is_locked(self) -> bool:
         """Check if a lock is currently active.
@@ -135,7 +134,8 @@ class NamedFileLock:
 
         try:
             pid = int(self._lock_file.read_text().strip())
-            # Check if process is still running 
+            # Check if process is still running. Sending signal 0 to a process
+            # will raise an OSError if no process with that pid is running.
             os.kill(pid, 0)
             return True
         except (ValueError, OSError, FileNotFoundError):

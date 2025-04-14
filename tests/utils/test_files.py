@@ -109,14 +109,14 @@ class TestNamedFileLock:
         lock.acquire()
 
         expected_pid = os.getpid()
-        expected_path = Path(mock_xdg_path, "test.pid")
+        expected_path = Path(mock_xdg_path, "test.lock")
         assert os.path.exists(expected_path)
         assert int(expected_path.read_text()) == expected_pid
 
     def test_acquire_as_context_manager(self, mock_xdg_path):
         with NamedFileLock(name="test"):
             expected_pid = os.getpid()
-            expected_path = Path(mock_xdg_path, "test.pid")
+            expected_path = Path(mock_xdg_path, "test.lock")
             assert os.path.exists(expected_path)
             assert int(expected_path.read_text()) == expected_pid
 
@@ -135,7 +135,7 @@ class TestNamedFileLock:
         assert len(os.listdir(mock_xdg_path)) == len(lock_names)
 
         for lock_name in lock_names:
-            expected_path = Path(mock_xdg_path, f"{lock_name}.pid")
+            expected_path = Path(mock_xdg_path, f"{lock_name}.lock")
             assert os.path.exists(expected_path)
             assert int(expected_path.read_text()) == expected_pid
 
@@ -144,7 +144,7 @@ class TestNamedFileLock:
         lock.acquire()
 
         expected_pid = os.getpid()
-        expected_path = Path(mock_xdg_path, "test.pid")
+        expected_path = Path(mock_xdg_path, "test.lock")
         assert os.path.exists(expected_path)
         assert int(expected_path.read_text()) == expected_pid
 
@@ -159,7 +159,7 @@ class TestNamedFileLock:
         lock = NamedFileLock(name="test")
         lock.acquire()
 
-        expected_path = Path(mock_xdg_path, "test.pid")
+        expected_path = Path(mock_xdg_path, "test.lock")
         assert os.path.exists(expected_path)
         assert lock.is_locked
 
@@ -173,7 +173,7 @@ class TestNamedFileLock:
         lock = NamedFileLock(name="test")
         lock.acquire()
 
-        expected_path = Path(mock_xdg_path, "test.pid")
+        expected_path = Path(mock_xdg_path, "test.lock")
         assert not lock.is_locked
         assert not os.path.exists(expected_path)
 
@@ -182,5 +182,5 @@ class TestNamedFileLock:
         lock.acquire()
         lock.release()
 
-        expected_path = Path(mock_xdg_path, "test.pid")
+        expected_path = Path(mock_xdg_path, "test.lock")
         assert not os.path.exists(expected_path)
