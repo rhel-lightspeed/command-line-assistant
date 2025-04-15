@@ -507,7 +507,8 @@ class InteractiveChatOperation(BaseChatOperation):
 
         if terminal_file_lock.is_locked:
             raise ChatCommandException(
-                "Interactive chat mode is not available while terminal capture is active. To exit the current terminal capture session, press Ctrl + D."
+                f"Detected a terminal capture session running with pid '{terminal_file_lock.pid}'."
+                " Interactive chat mode is not available while terminal capture is active, you must stop the previous one."
             )
 
         try:

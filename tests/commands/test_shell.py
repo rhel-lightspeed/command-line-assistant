@@ -1,4 +1,3 @@
-import re
 from argparse import ArgumentParser, Namespace
 from unittest import mock
 
@@ -204,9 +203,7 @@ def test_enable_terminal_capture_twice(monkeypatch, default_kwargs):
         NamedFileLock(name="terminal"),
         pytest.raises(
             ShellCommandException,
-            match=re.escape(
-                "Terminal capture is already enabled. Press Ctrl + D to stop capturing."
-            ),
+            match="Detected a terminal capture session running with pid",
         ),
     ):
         EnableTerminalCapture(**default_kwargs).execute()

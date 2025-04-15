@@ -149,7 +149,8 @@ class EnableTerminalCapture(BaseShellOperation):
 
         if file_lock.is_locked:
             raise ShellCommandException(
-                "Terminal capture is already enabled. Press Ctrl + D to stop capturing."
+                f"Detected a terminal capture session running with pid '{file_lock.pid}'."
+                " In order to start a new terminal capture session, you must stop the previous one."
             )
 
         with file_lock:
@@ -185,7 +186,7 @@ class ShellCommand(BaseCLICommand):
             return 0
         except ShellCommandException as e:
             logger.info("Failed to execute shell command: %s", str(e))
-            error_renderer.render(f"Failed to execute shell command: {str(e)}")
+            error_renderer.render(str(e))
             return 1
 
 
@@ -209,7 +210,11 @@ def register_subcommand(parser: SubParsersAction):
     interactive_mode.add_argument(
         "--enable-interactive",
         action="store_true",
-        help="Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, hit Ctrl + G in your terminal to enable interactive mode.",
+        help=(
+            "Enable the shell integration for interactive mode on the system. "
+            "Currently, only BASH is supported. After the interactive was "
+            "sourced, hit Ctrl + G in your terminal to enable interactive mode."
+        ),
     )
     interactive_mode.add_argument(
         "--disable-interactive",
