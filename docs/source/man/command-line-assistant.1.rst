@@ -5,7 +5,7 @@ Command Line Assistant
 ======================
 
 .. sphinx_argparse_cli::
-  :module: command_line_assistant.initialize
+  :module: command_line_assistant.client
   :func: register_subcommands
   :prog: c
   :title: Synopsis

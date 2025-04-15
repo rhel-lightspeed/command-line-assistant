@@ -4,9 +4,9 @@ from unittest.mock import Mock, patch
 import pytest
 from dasbus.error import DBusError
 
+from command_line_assistant.client import initialize
 from command_line_assistant.commands.base import BaseCLICommand
 from command_line_assistant.constants import VERSION
-from command_line_assistant.initialize import initialize
 
 
 class MockCommand(BaseCLICommand):
@@ -18,7 +18,7 @@ def test_initialize_with_no_args(capsys):
     """Test initialize with no arguments - should print help and return 1"""
     with (
         patch("sys.argv", ["c"]),
-        patch("command_line_assistant.initialize.read_stdin", lambda: None),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
     ):
         result = initialize()
         captured = capsys.readouterr()
@@ -46,7 +46,7 @@ def test_initialize_with_query_command(argv, stdin):
         patch("sys.argv", argv),
         patch("command_line_assistant.commands.chat.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
-        patch("command_line_assistant.initialize.read_stdin", lambda: stdin),
+        patch("command_line_assistant.client.read_stdin", lambda: stdin),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
@@ -64,7 +64,7 @@ def test_initialize_with_history_command():
         patch("sys.argv", ["c", "history", "--clear"]),
         patch("command_line_assistant.commands.chat.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
-        patch("command_line_assistant.initialize.read_stdin", lambda: None),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
@@ -83,7 +83,7 @@ def test_initialize_with_shell_command():
         patch("command_line_assistant.commands.chat.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
         patch("command_line_assistant.commands.shell.register_subcommand"),
-        patch("command_line_assistant.initialize.read_stdin", lambda: None),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
@@ -97,7 +97,7 @@ def test_initialize_with_version(capsys):
     """Test initialize with --version flag"""
     with (
         patch("sys.argv", ["c", "--version"]),
-        patch("command_line_assistant.initialize.read_stdin", lambda: None),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
     ):
         with pytest.raises(SystemExit):
             initialize()
@@ -110,7 +110,7 @@ def test_initialize_with_help(capsys):
     """Test initialize with --help flag"""
     with (
         patch("sys.argv", ["c", "--help"]),
-        patch("command_line_assistant.initialize.read_stdin", lambda: None),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
     ):
         with pytest.raises(SystemExit):
             initialize()
@@ -120,7 +120,7 @@ def test_initialize_with_help(capsys):
 
 
 def test_initialize_bad_stdin(capsys):
-    with patch("command_line_assistant.initialize.read_stdin") as mock_stdin:
+    with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = ValueError("Binary input are not supported.")
         initialize()
 
@@ -129,7 +129,7 @@ def test_initialize_bad_stdin(capsys):
 
 
 def test_initialize_keyboard_interrupt(capsys):
-    with patch("command_line_assistant.initialize.read_stdin") as mock_stdin:
+    with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = KeyboardInterrupt("Interrupted")
         initialize()
 
@@ -155,7 +155,7 @@ def test_initialize_command_selection(argv, expected_command):
 
     with (
         patch("sys.argv", argv),
-        patch("command_line_assistant.initialize.read_stdin", lambda: None),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
         patch("command_line_assistant.commands.chat.register_subcommand"),
         patch("command_line_assistant.commands.history.register_subcommand"),
         patch("command_line_assistant.commands.shell.register_subcommand"),
@@ -178,7 +178,7 @@ def test_initialize_command_selection(argv, expected_command):
     ),
 )
 def test_exception_initialization_error(exception, expected, capsys):
-    with patch("command_line_assistant.initialize.read_stdin") as mock_stdin:
+    with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = exception(expected)
         initialize()
 
