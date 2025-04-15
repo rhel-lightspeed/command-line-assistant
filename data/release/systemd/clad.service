@@ -22,7 +22,7 @@ PrivateTmp=yes
 RemainAfterExit=no
 
 # The actual command to run the Command Line Assistant Daemon
-ExecStart=/usr/sbin/clad
+ExecStart=/usr/bin/clad
 
 # Filesystem access restrictions
 # Allows read-only access to user home directories

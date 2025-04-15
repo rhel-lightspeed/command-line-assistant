@@ -76,14 +76,9 @@ popd
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/xdg/%{name}
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/systemd/system/clad.service.d
 %{__install} -d -m 0755 %{buildroot}/%{_sharedstatedir}/%{name}
-%{__install} -d %{buildroot}/%{_sbindir}
 %{__install} -d %{buildroot}/%{_mandir}/man1
 %{__install} -d %{buildroot}/%{_mandir}/man8
 %{__install} -d %{buildroot}/%{_datadir}/selinux/packages/%{selinuxtype}
-
-# Move the daemon to /usr/sbin instead of /usr/bin
-%{__install} -m 0755 %{buildroot}/%{_bindir}/%{daemon_binary_name} %{buildroot}/%{_sbindir}/%{daemon_binary_name}
-%{__rm} %{buildroot}/%{_bindir}/%{daemon_binary_name}
 
 # Symlink `c` to `cla`
 ln -sr %{buildroot}/%{_bindir}/%{binary_name} %{buildroot}/%{_bindir}/%{symlink_binary_name}
@@ -140,7 +135,7 @@ fi
 # Binaries
 %{_bindir}/%{binary_name}
 %{_bindir}/%{symlink_binary_name}
-%{_sbindir}/%{daemon_binary_name}
+%{_bindir}/%{daemon_binary_name}
 
 # System units
 %{_unitdir}/%{daemon_binary_name}.service
