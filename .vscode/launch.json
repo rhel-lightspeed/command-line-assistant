@@ -12,7 +12,7 @@
             "name": "CLA",
             "type": "debugpy",
             "request": "launch",
-            "module": "command_line_assistant.initialize",
+            "module": "command_line_assistant.client",
             "console": "integratedTerminal",
             "args": "${command:pickArgs}",
             "env": {

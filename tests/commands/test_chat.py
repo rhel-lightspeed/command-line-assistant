@@ -112,7 +112,7 @@ def test_chat_command_run_minimum_characters(
     default_namespace.query_string = query_string
     default_namespace.stdin = stdin
     command = ChatCommand(default_namespace)
-    assert command.run() == 1
+    assert command.run() == 80
 
     captured = capsys.readouterr()
     assert expected in captured.err.strip()
@@ -386,7 +386,7 @@ def test_chat_management_delete_exception(mock_dbus_service, capsys, default_nam
     )
 
     default_namespace.delete = "test"
-    assert ChatCommand(default_namespace).run() == 1
+    assert ChatCommand(default_namespace).run() == 80
     captured = capsys.readouterr()
 
     assert "chat not found" in captured.err
@@ -412,7 +412,7 @@ def test_chat_management_delete_all_exception(
     )
 
     default_namespace.delete_all = True
-    assert ChatCommand(default_namespace).run() == 1
+    assert ChatCommand(default_namespace).run() == 80
     captured = capsys.readouterr()
 
     assert "chat not found" in captured.err

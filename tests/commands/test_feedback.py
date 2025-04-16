@@ -123,4 +123,4 @@ def test_feedback_command_exception_handling():
     ):
         result = command.run()
 
-    assert result == 1  # Should return error code
+    assert result == 83  # Should return error code

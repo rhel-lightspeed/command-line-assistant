@@ -139,7 +139,7 @@ def test_shell_run_exceptions(exception, expected_msg, capsys, monkeypatch):
     result = ShellCommand(args).run()
 
     captured = capsys.readouterr()
-    assert result == 1
+    assert result == 81
     assert expected_msg in captured.err
 
 
