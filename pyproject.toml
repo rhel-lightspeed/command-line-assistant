@@ -80,6 +80,7 @@ testpaths = ["tests"]
 
 [tool.coverage.report]
 skip_empty = true
+exclude_also = ["if __name__ == \"__main__\":"]
 
 [tool.coverage.run]
 branch = true

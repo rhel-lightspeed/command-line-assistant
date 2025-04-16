@@ -45,8 +45,13 @@ def initialize() -> int:
         int: Status code of the execution
     """
     parser = register_subcommands()
-    error_renderer = create_error_renderer()
-    warning_renderer = create_warning_renderer()
+
+    # Create the error and warning renderers, checking very early if the user
+    # specified the --plain flag. This allows the exceptions below that use
+    # these renders to follow the user's preference.
+    plain_in_argv = "-p" in sys.argv or "--plain" in sys.argv
+    error_renderer = create_error_renderer(plain=plain_in_argv)
+    warning_renderer = create_warning_renderer(plain=plain_in_argv)
 
     try:
         stdin = read_stdin()
@@ -59,6 +64,13 @@ def initialize() -> int:
         if not hasattr(args, "func"):
             parser.print_help()
             return 1
+
+        error_renderer = create_error_renderer(
+            plain=hasattr(args, "plain") and args.plain
+        )
+        warning_renderer = create_warning_renderer(
+            plain=hasattr(args, "plain") and args.plain
+        )
 
         # In case the uder specify the --debug, we will enable the logging here.
         if args.debug:

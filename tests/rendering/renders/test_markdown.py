@@ -1,7 +1,10 @@
 import pytest
 
 from command_line_assistant.rendering.base import BaseStream
-from command_line_assistant.rendering.renders.markdown import MarkdownRenderer
+from command_line_assistant.rendering.renders.markdown import (
+    MarkdownRenderer,
+    PlainMarkdownRenderer,
+)
 
 
 class MockStream(BaseStream):
@@ -20,6 +23,11 @@ def mock_stream():
 @pytest.fixture
 def markdown_renderer(mock_stream):
     return MarkdownRenderer(mock_stream)
+
+
+@pytest.fixture
+def plain_markdown_renderer(mock_stream):
+    return PlainMarkdownRenderer(mock_stream)
 
 
 def test_basic_text_rendering(markdown_renderer):
@@ -167,3 +175,12 @@ def test_markdown_renderer_with_different_header_levels(markdown_renderer):
     assert "LEVEL 1 HEADER" in output  # Level 1 headers are uppercase
     assert "Level 2 Header" in output  # Level 2 headers have underlines
     assert "Level 3 Header" in output  # Level 3 headers have dot underlines
+
+
+def test_plain_markdown_renderer(plain_markdown_renderer):
+    """Test the plain markdown renderer"""
+    text = "This is **bold** and *italic* text"
+    plain_markdown_renderer.render(text)
+    assert (
+        "This is **bold** and *italic* text" in plain_markdown_renderer._stream.output
+    )

@@ -284,18 +284,23 @@ class BaseChatOperation(BaseOperation):
         )
         self.spinner_renderer: SpinnerRenderer = create_spinner_renderer(
             message="Asking RHEL Lightspeed",
+            plain=hasattr(args, "plain") and args.plain,
         )
         self.legal_renderer: TextRenderer = create_text_renderer(
             decorators=[
                 ColorDecorator(foreground="lightyellow"),
                 WriteOncePerSessionDecorator(state_filename="legal"),
-            ]
+            ],
+            plain=hasattr(args, "plain") and args.plain,
         )
         self.notice_renderer: TextRenderer = create_text_renderer(
-            decorators=[ColorDecorator(foreground="lightyellow")]
+            decorators=[ColorDecorator(foreground="lightyellow")],
+            plain=hasattr(args, "plain") and args.plain,
         )
         self.interactive_renderer: InteractiveRenderer = create_interactive_renderer()
-        self.markdown_renderer: MarkdownRenderer = create_markdown_renderer()
+        self.markdown_renderer: MarkdownRenderer = create_markdown_renderer(
+            plain=hasattr(args, "plain") and args.plain
+        )
 
     def _display_response(self, response: str) -> None:
         """Internal method to display message to the terminal
@@ -544,7 +549,7 @@ class InteractiveChatOperation(BaseChatOperation):
                     attachment_mimetype=attachment_mimetype,
                     # For now, we won't deal with last output in interactive mode.
                     last_output="",
-                    skip_spinner=self.args.raw,
+                    skip_spinner=self.args.plain,
                 )
                 self._display_response(response)
         except (KeyboardInterrupt, EOFError) as e:
@@ -631,7 +636,7 @@ class SingleQuestionOperation(BaseChatOperation):
                 attachment=attachment,
                 attachment_mimetype=attachment_mimetype,
                 last_output=last_terminal_output,
-                skip_spinner=self.args.raw,
+                skip_spinner=False,
             )
 
             self._display_response(response)
@@ -650,7 +655,9 @@ class ChatCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution
         """
-        error_renderer = create_error_renderer()
+        error_renderer = create_error_renderer(
+            plain=hasattr(self._args, "plain") and self._args.plain
+        )
         operation_factory = ChatOperationFactory()
         try:
             operation = operation_factory.create_operation(
@@ -658,6 +665,7 @@ class ChatCommand(BaseCLICommand):
                 self._context,
                 text_renderer=create_text_renderer(
                     decorators=[ColorDecorator()],
+                    plain=hasattr(self._args, "plain") and self._args.plain,
                 ),
                 error_renderer=error_renderer,
             )
@@ -713,12 +721,6 @@ def register_subcommand(parser: SubParsersAction) -> None:
             "the latest output, 2 to and so on. First, enable the terminal "
             "capture with 'c shell --enable-capture' for this option to work."
         ),
-    )
-    question_group.add_argument(
-        "-r",
-        "--raw",
-        action="store_true",
-        help="Interact with the backend in raw mode. No spinners, emojis or anything.",
     )
 
     chat_arguments = chat_parser.add_argument_group("Chat Options")
