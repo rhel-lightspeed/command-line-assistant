@@ -48,6 +48,8 @@ def test_chat_interface_ask_question(chat_interface, mock_config):
                 "context": {
                     "stdin": "",
                     "attachments": {"contents": "", "mimetype": ""},
+                    "terminal": "",
+                    "systeminfo": {"os": "", "arch": "", "id": "", "version": ""},
                 },
             },
             mock_config,

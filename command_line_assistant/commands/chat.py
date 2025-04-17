@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import platform
 from argparse import Namespace
 from enum import auto
 from io import TextIOWrapper
@@ -26,6 +27,7 @@ from command_line_assistant.dbus.structures.chat import (
     Question,
     Response,
     StdinInput,
+    SystemInfo,
     TerminalInput,
 )
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
@@ -413,6 +415,12 @@ class BaseChatOperation(BaseOperation):
                 contents=attachment, mimetype=attachment_mimetype
             ),
             terminal=TerminalInput(output=last_output),
+            systeminfo=SystemInfo(
+                os=self.context.os_release["name"],
+                version=self.context.os_release["version_id"],
+                arch=platform.machine(),
+                id=self.context.os_release["id"],
+            ),
         )
         response = self.chat_proxy.AskQuestion(
             user_id,
