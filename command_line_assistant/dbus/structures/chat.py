@@ -266,7 +266,7 @@ class TerminalInput(BaseDataMixin, DBusData):
         """Constructor of the class
 
         Arguments:
-            _output (Str): Ouptut fromm terminal if any
+            output (Str): Ouptut fromm terminal if any
         """
         self._output: Str = output
 
@@ -289,6 +289,98 @@ class TerminalInput(BaseDataMixin, DBusData):
         self._output = value
 
 
+class SystemInfo(BaseDataMixin, DBusData):
+    """Represents system information"""
+
+    def __init__(
+        self, os: Str = "", version: Str = "", arch: Str = "", id: Str = ""
+    ) -> None:
+        """Constructor of the class
+
+        Arguments:
+            os (Str): The operating system
+            version (Str): The version of the operating system
+            arch (Str): The architecture of the operating system
+            id (Str): The unique identifier of the operating system
+        """
+        self._os = os
+        self._version = version
+        self._arch = arch
+        self._id = id
+
+    @property
+    def os(self) -> Str:
+        """Property for internal os attribute.
+
+        Returns:
+            Str: Value of os
+        """
+        return self._os
+
+    @os.setter
+    def os(self, value: Str) -> None:
+        """Set a new os
+
+        Arguments:
+            value (Str): Value to be set to the internal property
+        """
+        self._os = value
+
+    @property
+    def version(self) -> Str:
+        """Property for internal version attribute.
+
+        Returns:
+            Str: Value of version
+        """
+        return self._version
+
+    @version.setter
+    def version(self, value: Str) -> None:
+        """Set a new version
+
+        Arguments:
+            value (Str): Value to be set to the internal property
+        """
+        self._version = value
+
+    @property
+    def arch(self) -> Str:
+        """Property for internal arch attribute.
+
+        Returns:
+            Str: Value of arch
+        """
+        return self._arch
+
+    @arch.setter
+    def arch(self, value: Str) -> None:
+        """Set a new arch
+
+        Arguments:
+            value (Str): Value to be set to the internal property
+        """
+        self._arch = value
+
+    @property
+    def id(self) -> Str:
+        """Property for internal id attribute.
+
+        Returns:
+            Str: Value of id
+        """
+        return self._id
+
+    @id.setter
+    def id(self, value: Str) -> None:
+        """Set a new id
+
+        Arguments:
+            value (Str): Value to be set to the internal property
+        """
+        self._id = value
+
+
 class Question(BaseDataMixin, DBusData):
     """Represents the input message to be sent to the backend"""
 
@@ -298,6 +390,7 @@ class Question(BaseDataMixin, DBusData):
         stdin: Optional[StdinInput] = None,
         attachment: Optional[AttachmentInput] = None,
         terminal: Optional[TerminalInput] = None,
+        systeminfo: Optional[SystemInfo] = None,
     ) -> None:
         """Constructor of the class.
 
@@ -306,11 +399,13 @@ class Question(BaseDataMixin, DBusData):
             stdin (Optional[StdinInput], optional): The stdin object if any
             attachment (Optional[AttachmentInput], optional): The attachment input if any
             terminal (Optional[TerminalInput], optional): The terminal input if any
+            systeminfo (Optional[SystemInfo], optional): The system info if any
         """
         self._message: Str = message
         self._stdin: StdinInput = stdin or StdinInput()
         self._attachment: AttachmentInput = attachment or AttachmentInput()
         self._terminal: TerminalInput = terminal or TerminalInput()
+        self._systeminfo: SystemInfo = systeminfo or SystemInfo()
 
         super().__init__()
 
@@ -385,6 +480,24 @@ class Question(BaseDataMixin, DBusData):
             value (Str): Value to be set to the internal property
         """
         self._terminal = value
+
+    @property
+    def systeminfo(self) -> SystemInfo:
+        """Property for internal systeminfo attribute.
+
+        Returns:
+            Str: Value of systeminfo
+        """
+        return self._systeminfo
+
+    @systeminfo.setter
+    def systeminfo(self, value: SystemInfo) -> None:
+        """Set a new systeminfo
+
+        Arguments:
+            value (Str): Value to be set to the internal property
+        """
+        self._systeminfo = value
 
 
 class Response(BaseDataMixin, DBusData):

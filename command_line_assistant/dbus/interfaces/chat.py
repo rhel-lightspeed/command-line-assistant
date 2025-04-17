@@ -215,6 +215,7 @@ class ChatInterface(InterfaceTemplate):
             Structure: The message output in format of a d-bus structure.
         """
         content = Question.from_structure(message_input)
+
         # Submit query to backend
         data = {
             "question": content.message,
@@ -223,6 +224,13 @@ class ChatInterface(InterfaceTemplate):
                 "attachments": {
                     "contents": content.attachment.contents,
                     "mimetype": content.attachment.mimetype,
+                },
+                "terminal": content.terminal.output,
+                "systeminfo": {
+                    "os": content.systeminfo.os,
+                    "version": content.systeminfo.version,
+                    "arch": content.systeminfo.arch,
+                    "id": content.systeminfo.id,
                 },
             },
         }
