@@ -43,7 +43,7 @@ tox = "4.25.0"
 responses = "0.25.7"
 PyGObject = "3.50.0"
 # added here mainly for editor happines
-ruff = "0.11.6"
+ruff = "0.11.7"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "7.4.7"
