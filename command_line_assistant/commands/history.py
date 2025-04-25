@@ -418,4 +418,7 @@ def _command_factory(args: Namespace) -> HistoryCommand:
     Returns:
         HistoryCommand: Return an instance of class
     """
+    if not (args.last or args.first or args.filter):
+        args.all = True
+
     return HistoryCommand(args)

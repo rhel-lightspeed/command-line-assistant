@@ -270,10 +270,24 @@ def test_history_empty_response(mock_dbus_service, capsys):
         ),
         (
             False,
+            True,
+            False,
+            "",
+            False,
+        ),
+        (
+            False,
             False,
             False,
             "test",
             False,
+        ),
+        (
+            False,
+            False,
+            False,
+            "test",
+            True,
         ),
     ),
 )
