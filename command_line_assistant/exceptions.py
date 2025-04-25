@@ -19,3 +19,7 @@ class HistoryCommandException(Exception):
 
 class FeedbackCommandException(Exception):
     """Exception class to control feedback command."""
+
+
+class StatusCommandException(Exception):
+    """Exception class to control status command."""

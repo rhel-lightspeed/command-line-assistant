@@ -12,6 +12,7 @@ from command_line_assistant.daemon.http.query import submit
 from command_line_assistant.dbus.constants import CHAT_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.dbus.exceptions import ChatNotFoundError
+from command_line_assistant.dbus.interfaces.base import BaseInterface
 from command_line_assistant.dbus.structures.chat import (
     ChatEntry,
     ChatList,
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 @dbus_interface(CHAT_IDENTIFIER.interface_name)
-class ChatInterface(InterfaceTemplate):
+class ChatInterface(InterfaceTemplate, BaseInterface):
     """The DBus interface of a query."""
 
     def __init__(self, implementation: DaemonContext):
