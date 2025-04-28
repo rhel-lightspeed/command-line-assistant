@@ -228,6 +228,36 @@ def update_spec_file(new_version: str, changelog_entry: Optional[str] = None) ->
         f.write(content)
 
 
+def checkout_to_prepare_release_branch(version: str) -> None:
+    try:
+        subprocess.run(
+            ["git", "checkout", "-b", f"prepare-release-{version}"],
+            cwd=PROJECT_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Error checking out to new branch: {e}")
+        print(f"stdout: {e.stdout}")
+        print(f"stderr: {e.stderr}")
+        raise RuntimeError("Failed to create prepare release branch") from e
+
+
+def update_changelogs(changelog: Path) -> str:
+    # Parse changelog if provided
+    changelog_entry = ""
+    print("\nParsing changelog...")
+    changelog_entries = parse_github_changelog(changelog)
+    if changelog_entries:
+        changelog_entry = format_rpm_changelog(changelog_entries)
+        print("✓ Changelog parsed successfully")
+    else:
+        print("Warning: No changelog entries found in the provided file")
+
+    return changelog_entry
+
+
 def main() -> int:
     """Main function.
 
@@ -267,22 +297,17 @@ def main() -> int:
         print(f"Current version: {current_version}")
         print(f"New version: {args.version}")
 
-        # Parse changelog if provided
         changelog_entry = None
         if args.changelog and args.changelog.exists():
-            print("\nParsing changelog...")
-            changelog_entries = parse_github_changelog(args.changelog)
-            if changelog_entries:
-                changelog_entry = format_rpm_changelog(changelog_entries)
-                print("✓ Changelog parsed successfully")
-            else:
-                print("Warning: No changelog entries found in the provided file")
+            changelog_entry = update_changelogs(args.changelog)
         elif args.changelog:
             print(f"Error: Changelog file {args.changelog} not found")
             return 1
 
+        checkout_to_prepare_release_branch(args.version)
+        print("✓ Branch created successfully")
+
         # Update all files
-        print("\nUpdating files...")
         update_constants_version(args.version)
         print("✓ Updated constants.py")
 
