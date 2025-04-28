@@ -266,7 +266,7 @@ class TerminalInput(BaseDataMixin, DBusData):
         """Constructor of the class
 
         Arguments:
-            output (Str): Ouptut fromm terminal if any
+            output (Str): Output from terminal, if any
         """
         self._output: Str = output
 
