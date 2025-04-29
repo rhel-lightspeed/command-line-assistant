@@ -7,3 +7,4 @@ Interfaces
    history
    chat
    user
+   base

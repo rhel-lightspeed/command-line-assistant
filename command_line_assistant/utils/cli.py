@@ -20,7 +20,7 @@ SubParsersAction = _SubParsersAction
 
 GLOBAL_FLAGS: list[str] = ["--debug", "--version", "-v", "-h", "--help"]
 ARGS_WITH_VALUES: list[str] = ["--clear"]
-
+GLOBAL_COMMANDS: list[str] = ["chat", "history", "shell", "feedback", "status"]
 OS_RELEASE_PATH = Path("/etc/os-release")
 
 
@@ -104,7 +104,7 @@ def _subcommand_used(args: list[str]) -> Optional[str]:
             continue
 
         # If we have a exact match for any of the commands, return directly
-        if argument in ("chat", "history", "shell", "feedback"):
+        if argument in GLOBAL_COMMANDS:
             return argument
 
         # Otherwise, check if this is the second part of an arg that takes a value.

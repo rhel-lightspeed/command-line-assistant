@@ -13,6 +13,7 @@ from command_line_assistant.daemon.database.models.history import (
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
+from command_line_assistant.dbus.interfaces.base import BaseInterface
 from command_line_assistant.dbus.structures.history import (
     HistoryEntry,
     HistoryList,
@@ -28,7 +29,7 @@ HISTORY_CHAT_NOT_AVAILABLE = "Unfortunately, no history was found."
 
 
 @dbus_interface(HISTORY_IDENTIFIER.interface_name)
-class HistoryInterface(InterfaceTemplate):
+class HistoryInterface(InterfaceTemplate, BaseInterface):
     """The DBus interface of a history"""
 
     def __init__(self, implementation: DaemonContext) -> None:

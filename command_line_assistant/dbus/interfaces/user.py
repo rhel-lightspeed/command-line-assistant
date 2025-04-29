@@ -9,12 +9,13 @@ from dasbus.typing import Int, Str
 from command_line_assistant.daemon.session import UserSessionManager
 from command_line_assistant.dbus.constants import USER_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
+from command_line_assistant.dbus.interfaces.base import BaseInterface
 
 logger = logging.getLogger(__name__)
 
 
 @dbus_interface(USER_IDENTIFIER.interface_name)
-class UserInterface(InterfaceTemplate):
+class UserInterface(InterfaceTemplate, BaseInterface):
     """The DBus interface of a query."""
 
     def __init__(self, implementation: DaemonContext):
