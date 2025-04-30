@@ -225,7 +225,7 @@ class ChatInterface(InterfaceTemplate):
                     "contents": content.attachment.contents,
                     "mimetype": content.attachment.mimetype,
                 },
-                "terminal": content.terminal.output,
+                "terminal": {"output": content.terminal.output},
                 "systeminfo": {
                     "os": content.systeminfo.os,
                     "version": content.systeminfo.version,
