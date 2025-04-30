@@ -1,6 +1,7 @@
 """Database module to handle SQLAlchemy connections and interactions."""
 
 import logging
+import os
 import pathlib
 from contextlib import contextmanager
 from typing import Generator
@@ -61,17 +62,25 @@ class DatabaseManager:
             connection_url = self._config.database.get_connection_url()
             # SQLite-specific settings
             if self._config.database.type == "sqlite":
-                if self._config.database.connection_string is not None:
+                if self._config.database.connection_string:
                     create_folder(
                         pathlib.Path(self._config.database.connection_string).parent,
                         parents=True,
                     )
-                return create_engine(
+                # 0o177 represents 0600
+                original_mask = os.umask(0o177)
+                engine = create_engine(
                     connection_url,
                     echo=echo,
                     poolclass=StaticPool,
                     connect_args={"check_same_thread": False},
                 )
+                # Connecting early to force sqlite to create our database with
+                # correct permissions.
+                with engine.connect():
+                    pass
+                os.umask(original_mask)
+                return engine
 
             # For other databases, use standard pooling
             return create_engine(

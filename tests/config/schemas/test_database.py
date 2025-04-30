@@ -102,7 +102,9 @@ def test_database_connection_string_path_expansion():
 def test_database_get_connection_url():
     """Test database connection URL construction for different database types"""
     # SQLite
-    sqlite_db = DatabaseSchema(type="sqlite", connection_string="/path/to/db.sqlite")
+    sqlite_db = DatabaseSchema(
+        type="sqlite", connection_string=Path("/path/to/db.sqlite")
+    )
     assert sqlite_db.get_connection_url() == "sqlite:////path/to/db.sqlite"
 
     # MySQL
