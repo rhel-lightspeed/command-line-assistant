@@ -15,7 +15,10 @@ from command_line_assistant.commands.shell import (
 )
 from command_line_assistant.exceptions import ShellCommandException
 from command_line_assistant.utils.files import NamedFileLock
-from command_line_assistant.utils.renderers import create_text_renderer
+from command_line_assistant.utils.renderers import (
+    create_text_renderer,
+    create_warning_renderer,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -65,6 +68,25 @@ def test_write_bash_functions_file_exists(default_kwargs, tmp_path, capsys):
     assert some_bash_file.read_text() == "export TEST=1"
     captured = capsys.readouterr()
     assert "The integration is already present and enabled" in captured.out
+
+
+def test_write_bash_functions_missing_bashrc_d(
+    default_kwargs, tmp_path, capsys, monkeypatch
+):
+    monkeypatch.setenv("HOME", (tmp_path / "test_home").as_posix())
+
+    some_bash_file = tmp_path / "test.bashrc"
+    default_kwargs["text_renderer"] = create_text_renderer()
+    default_kwargs["warning_renderer"] = create_warning_renderer()
+    bash_shell_operation = BaseShellOperation(**default_kwargs)
+
+    bash_shell_operation._write_bash_functions(some_bash_file, "export TEST=1")
+
+    assert some_bash_file.exists()
+    assert some_bash_file.read_text() == "export TEST=1"
+    captured = capsys.readouterr()
+    assert "In order to use shell integration" in captured.err
+    assert oct(some_bash_file.stat().st_mode).endswith("600")
 
 
 def test_remove_bash_functions(default_kwargs, tmp_path, capsys):

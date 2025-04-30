@@ -91,6 +91,26 @@ class BaseShellOperation(BaseOperation):
             )
             return
 
+        # Make an educated guess whether or not the user's bash environment is
+        # configured to load files from the bashrc.d folder. If not, print a
+        # warning with a suggested solution.
+        has_snippet = False
+        rc_files = [
+            Path(rc).expanduser()
+            for rc in ["~/.bashrc", "~/.bash_profile", "~/.profile"]
+        ]
+        for rc_file in rc_files:
+            try:
+                if ".bashrc.d" in rc_file.read_text():
+                    has_snippet = True
+            except FileNotFoundError:
+                continue
+
+        if not has_snippet:
+            self.warning_renderer.render(
+                "In order to use shell integration, ensure your ~/.bashrc file loads files from ~/.bashrc.d. See /etc/skel/.bashrc for an example."
+            )
+
         write_file(contents, file)
         self.text_renderer.render(
             f"Integration successfully added at {file}. "
