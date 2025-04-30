@@ -103,6 +103,11 @@ ln -sr %{buildroot}%{_mandir}/man1/%{binary_name}.1 %{buildroot}%{_mandir}/man1/
 # selinux
 %{__install} -m 0644 data/release/selinux/%{modulename}.pp.bz2 %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
 
+# database
+touch %{buildroot}/%{_sharedstatedir}/%{name}/history.db
+%{__chmod} 0600 %{buildroot}/%{_sharedstatedir}/%{name}/history.db
+
+
 %preun
 %systemd_preun %{daemon_binary_name}.service
 
@@ -151,6 +156,8 @@ fi
 %{_mandir}/man1/%{symlink_binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
 
+# Database
+%{_sharedstatedir}/%{name}/history.db
 
 # Needed directories
 %dir %attr(0700, root, root) %{_sharedstatedir}/%{name}
