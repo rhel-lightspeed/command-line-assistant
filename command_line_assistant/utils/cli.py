@@ -18,7 +18,15 @@ from command_line_assistant.constants import VERSION
 # Define the type here so pyright is happy with it.
 SubParsersAction = _SubParsersAction
 
-GLOBAL_FLAGS: list[str] = ["--debug", "--version", "-v", "-h", "--help"]
+GLOBAL_FLAGS: list[str] = [
+    "-p",
+    "--plain",
+    "--debug",
+    "--version",
+    "-v",
+    "-h",
+    "--help",
+]
 ARGS_WITH_VALUES: list[str] = ["--clear"]
 
 OS_RELEASE_PATH = Path("/etc/os-release")
@@ -142,6 +150,13 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
         version=VERSION,
         default=SUPPRESS,
         help="Show program version",
+    )
+    parser.add_argument(
+        "-p",
+        "--plain",
+        action="store_true",
+        help=argparse.SUPPRESS,
+        default=True,
     )
     commands_parser = parser.add_subparsers(dest="command")
     return parser, commands_parser

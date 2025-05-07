@@ -204,9 +204,15 @@ class CommandOperationFactory:
             logger.warning("No operation registered for type %s", operation_type)
             return None
 
-        text_renderer = text_renderer or create_text_renderer()
-        warning_renderer = warning_renderer or create_warning_renderer()
-        error_renderer = error_renderer or create_error_renderer()
+        text_renderer = text_renderer or create_text_renderer(
+            plain=hasattr(args, "plain") and args.plain
+        )
+        warning_renderer = warning_renderer or create_warning_renderer(
+            plain=hasattr(args, "plain") and args.plain
+        )
+        error_renderer = error_renderer or create_error_renderer(
+            plain=hasattr(args, "plain") and args.plain
+        )
 
         # Type Ignoring the parameters as they do exist in the baes class.
         return operation_class(
