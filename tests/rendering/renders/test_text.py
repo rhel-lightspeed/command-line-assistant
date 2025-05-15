@@ -4,7 +4,10 @@ from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
     TextWrapDecorator,
 )
-from command_line_assistant.rendering.renders.text import TextRenderer
+from command_line_assistant.rendering.renders.text import (
+    PlainTextRenderer,
+    TextRenderer,
+)
 
 
 def test_text_renderer_multiple_decorators():
@@ -109,3 +112,24 @@ def test_text_renderer_with_mixed_decorators(mock_stream):
     assert "\x1b[1m" in output  # Bright style
     assert "\x1b[32m" in output  # Green color
     assert "  " in output  # Indentation
+
+
+def test_plain_text_renderer_with_decorators(mock_stream):
+    """Test plain text renderer with decorators"""
+    renderer = PlainTextRenderer(stream=mock_stream)
+    renderer.update(
+        [
+            ColorDecorator(foreground="green"),
+            StyleDecorator("bright"),
+            EmojiDecorator("🔍"),
+        ]
+    )
+
+    renderer.render("This is a long text that should be undecorated")
+
+    # Check that no decorations were applied
+    output = "".join(mock_stream.written)
+    assert "🔍" not in output  # Emoji
+    assert "\x1b[1m" not in output  # Bright style
+    assert "\x1b[32m" not in output  # Green color
+    assert "This is a long text that should be undecorated" in output
