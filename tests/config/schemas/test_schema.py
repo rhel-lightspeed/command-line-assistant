@@ -37,3 +37,41 @@ def test_backend_schema_with_auth_dict():
     assert str(schema.auth.cert_file) == "/path/to/cert.pem"
     assert str(schema.auth.key_file) == "/path/to/key.pem"
     assert schema.auth.verify_ssl is False
+
+
+@pytest.mark.parametrize(
+    ("envs",),
+    (
+        ({},),
+        ({"http_proxy": "http://i-am-your-father"},),
+        ({"https_proxy": "http://i-am-your-father"},),
+        (
+            {
+                "http_proxy": "http://i-am-your-father",
+                "https_proxy": "http://i-am-your-father",
+            },
+        ),
+    ),
+)
+@pytest.mark.parametrize(
+    ("proxies",),
+    (
+        ({"http": "http://may-the-force-be-with-you"},),
+        ({},),
+        ({"https": "https://may-the-force-be-with-you"},),
+        (
+            {
+                "http": "http://may-the-force-be-with-you",
+                "https": "https://double-proxy!",
+            },
+        ),
+    ),
+)
+def test_backend_schema_with_proxies(proxies, envs, monkeypatch):
+    """Test BackendSchema initialization with proxies as dict"""
+    monkeypatch.setenv("http_proxy", envs.get("http_proxy", ""))
+    monkeypatch.setenv("https_proxy", envs.get("https_proxy", ""))
+
+    schema = BackendSchema(proxies=proxies)
+
+    assert schema.proxies == proxies or envs

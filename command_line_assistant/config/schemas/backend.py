@@ -1,6 +1,7 @@
 """Schemas for the backend config."""
 
 import dataclasses
+import os
 from pathlib import Path
 
 
@@ -45,3 +46,13 @@ class BackendSchema:
         # anything and go with defaults.
         if isinstance(self.auth, dict):
             self.auth = AuthSchema(**self.auth)
+
+        # If the proxies are not set in the config.toml, set the environment variables.
+        if not self.proxies:
+            http_proxy = os.environ.get("http_proxy")
+            if http_proxy:
+                self.proxies["http"] = http_proxy
+
+            https_proxy = os.environ.get("https_proxy")
+            if https_proxy:
+                self.proxies["https"] = https_proxy
