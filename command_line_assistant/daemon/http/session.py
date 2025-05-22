@@ -1,6 +1,7 @@
 """Handle the http sessions that the daemon issues to the backend."""
 
 import logging
+import os
 
 import urllib3
 from requests.sessions import Session
@@ -32,8 +33,16 @@ def get_session(config: Config) -> Session:
     """
     session = Session()
 
-    # Include the proxies defined by the user. By default, nothing is loaded.
+    # Include the proxies defined by the user. By default, environment variables is loaded.
     session.proxies.update(config.backend.proxies)
+    if not (config.backend.proxies):
+        http_proxy = os.environ.get("http_proxy")
+        if http_proxy:
+            session.proxies["http"] = http_proxy
+
+        https_proxy = os.environ.get("https_proxy")
+        if https_proxy:
+            session.proxies["https"] = https_proxy
 
     # Set up the necessary headers for every session.
     session.headers["User-Agent"] = USER_AGENT

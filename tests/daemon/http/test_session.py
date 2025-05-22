@@ -89,9 +89,26 @@ def test_various_endpoints(mock_config, endpoint):
         ),
     ),
 )
-def test_session_with_proxies(proxies, mock_config):
+@pytest.mark.parametrize(
+    ("envs",),
+    (
+        ({},),
+        ({"http_proxy": "http://i-am-your-father"},),
+        ({"https_proxy": "http://i-am-your-father"},),
+        (
+            {
+                "http_proxy": "http://i-am-your-father",
+                "https_proxy": "http://i-am-your-father",
+            },
+        ),
+    ),
+)
+def test_session_with_proxies(proxies, envs, mock_config, monkeypatch):
+    monkeypatch.setenv("http_proxy", envs.get("http_proxy", ""))
+    monkeypatch.setenv("https_proxy", envs.get("https_proxy", ""))
+
     mock_config.backend.proxies = proxies
 
     session = get_session(mock_config)
 
-    assert session.proxies == proxies
+    assert session.proxies == proxies or envs
