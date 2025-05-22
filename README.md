@@ -9,7 +9,7 @@ Contributions are welcome. Take a look at [CONTRIBUTING.md](CONTRIBUTING.md) for
 ## Trying CLA
 
 The `Command Line Assistant` client RPM is available for some versions of RHEL, currently it
-is available for RHEL-10.
+is available for RHEL 10 and RHEL 9.
 
 On a RHEL-10 system, after registering with subscription-manager(8) or rhc(8), simply install
 the `command-line-assistant` RPM with dnf(8).
