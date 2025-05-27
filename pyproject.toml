@@ -31,7 +31,7 @@ build-backend = "setuptools.build_meta"
 # ----- Tooling specifics
 
 [tool.poetry.group.dev.dependencies]
-psycopg2 = "2.9.10"
+psycopg2_binary = "2.9.10"
 mysqlclient = "2.2.7"
 pytest = "8.4.0"
 pytest-cov = "6.1.1"
