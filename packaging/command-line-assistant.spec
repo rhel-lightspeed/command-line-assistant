@@ -10,7 +10,7 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.3.1
+Version:        0.4.0
 Release:        1%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
@@ -165,6 +165,21 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Tue May 27 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.4.0
+- Refactor error codes
+- Add support for plain, simple output
+- Add tmpfs SELinux domain
+- Add check in clear(-all) to check if there is any chat to clean
+- Update colors in MarkdownRenderer to make the text more visible
+- Apply fixes to commands description and manpage in general
+- Fix legal message not showing up on each session
+- Prevent --with-output without terminal capture
+- Fix chat description and name defaults
+- Default to --all in history command
+- Fix unprocessable entity request for inference
+- Warn if .bashrc.d missing
+- Honor the http_proxy environment variables
+
 * Tue Mar 18 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.3.1
 - Add exception handling for RuntimeError
 - Disallow empty query arguments for query_string and stdin

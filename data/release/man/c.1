@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Apr 08, 2025" "0.3.1" "Command Line Assistant"
+.TH "C" "1" "May 27, 2025" "0.4.0" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -57,7 +57,7 @@ Command to ask a question to the LLM.
 .INDENT 3.5
 .sp
 .EX
-c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELETE]] [\-\-delete\-all]
+c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-l] [\-d [DELETE]] [\-\-delete\-all]
        [\-n [NAME]] [\-\-description [DESCRIPTION]]
        [query_string]
 .EE
@@ -78,10 +78,6 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELE
 \fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start an interactive chat session
 .IP \(bu 2
 \fI\%\-w\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 1 to retrieve the latest output, 2 to and so on. First, enable the terminal capture with \fB\(aqc shell \-\-enable\-capture\(aq\fP for this option to work. (default: \fBNone\fP)
-.IP \(bu 2
-\fI\%\-w\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 1 to retrieve latest output, 2 to before last and so on... First enable the terminal capture with \fB\(aqc shell \-\-enable\-capture\(aq\fP in order for this to work. (default: \fBNone\fP)
-.IP \(bu 2
-\fI\%\-r\fP, \fI\%\-\-plain\fP \- Enable plain output. This will disable colors, animations, and other rich content.
 .UNINDENT
 .SS c chat Chat Options
 .INDENT 0.0
@@ -92,9 +88,9 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-r] [\-l] [\-d [DELE
 .IP \(bu 2
 \fI\%\-\-delete\-all\fP \- Delete all chats
 .IP \(bu 2
-\fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session. The parameter has to be used together with sending a query. Otherwise it has no effect. (default: \fBdefault\fP)
+\fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect. (default: \fBNone\fP)
 .IP \(bu 2
-\fI\%\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session. The parameter has to be used together with sending a query. Otherwise it has no effect. (default: \fBDefault Command Line Assistant Chat.\fP)
+\fI\%\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect. (default: \fBNone\fP)
 .UNINDENT
 .SS c feedback
 .sp
