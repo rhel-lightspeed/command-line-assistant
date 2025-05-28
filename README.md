@@ -53,4 +53,3 @@ c "How to uninstall RHEL?"
 For questions, troubleshooting, bug reports and feature requests:
 
 * Create [an issue](https://github.com/rhel-lightspeed/command-line-assistant/issues/new) here on GitHub.
-* Ask a question through [GitHub Discussions](https://github.com/rhel-lightspeed/command-line-assistant/discussions).
