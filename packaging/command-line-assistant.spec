@@ -151,7 +151,6 @@ fi
 %{_mandir}/man1/%{symlink_binary_name}.1.gz
 %{_mandir}/man8/%{daemon_binary_name}.8.gz
 
-
 # Needed directories
 %dir %attr(0700, root, root) %{_sharedstatedir}/%{name}
 %dir %attr(0700, root, root) %{_sysconfdir}/xdg/%{name}

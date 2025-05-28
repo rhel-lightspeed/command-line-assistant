@@ -61,13 +61,18 @@ class DatabaseManager:
             connection_url = self._config.database.get_connection_url()
             # SQLite-specific settings
             if self._config.database.type == "sqlite":
-                if self._config.database.connection_string is not None:
+                if (
+                    self._config.database.connection_string is not None
+                    and not self._config.database.connection_string.exists()
+                ):
                     create_folder(
                         pathlib.Path(self._config.database.connection_string).parent,
                         parents=True,
                     )
+
+                extra_args = f"modeof={self._config.database.connection_string.parent}"
                 return create_engine(
-                    connection_url,
+                    f"{connection_url}?{extra_args}",
                     echo=echo,
                     poolclass=StaticPool,
                     connect_args={"check_same_thread": False},
