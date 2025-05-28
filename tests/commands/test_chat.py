@@ -605,6 +605,7 @@ def test_submit_question_no_spinner(mock_dbus_service, default_kwargs, capsys):
     captured = capsys.readouterr()
     assert "Asking RHEL Lightspeed" not in captured.out
 
+
 @pytest.mark.parametrize(
     ("question", "stdin", "attachment", "last_output"),
     (
