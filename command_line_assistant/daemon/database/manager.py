@@ -12,7 +12,7 @@ from sqlalchemy.pool import StaticPool
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.models.base import BaseModel
-from command_line_assistant.utils.files import create_folder, write_file
+from command_line_assistant.utils.files import create_folder
 
 logger = logging.getLogger(__name__)
 
@@ -61,15 +61,18 @@ class DatabaseManager:
             connection_url = self._config.database.get_connection_url()
             # SQLite-specific settings
             if self._config.database.type == "sqlite":
-                if self._config.database.connection_string is not None and not self._config.database.connection_string.exists():
+                if (
+                    self._config.database.connection_string is not None
+                    and not self._config.database.connection_string.exists()
+                ):
                     create_folder(
                         pathlib.Path(self._config.database.connection_string).parent,
                         parents=True,
                     )
-                    # Write an empty database file
-                    write_file("", self._config.database.connection_string)
+
+                extra_args = f"modeof={self._config.database.connection_string.parent}"
                 return create_engine(
-                    connection_url,
+                    f"{connection_url}?{extra_args}",
                     echo=echo,
                     poolclass=StaticPool,
                     connect_args={"check_same_thread": False},
