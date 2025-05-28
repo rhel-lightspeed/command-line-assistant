@@ -145,7 +145,6 @@ distribution-tarball: clean ## Generate distribution tarball
 		--exclude=.gitlab-ci.yml \
 		--exclude=.readthedocs.yaml \
 		--exclude=podman-compose.yaml \
-		--exclude=schemas \
 		--exclude=tox.ini \
 		--exclude=renovate.json \
 		--exclude=.pre-commit-config.yaml \
