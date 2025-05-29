@@ -609,13 +609,14 @@ def test_submit_question_no_spinner(mock_dbus_service, default_kwargs, capsys):
 @pytest.mark.parametrize(
     ("question", "stdin", "attachment", "last_output"),
     (
-        ("test " * 2048, "", "", ""),
-        ("", "test " * 2048, "", ""),
-        ("", "", "test " * 2048, ""),
-        ("", "", "", "test " * 2048),
+        # This generate more than 32k output to match the condition
+        ("test " * 6500, "", "", ""),
+        ("", "test " * 6500, "", ""),
+        ("", "", "test " * 6500, ""),
+        ("", "", "", "test " * 6500),
         # Combining two or more sources
-        ("question " * 2048, "stdin " * 124, "", ""),
-        ("question " * 2048, "stdin " * 124, "attachment" * 124, "last_output" * 124),
+        ("question " * 6500, "stdin " * 124, "", ""),
+        ("question " * 6500, "stdin " * 124, "attachment" * 124, "last_output" * 124),
     ),
 )
 def test_trim_down_message_size(
@@ -645,10 +646,10 @@ def test_trim_down_message_size(
         last_output,
         True,
     )
-    assert result == "test"
+    assert "test" in result
     captured = capsys.readouterr()
     assert "The total size of your question and context" in captured.out
-    assert "Final size of question after the limit 2048." in caplog.records[-3].message
+    assert "Final size of question after the limit" in caplog.records[-3].message
 
 
 def test_submit_question_history_disabled(

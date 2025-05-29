@@ -74,8 +74,8 @@ timing = TimingLogger(
 )
 
 #: Max input size we want to allow to be submitted to the backend. This
-#: corresponds to 2KB (2048 bytes)
-MAX_QUESTION_SIZE: int = 2048
+#: corresponds to 32KB (32000 bytes)
+MAX_QUESTION_SIZE: int = 32_000
 
 #: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
@@ -341,23 +341,23 @@ class BaseChatOperation(BaseOperation):
         Returns:
             str: The response from the backend server
         """
-        final_question = _get_input_source(question, stdin, attachment, last_output)
         response = None
-
-        if len(final_question) > MAX_QUESTION_SIZE:
-            final_question_size = human_readable_size(len(final_question))
+        final_question = _get_input_source(question, stdin, attachment, last_output)
+        final_question_size = len(final_question)
+        if final_question_size >= MAX_QUESTION_SIZE:
+            readable_size = human_readable_size(final_question_size)
             max_question_size = human_readable_size(MAX_QUESTION_SIZE)
             self.warning_renderer.render(
-                f"The total size of your question and context ({final_question_size}) exceeds the limit of {max_question_size}. Trimming it down to fit in the expected size, you may lose some context."
+                f"The total size of your question and context ({readable_size}) exceeds the limit of {max_question_size}. Trimming it down to fit in the expected size, you may lose some context."
             )
             logger.debug(
                 "Total size of question (%s) exceeds defined limit of %s.",
-                len(final_question),
+                final_question_size,
                 MAX_QUESTION_SIZE,
             )
             final_question = final_question[:MAX_QUESTION_SIZE]
             logger.debug(
-                "Final size of question after the limit %s.", len(final_question)
+                "Final size of question after the limit %s.", final_question_size
             )
 
         if skip_spinner:
