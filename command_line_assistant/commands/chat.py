@@ -75,7 +75,7 @@ timing = TimingLogger(
 
 #: Max input size we want to allow to be submitted to the backend. This
 #: corresponds to 32KB (32000 bytes)
-MAX_QUESTION_SIZE: int = 32000
+MAX_QUESTION_SIZE: int = 32_000
 
 #: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
