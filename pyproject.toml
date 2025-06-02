@@ -33,7 +33,7 @@ build-backend = "setuptools.build_meta"
 [tool.poetry.group.dev.dependencies]
 psycopg2 = "2.9.10"
 mysqlclient = "2.2.7"
-pytest = "8.3.5"
+pytest = "8.4.0"
 pytest-cov = "6.1.1"
 pytest-randomly = "3.16.0"
 coverage = "7.8.2"
