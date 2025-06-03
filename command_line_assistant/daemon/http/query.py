@@ -2,6 +2,7 @@
 
 import logging
 from http import HTTPStatus
+from json.decoder import JSONDecodeError
 
 from requests import RequestException, Response
 
@@ -117,18 +118,25 @@ def _handle_error_response(response: Response) -> None:
         response.status_code,
         f"Unexpected error with status code {response.status_code}: {response.reason}",
     )
-    detailed_message = "No additional details provided"
-    response_json = response.json()
-    if "errors" in response_json and isinstance(response_json["errors"], list):
-        # 3scale returns errors wrapped in a JSON object with a list of errors
-        for error in response.json()["errors"]:
-            if error["status"] == response.status_code and "detail" in error:
-                detailed_message = error["detail"]
-                break
-    elif "detail" in response_json:
-        # Assume the response is directly from the API that contains just a
-        # single "detail" field.
-        detailed_message = response_json["detail"]
+    detailed_message = "No additional details provided."
+    try:
+        response_json = response.json()
+        if "errors" in response_json and isinstance(response_json["errors"], list):
+            # 3scale returns errors wrapped in a JSON object with a list of errors
+            for error in response.json()["errors"]:
+                if error["status"] == response.status_code and "detail" in error:
+                    detailed_message = error["detail"]
+                    break
+        elif "detail" in response_json:
+            # Assume the response is directly from the API that contains just a
+            # single "detail" field.
+            detailed_message = response_json["detail"]
+    except JSONDecodeError as e:
+        # Catch the JSONDecodeError and log it to the debug log, but continue
+        # the error creation.
+        logger.debug("Failed to decode JSON: %s", e)
+        pass
+
     error_message = error_message.format(detailed_message=detailed_message)
 
     logger.error("Status code: %s and message: %s", response.status_code, error_message)

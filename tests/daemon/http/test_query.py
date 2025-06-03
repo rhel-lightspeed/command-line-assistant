@@ -202,3 +202,29 @@ def test_extract_response_text_invalid_json(mock_config, default_payload):
 
     result = query.submit(default_payload, config=mock_config)
     assert result == "Not a JSON response"
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    "status_code,response_body,expected_error_message",
+    [
+        (
+            HTTPStatus.NOT_FOUND,
+            "Not found",
+            "Resource not found: The requested endpoint doesn't exist. No additional details provided.",
+        )
+    ],
+)
+def test_handle_error_response_invalid_json(
+    mock_config, default_payload, status_code, response_body, expected_error_message
+):
+    """Test handling non-JSON error responses"""
+    responses.post(
+        url="http://localhost/infer",
+        status=status_code,
+        body=response_body,
+        content_type="text/plain",
+    )
+
+    with pytest.raises(RequestFailedError, match=expected_error_message):
+        query.submit(default_payload, config=mock_config)
