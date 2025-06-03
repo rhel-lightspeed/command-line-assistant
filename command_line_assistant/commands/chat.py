@@ -311,7 +311,11 @@ class BaseChatOperation(BaseOperation):
             response(str): The message to be displayed
         """
         self.legal_renderer.render(LEGAL_NOTICE)
+        self.text_renderer.render("─" * 72)
+        print("")
         self.markdown_renderer.render(response)
+        print("")
+        self.text_renderer.render("─" * 72)
         self.notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
 
     @timing.timeit
