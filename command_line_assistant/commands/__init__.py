@@ -1,1 +1,1 @@
-"""Module to track all the CLI commands."""
+"""Simplified command registration module."""

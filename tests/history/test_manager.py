@@ -1,7 +1,5 @@
 import pytest
 
-from command_line_assistant.daemon.database.models.history import HistoryModel
-from command_line_assistant.dbus.exceptions import HistoryNotEnabledError
 from command_line_assistant.history.base import BaseHistoryPlugin
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
@@ -11,7 +9,6 @@ class MockHistoryPlugin(BaseHistoryPlugin):
     def __init__(self, config):
         super().__init__(config)
         self.read_called = False
-        self.read_from_chat_called = True
         self.write_called = False
         self.clear_called = False
         self.clear_from_chat_called = True
@@ -20,9 +17,8 @@ class MockHistoryPlugin(BaseHistoryPlugin):
         self.read_called = True
         return []
 
-    def read_from_chat(self, user_id, from_chat):
-        self.read_from_chat_called = True
-        return HistoryModel
+    def read_from_chat(self, user_id: str, from_chat: str):
+        return None
 
     def write(self, chat_id, user_id, query: str, response: str) -> None:
         self.write_called = True
@@ -146,29 +142,3 @@ def test_history_manager_multiple_writes(history_manager):
     # 1 history, with multiple interactions
     assert len(history) == 1
     assert len(history[0].interactions) == len(entries)
-
-
-def test_read_disabled_history(mock_config):
-    """Raise exception when the history is not enabled"""
-    mock_config.history.enabled = False
-    manager = HistoryManager(mock_config, plugin=LocalHistory)
-    with pytest.raises(HistoryNotEnabledError, match="History is not enabled"):
-        manager.read("6d4e6b1e-dfcb-11ef-9b4f-52b437312584")
-
-
-def test_write_disabled_history(mock_config):
-    """Raise exception when the history is not enabled"""
-    mock_config.history.enabled = False
-    manager = HistoryManager(mock_config, plugin=LocalHistory)
-    uid = "6d4e6b1e-dfcb-11ef-9b4f-52b437312584"
-    with pytest.raises(HistoryNotEnabledError, match="History is not enabled"):
-        manager.write(uid, uid, "test", "test")
-
-
-def test_clear_disabled_history(mock_config):
-    """Raise exception when the history is not enabled"""
-    mock_config.history.enabled = False
-    manager = HistoryManager(mock_config, plugin=LocalHistory)
-    uid = "6d4e6b1e-dfcb-11ef-9b4f-52b437312584"
-    with pytest.raises(HistoryNotEnabledError, match="History is not enabled"):
-        manager.clear(uid)

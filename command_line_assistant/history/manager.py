@@ -5,7 +5,6 @@ from typing import Optional, Type
 
 from command_line_assistant.config import Config
 from command_line_assistant.daemon.database.models.history import HistoryModel
-from command_line_assistant.dbus.exceptions import HistoryNotEnabledError
 from command_line_assistant.history.base import BaseHistoryPlugin
 
 #: Default history plugin error message.
@@ -46,14 +45,14 @@ class HistoryManager:
         if plugin:
             self.plugin = plugin
 
-    def _check_if_history_is_enabled(self) -> None:
+    @property
+    def is_history_enabled(self) -> bool:
         """Check if the history is enabled in the configuration file.
 
-        Raises:
-            HistoryNotEnabledError: If history is not enabled in the configuration file.
+        Returns:
+            bool: Wether or not the history is enabled.
         """
-        if not self._config.history.enabled:
-            raise HistoryNotEnabledError("History is not enabled.")
+        return self._config.history.enabled
 
     @property
     def plugin(self) -> Optional[Type[BaseHistoryPlugin]]:
@@ -97,7 +96,6 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
-        self._check_if_history_is_enabled()
         return self._instance.read(user_id)
 
     def read_from_chat(self, user_id: str, from_chat: str) -> Optional[HistoryModel]:
@@ -115,7 +113,6 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
-        self._check_if_history_is_enabled()
         return self._instance.read_from_chat(user_id, from_chat)
 
     def write(self, chat_id: str, user_id: str, query: str, response: str) -> None:
@@ -133,7 +130,6 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
-        self._check_if_history_is_enabled()
         self._instance.write(chat_id, user_id, query, response)
 
     def clear(self, user_id: str) -> None:
@@ -148,7 +144,6 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
-        self._check_if_history_is_enabled()
         self._instance.clear(user_id)
 
     def clear_from_chat(self, user_id: str, from_chat: str) -> None:
@@ -163,5 +158,4 @@ class HistoryManager:
         if not self._instance:
             raise RuntimeError(HISTORY_PLUGIN_ERROR_MESSAGE)
 
-        self._check_if_history_is_enabled()
         self._instance.clear_from_chat(user_id, from_chat)

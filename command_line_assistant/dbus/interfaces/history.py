@@ -12,7 +12,10 @@ from command_line_assistant.daemon.database.models.history import (
 )
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
-from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
+from command_line_assistant.dbus.exceptions import (
+    HistoryNotAvailableError,
+    HistoryNotEnabledError,
+)
 from command_line_assistant.dbus.structures.history import (
     HistoryEntry,
     HistoryList,
@@ -24,7 +27,13 @@ logger = logging.getLogger(__name__)
 
 
 #: Default message in case a history chat is not available.
-HISTORY_CHAT_NOT_AVAILABLE = "Unfortunately, no history was found."
+HISTORY_NOT_AVAILABLE_MESSAGE = (
+    "Looks like no history was found. Try asking something first!"
+)
+HISTORY_NOT_ENABLED_MESSAGE = (
+    "Looks like history is not enabled yet. Enable it in the configuration "
+    "file before trying to access history."
+)
 
 
 @dbus_interface(HISTORY_IDENTIFIER.interface_name)
@@ -50,11 +59,14 @@ class HistoryInterface(InterfaceTemplate):
         Returns:
             Structure: The history entries in a dbus structure format.
         """
+        if not self._history_manager.is_history_enabled:
+            raise HistoryNotEnabledError(HISTORY_NOT_ENABLED_MESSAGE)
+
         logger.info("Getting all history data from user '%s'", user_id)
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
-            raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
+            raise HistoryNotAvailableError(HISTORY_NOT_AVAILABLE_MESSAGE)
 
         history_entry = _parse_interactions(history_entries)
         return history_entry.structure()
@@ -70,6 +82,9 @@ class HistoryInterface(InterfaceTemplate):
         Returns:
             Structure: A single history entry in a dbus structure format.
         """
+        if not self._history_manager.is_history_enabled:
+            raise HistoryNotEnabledError(HISTORY_NOT_ENABLED_MESSAGE)
+
         logger.info(
             "Getting the first history log for user '%s' in chat '%s'",
             user_id,
@@ -78,7 +93,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entries = self._history_manager.read_from_chat(user_id, from_chat)
 
         if not history_entries:
-            raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
+            raise HistoryNotAvailableError(HISTORY_NOT_AVAILABLE_MESSAGE)
 
         history_entries.interactions = history_entries.interactions[:1]  # type: ignore
         history_entry = _parse_interactions([history_entries])  # type: ignore
@@ -91,16 +106,23 @@ class HistoryInterface(InterfaceTemplate):
             user_id (Str): The identifier of the user.
             from_chat (Str): Chat name identifier
 
+        Raises:
+            HistoryNotEnabledError: If history is not enabled.
+            HistoryNotAvailableError: If no history is available for the user.
+
         Returns:
             Structure: A single history entyr in a dbus structure format.
         """
+        if not self._history_manager.is_history_enabled:
+            raise HistoryNotEnabledError(HISTORY_NOT_ENABLED_MESSAGE)
+
         logger.info(
             "Get the most recent history for user '%s' in chat '%s'", user_id, from_chat
         )
         history_entries = self._history_manager.read_from_chat(user_id, from_chat)
 
         if not history_entries:
-            raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
+            raise HistoryNotAvailableError(HISTORY_NOT_AVAILABLE_MESSAGE)
 
         history_entries.interactions = history_entries.interactions[-1:]  # type: ignore
         history_entry = _parse_interactions([history_entries])  # type: ignore
@@ -119,10 +141,13 @@ class HistoryInterface(InterfaceTemplate):
         Returns:
             Structure: Structure of history entries.
         """
+        if not self._history_manager.is_history_enabled:
+            raise HistoryNotEnabledError(HISTORY_NOT_ENABLED_MESSAGE)
+
         history_entries = self._history_manager.read_from_chat(user_id, from_chat)
 
         if not history_entries:
-            raise HistoryNotAvailableError(HISTORY_CHAT_NOT_AVAILABLE)
+            raise HistoryNotAvailableError(HISTORY_NOT_AVAILABLE_MESSAGE)
 
         logger.info(
             "Filtering the user history with keyword '%s' for user '%s' in chat '%s'",
@@ -141,6 +166,9 @@ class HistoryInterface(InterfaceTemplate):
         Arguments:
             user_id (Str): The identifier of the user.
         """
+        if not self._history_manager.is_history_enabled:
+            raise HistoryNotEnabledError(HISTORY_NOT_ENABLED_MESSAGE)
+
         logger.info(
             "Clearing history entries for user.",
             extra={"audit": True, "user_id": user_id},
@@ -153,6 +181,9 @@ class HistoryInterface(InterfaceTemplate):
         Arguments:
             user_id (Str): The identifier of the user.
         """
+        if not self._history_manager.is_history_enabled:
+            raise HistoryNotEnabledError(HISTORY_NOT_ENABLED_MESSAGE)
+
         logger.info(
             "Clearing history entries for user.",
             extra={"audit": True, "user_id": user_id, "from_chat": from_chat},
@@ -170,6 +201,9 @@ class HistoryInterface(InterfaceTemplate):
             question (Str): The question asked by the user.
             response (Str): The response given to the user.
         """
+        if not self._history_manager.is_history_enabled:
+            raise HistoryNotEnabledError(HISTORY_NOT_ENABLED_MESSAGE)
+
         self._history_manager.write(chat_id, user_id, question, response)
         logger.info(
             "Wrote a new entry to the user history for user.",
