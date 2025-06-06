@@ -7,12 +7,12 @@ from argparse import ArgumentParser, Namespace
 
 from dasbus.error import DBusError
 
-from command_line_assistant.commands import chat, feedback, history, shell
 from command_line_assistant.logger import setup_client_logging
 from command_line_assistant.utils.cli import (
     add_default_command,
     create_argument_parser,
     read_stdin,
+    register_all_commands,
 )
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
@@ -28,10 +28,8 @@ def register_subcommands() -> ArgumentParser:
     """
     parser, commands_parser = create_argument_parser()
 
-    chat.register_subcommand(commands_parser)  # type: ignore
-    feedback.register_subcommand(commands_parser)  # type: ignore
-    history.register_subcommand(commands_parser)  # type: ignore
-    shell.register_subcommand(commands_parser)  # type: ignore
+    # Register all decorator-based commands (includes chat, feedback, history, shell, example)
+    register_all_commands(commands_parser)
 
     return parser
 
@@ -77,8 +75,7 @@ def main() -> int:
         if args.debug:
             setup_client_logging()
 
-        service = args.func(args)
-        return service.run()
+        return args.func(args)
     except ValueError as e:
         error_renderer.render(str(e))
         return os.EX_DATAERR
