@@ -21,8 +21,11 @@ class InteractiveRenderer(BaseRenderer):
         """Constructor for the class
 
         Arguments:
-            banner (str): The banner that will greet the user when the interactive mode starts.
-            stream (Optional[OutputStreamWritter], optional): The stream to where the output will be. Can be either `py:StdoutStream` or `py:StderrStream`. Defaults to StdoutStream().
+            banner (str): The banner that will greet the user when the
+            interactive mode starts.
+            stream (Optional[OutputStreamWritter], optional): The stream to
+            where the output will be. Can be either `py:StdoutStream` or
+            `py:StderrStream`. Defaults to StdoutStream().
         """
         self._banner = banner
         self._output: str = ""
