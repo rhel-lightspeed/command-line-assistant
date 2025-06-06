@@ -5,7 +5,10 @@ from dasbus.server.template import InterfaceTemplate
 
 from command_line_assistant.daemon.database.manager import DatabaseManager
 from command_line_assistant.daemon.database.repository.chat import ChatRepository
-from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
+from command_line_assistant.dbus.exceptions import (
+    HistoryNotAvailableError,
+    HistoryNotEnabledError,
+)
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
 from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.history.manager import HistoryManager
@@ -63,11 +66,30 @@ def test_history_interface_get_history(
         assert reconstructed.histories[0].response == "test response"
 
 
-def test_history_interface_get_history_exception(history_interface):
+@pytest.mark.parametrize(
+    ("exception", "match", "history_enabled"),
+    (
+        (
+            HistoryNotAvailableError,
+            "Looks like no history was found. Try asking something first!",
+            True,
+        ),
+        (
+            HistoryNotEnabledError,
+            "Looks like history is not enabled yet. Enable it in the configuration file before trying to access history.",
+            False,
+        ),
+    ),
+)
+def test_history_interface_get_history_multiple_exceptions(
+    history_interface, exception, match, history_enabled
+):
     """Test getting all history through history interface."""
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    history_interface.implementation.config.history.enabled = history_enabled
     with pytest.raises(
-        HistoryNotAvailableError, match="Unfortunately, no history was found."
+        exception,
+        match=match,
     ):
         history_interface.GetHistory(uid)
 
@@ -91,12 +113,29 @@ def test_history_interface_get_first_conversation(
         assert reconstructed.histories[0].response == "test response"
 
 
-def test_history_interface_get_first_conversation_exception(
-    history_interface, _seed_test_database
+@pytest.mark.parametrize(
+    ("exception", "match", "history_enabled"),
+    (
+        (
+            HistoryNotAvailableError,
+            "Looks like no history was found. Try asking something first!",
+            True,
+        ),
+        (
+            HistoryNotEnabledError,
+            "Looks like history is not enabled yet. Enable it in the configuration file before trying to access history.",
+            False,
+        ),
+    ),
+)
+def test_history_interface_get_first_conversation_multiple_exception(
+    history_interface, _seed_test_database, exception, match, history_enabled
 ):
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    history_interface.implementation.config.history.enabled = history_enabled
     with pytest.raises(
-        HistoryNotAvailableError, match="Unfortunately, no history was found."
+        exception,
+        match=match,
     ):
         history_interface.GetFirstConversation(uid, "test")
 
@@ -119,10 +158,29 @@ def test_history_interface_get_last_conversation(
         assert reconstructed.histories[0].response == "test response3"
 
 
-def test_history_interface_get_last_conversation_exception(history_interface):
+@pytest.mark.parametrize(
+    ("exception", "match", "history_enabled"),
+    (
+        (
+            HistoryNotAvailableError,
+            "Looks like no history was found. Try asking something first!",
+            True,
+        ),
+        (
+            HistoryNotEnabledError,
+            "Looks like history is not enabled yet. Enable it in the configuration file before trying to access history.",
+            False,
+        ),
+    ),
+)
+def test_history_interface_get_last_conversation_multiple_exception(
+    history_interface, exception, match, history_enabled
+):
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    history_interface.implementation.config.history.enabled = history_enabled
     with pytest.raises(
-        HistoryNotAvailableError, match="Unfortunately, no history was found."
+        exception,
+        match=match,
     ):
         history_interface.GetLastConversation(uid, "test")
 
@@ -146,10 +204,29 @@ def test_history_interface_get_filtered_conversation(
         assert reconstructed.histories[0].response == "test response"
 
 
-def test_history_interface_get_filtered_conversation_exception(history_interface):
+@pytest.mark.parametrize(
+    ("exception", "match", "history_enabled"),
+    (
+        (
+            HistoryNotAvailableError,
+            "Looks like no history was found. Try asking something first!",
+            True,
+        ),
+        (
+            HistoryNotEnabledError,
+            "Looks like history is not enabled yet. Enable it in the configuration file before trying to access history.",
+            False,
+        ),
+    ),
+)
+def test_history_interface_get_filtered_conversation_multiple_exception(
+    history_interface, exception, match, history_enabled
+):
     uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    history_interface.implementation.config.history.enabled = history_enabled
     with pytest.raises(
-        HistoryNotAvailableError, match="Unfortunately, no history was found."
+        exception,
+        match=match,
     ):
         history_interface.GetFilteredConversation(uid, filter="test", from_chat="test")
 

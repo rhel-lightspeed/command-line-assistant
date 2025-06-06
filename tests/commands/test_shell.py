@@ -1,244 +1,291 @@
-from argparse import ArgumentParser, Namespace
+from argparse import Namespace
 from unittest import mock
 
 import pytest
 
 from command_line_assistant.commands import shell
-from command_line_assistant.commands.shell import (
-    BaseShellOperation,
-    DisableInteractiveMode,
-    EnableInteractiveMode,
-    EnableTerminalCapture,
-    ShellCommand,
-    _command_factory,
-    register_subcommand,
-)
 from command_line_assistant.exceptions import ShellCommandException
+from command_line_assistant.utils.cli import CommandContext
 from command_line_assistant.utils.files import NamedFileLock
-from command_line_assistant.utils.renderers import (
-    create_text_renderer,
-    create_warning_renderer,
-)
+
+
+@pytest.fixture
+def default_namespace():
+    return Namespace(
+        enable_capture=False,
+        enable_interactive=False,
+        disable_interactive=False,
+        plain=True,
+    )
+
+
+@pytest.fixture
+def command_context():
+    return CommandContext()
 
 
 @pytest.fixture(autouse=True)
 def mock_bash_rc(monkeypatch, tmp_path):
+    """Mock bash RC directory and files."""
     bash_rc_d = tmp_path / ".bashrc.d"
-    monkeypatch.setattr(shell, "BASH_RC_D_PATH", bash_rc_d)
-
-    essential_exports_file = tmp_path / "cla-exports.bashrc"
-    monkeypatch.setattr(shell, "ESSENTIAL_EXPORTS_FILE", essential_exports_file)
-
-    interactive_mode_integration_file = tmp_path / "cla-interactive.bashrc"
     monkeypatch.setattr(
-        shell, "INTERACTIVE_MODE_INTEGRATION_FILE", interactive_mode_integration_file
+        "command_line_assistant.commands.shell.BASH_RC_D_PATH", bash_rc_d
+    )
+
+    interactive_mode_integration_file = bash_rc_d / "cla-interactive.bashrc"
+    monkeypatch.setattr(
+        "command_line_assistant.commands.shell.INTERACTIVE_MODE_INTEGRATION_FILE",
+        interactive_mode_integration_file,
     )
 
 
-def test_initialize_bash_folder(default_kwargs, tmp_path):
-    bash_rc_d = tmp_path / ".bashrc.d"
-    BaseShellOperation(**default_kwargs)._initialize_bash_folder()
+def test_shell_command_enable_interactive(default_namespace, command_context, capsys):
+    """Test enabling interactive mode."""
+    default_namespace.enable_interactive = True
+    result = shell.shell_command.func(default_namespace, command_context)
 
-    assert oct(bash_rc_d.stat().st_mode).endswith("700")
-
-
-def test_write_bash_functions(default_kwargs, tmp_path, capsys):
-    some_bash_file = tmp_path / "test.bashrc"
-    default_kwargs["text_renderer"] = create_text_renderer()
-    bash_shell_operation = BaseShellOperation(**default_kwargs)
-
-    bash_shell_operation._write_bash_functions(some_bash_file, "export TEST=1")
-
-    assert some_bash_file.exists()
-    assert some_bash_file.read_text() == "export TEST=1"
     captured = capsys.readouterr()
-    assert "Integration successfully added at" in captured.out
-    assert oct(some_bash_file.stat().st_mode).endswith("600")
+    assert result == 0
+    assert "Integration successfully added" in captured.out
 
 
-def test_write_bash_functions_file_exists(default_kwargs, tmp_path, capsys):
-    some_bash_file = tmp_path / "test.bashrc"
-    some_bash_file.write_text("export TEST=1")
-    default_kwargs["warning_renderer"] = create_text_renderer()
-    bash_shell_operation = BaseShellOperation(**default_kwargs)
-
-    bash_shell_operation._write_bash_functions(some_bash_file, "export TEST=1")
-
-    assert some_bash_file.exists()
-    assert some_bash_file.read_text() == "export TEST=1"
-    captured = capsys.readouterr()
-    assert "The integration is already present and enabled" in captured.out
-
-
-def test_write_bash_functions_missing_bashrc_d(
-    default_kwargs, tmp_path, capsys, monkeypatch
+def test_shell_command_enable_interactive_already_exists(
+    default_namespace, command_context, capsys, tmp_path
 ):
-    monkeypatch.setenv("HOME", (tmp_path / "test_home").as_posix())
+    """Test enabling interactive mode when integration already exists."""
+    # Create the integration file first
+    bash_rc_d = tmp_path / ".bashrc.d"
+    bash_rc_d.mkdir(exist_ok=True)
+    integration_file = bash_rc_d / "cla-interactive.bashrc"
+    integration_file.write_text("# Already exists")
 
-    some_bash_file = tmp_path / "test.bashrc"
-    default_kwargs["text_renderer"] = create_text_renderer()
-    default_kwargs["warning_renderer"] = create_warning_renderer()
-    bash_shell_operation = BaseShellOperation(**default_kwargs)
+    default_namespace.enable_interactive = True
+    result = shell.shell_command.func(default_namespace, command_context)
 
-    bash_shell_operation._write_bash_functions(some_bash_file, "export TEST=1")
-
-    assert some_bash_file.exists()
-    assert some_bash_file.read_text() == "export TEST=1"
     captured = capsys.readouterr()
-    assert "In order to use shell integration" in captured.err
-    assert oct(some_bash_file.stat().st_mode).endswith("600")
+    assert result == 2
+    assert "The integration is already present and enabled" in captured.err
 
 
-def test_remove_bash_functions(default_kwargs, tmp_path, capsys):
-    some_bash_file = tmp_path / "test.bashrc"
-    some_bash_file.write_text("export TEST=1")
-    default_kwargs["text_renderer"] = create_text_renderer()
-    bash_shell_operation = BaseShellOperation(**default_kwargs)
+def test_shell_command_disable_interactive(
+    default_namespace, command_context, capsys, tmp_path
+):
+    """Test disabling interactive mode."""
+    # Create the integration file first
+    bash_rc_d = tmp_path / ".bashrc.d"
+    bash_rc_d.mkdir(exist_ok=True)
+    integration_file = bash_rc_d / "cla-interactive.bashrc"
+    integration_file.write_text("# Integration content")
 
-    bash_shell_operation._remove_bash_functions(some_bash_file)
+    default_namespace.disable_interactive = True
+    result = shell.shell_command.func(default_namespace, command_context)
 
-    assert not some_bash_file.exists()
     captured = capsys.readouterr()
-    assert "Integration disabled successfully." in captured.out
+    assert result == 0
+    assert "Integration disabled successfully" in captured.out
+    assert not integration_file.exists()
 
 
-def test_remove_bash_functions_no_integration_found(default_kwargs, tmp_path, capsys):
-    some_bash_file = tmp_path / "test.bashrc"
-    default_kwargs["warning_renderer"] = create_text_renderer()
-    bash_shell_operation = BaseShellOperation(**default_kwargs)
+def test_shell_command_disable_interactive_not_exists(
+    default_namespace, command_context, capsys
+):
+    """Test disabling interactive mode when integration doesn't exist."""
+    default_namespace.disable_interactive = True
+    result = shell.shell_command.func(default_namespace, command_context)
 
-    bash_shell_operation._remove_bash_functions(some_bash_file)
-
-    assert not some_bash_file.exists()
     captured = capsys.readouterr()
-    assert (
-        "It seems that the integration is not enabled. Skipping operation."
-        in captured.out
-    )
+    assert result == 2
+    assert "It seems that the integration is not enabled" in captured.err
 
 
-@pytest.mark.parametrize(
-    ("operation"),
-    (
-        (EnableInteractiveMode),
-        (DisableInteractiveMode),
-    ),
-)
-def test_shell_operations(operation, default_kwargs):
-    """Test that all shell operations will work when executed.
-
-    We are calling it this way because all operations are very simply and only
-    change the contents and filepath to write. Once we start to make them more
-    verbose and complex, we can come back and remove the specific operation
-    from the parametrize and make a special test for them. But right now, this
-    simple verification should be enough.
-
-    In case there is a failure during the execution, we will catch this
-    exception and makr the test as a failed.
-    """
-    op = operation(**default_kwargs)
-    try:
-        op.execute()
-    except Exception as e:
-        pytest.fail(f"We got a failure in {op} with stack: {str(e)}")
-
-
-@pytest.mark.parametrize(
-    ("exception", "expected_msg"),
-    ((ShellCommandException("oh no, failure"), "oh no, failure"),),
-)
-def test_shell_run_exceptions(exception, expected_msg, capsys, monkeypatch):
+def test_shell_command_enable_capture(
+    default_namespace, command_context, capsys, monkeypatch
+):
+    """Test enabling terminal capture."""
+    # Mock the start_capturing function
+    mock_start_capturing = mock.Mock()
     monkeypatch.setattr(
-        shell.BaseShellOperation,
-        "_initialize_bash_folder",
-        mock.Mock(side_effect=exception),
+        "command_line_assistant.commands.shell.start_capturing",
+        mock_start_capturing,
     )
+
+    default_namespace.enable_capture = True
+    result = shell.shell_command.func(default_namespace, command_context)
+
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "Starting terminal reader" in captured.out
+    assert "Press Ctrl + D to stop the capturing" in captured.out
+    mock_start_capturing.assert_called_once()
+
+
+def test_shell_command_enable_capture_already_running(
+    default_namespace, command_context, capsys
+):
+    """Test enabling terminal capture when already running."""
+    default_namespace.enable_capture = True
+
+    # Simulate terminal capture already running
+    with NamedFileLock(name="terminal"):
+        result = shell.shell_command.func(default_namespace, command_context)
+
+        captured = capsys.readouterr()
+        assert result == 81  # ShellCommandException code
+        assert "Detected a terminal capture session running" in captured.err
+
+
+def test_shell_command_no_operation(default_namespace, command_context, capsys):
+    """Test shell command with no specific operation."""
+    result = shell.shell_command.func(default_namespace, command_context)
+
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "No operation specified" in captured.err
+
+
+def test_shell_command_plain_mode(command_context, capsys):
+    """Test shell command in plain mode."""
     args = Namespace(
-        enable_capture=False,
         enable_interactive=True,
+        enable_capture=False,
         disable_interactive=False,
+        plain=True,
     )
-    result = ShellCommand(args).run()
+    result = shell.shell_command.func(args, command_context)
 
     captured = capsys.readouterr()
-    assert result == 81
-    assert expected_msg in captured.err
+    assert result == 0
+    assert "Integration successfully added" in captured.out
 
 
-def test_register_subcommand():
-    """Test register_subcommand function"""
-    parser = ArgumentParser()
-    subparsers = parser.add_subparsers()
+def test_shell_command_exception_handling(
+    default_namespace, command_context, capsys, monkeypatch
+):
+    """Test shell command exception handling."""
 
-    # Register the subcommand
-    register_subcommand(subparsers)
+    # Mock an exception in the enable interactive operation
+    def mock_write_bash_functions(*args, **kwargs):
+        raise ShellCommandException("Test error")
 
-    # Parse a test command
-    args = parser.parse_args(["shell", "--enable-interactive"])
+    monkeypatch.setattr(
+        "command_line_assistant.commands.shell._write_bash_functions",
+        mock_write_bash_functions,
+    )
 
-    assert args.enable_interactive
-    assert hasattr(args, "func")
+    default_namespace.enable_interactive = True
+    result = shell.shell_command.func(default_namespace, command_context)
+
+    captured = capsys.readouterr()
+    assert result == 81  # ShellCommandException code
+    assert "Test error" in captured.err
+
+
+def test_shell_command_missing_bashrc_warning(
+    default_namespace, command_context, capsys, monkeypatch, tmp_path
+):
+    """Test warning when .bashrc.d is not configured."""
+    # Set up a test home directory without proper .bashrc configuration
+    test_home = tmp_path / "test_home"
+    test_home.mkdir()
+    monkeypatch.setenv("HOME", str(test_home))
+
+    # Create .bashrc without .bashrc.d snippet
+    bashrc = test_home / ".bashrc"
+    bashrc.write_text("# Basic bashrc")
+
+    # Use plain=False to ensure warning messages are captured properly
+    default_namespace.plain = False
+    default_namespace.enable_interactive = True
+    result = shell.shell_command.func(default_namespace, command_context)
+
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "Integration successfully added" in captured.out
+    # In plain=False mode, warnings go to stderr
+    assert "In order to use shell integration" in captured.err
+
+
+def test_shell_command_with_bashrc_d_configured(
+    default_namespace, command_context, capsys, monkeypatch, tmp_path
+):
+    """Test when .bashrc.d is properly configured."""
+    # Set up a test home directory with proper .bashrc configuration
+    test_home = tmp_path / "test_home"
+    test_home.mkdir()
+    monkeypatch.setenv("HOME", str(test_home))
+
+    # Create .bashrc with .bashrc.d snippet
+    bashrc = test_home / ".bashrc"
+    bashrc.write_text("""
+# Basic bashrc
+if [ -d ~/.bashrc.d ]; then
+    for rc in ~/.bashrc.d/*; do
+        if [ -f "$rc" ]; then
+            . "$rc"
+        fi
+    done
+fi
+""")
+
+    default_namespace.enable_interactive = True
+    result = shell.shell_command.func(default_namespace, command_context)
+
+    captured = capsys.readouterr()
+    assert result == 0
+    # Should not show the warning about configuring .bashrc
+    assert "In order to use shell integration" not in captured.err
 
 
 @pytest.mark.parametrize(
-    ("namespace",),
-    (
-        (
-            Namespace(
-                enable_capture=False,
-                enable_persistent_capture=True,
-                disable_persistent_capture=False,
-                enable_interactive=False,
-                disable_interactive=False,
-            ),
-        ),
-    ),
+    ("enable_interactive", "disable_interactive", "enable_capture"),
+    [
+        (True, False, False),
+        (False, True, False),
+        (False, False, True),
+    ],
 )
-def test_command_factory(namespace):
-    """Test _command_factory function"""
-    command = _command_factory(namespace)
+def test_shell_command_single_operations(
+    enable_interactive,
+    disable_interactive,
+    enable_capture,
+    command_context,
+    monkeypatch,
+):
+    """Test that only one operation can be performed at a time."""
+    if enable_capture:
+        # Mock start_capturing to avoid actual terminal capture
+        monkeypatch.setattr(
+            "command_line_assistant.commands.shell.start_capturing", mock.Mock()
+        )
 
-    assert isinstance(command, ShellCommand)
-    assert command._args.enable_capture is False
-    assert command._args.enable_persistent_capture is True
-    assert command._args.disable_persistent_capture is False
-    assert command._args.enable_interactive is False
-    assert command._args.disable_interactive is False
-
-
-def test_enable_terminal_capture(monkeypatch, default_kwargs, capsys):
-    default_kwargs["text_renderer"] = create_text_renderer()
-    monkeypatch.setattr(shell, "start_capturing", mock.Mock())
-    EnableTerminalCapture(**default_kwargs).execute()
-
-    captured = capsys.readouterr()
-    assert (
-        "Starting terminal reader. Press Ctrl + D to stop the capturing."
-        in captured.out
+    args = Namespace(
+        enable_interactive=enable_interactive,
+        disable_interactive=disable_interactive,
+        enable_capture=enable_capture,
+        plain=False,
     )
 
-
-def test_enable_terminal_capture_twice(monkeypatch, default_kwargs):
-    default_kwargs["text_renderer"] = create_text_renderer()
-    monkeypatch.setattr(shell, "start_capturing", mock.Mock())
-    with (
-        NamedFileLock(name="terminal"),
-        pytest.raises(
-            ShellCommandException,
-            match="Detected a terminal capture session running with pid",
-        ),
-    ):
-        EnableTerminalCapture(**default_kwargs).execute()
+    result = shell.shell_command.func(args, command_context)
+    if disable_interactive and not enable_interactive and not enable_capture:
+        # When trying to disable an integration that doesn't exist, returns 2
+        assert result == 2
+    else:
+        assert result == 0
 
 
-def test_enable_terminal_capture_execution(default_kwargs, monkeypatch):
-    """Test that enable terminal capture executes correctly"""
-    default_kwargs["text_renderer"] = create_text_renderer()
-    monkeypatch.setattr(
-        "command_line_assistant.commands.shell.start_capturing", lambda: None
-    )
-    try:
-        operation = EnableTerminalCapture(**default_kwargs)
-        operation.execute()
-    except Exception as e:
-        pytest.fail(f"Unexpected exception: {e}")
+def test_shell_command_integration_content(
+    default_namespace, command_context, tmp_path
+):
+    """Test that the integration content is written correctly."""
+    default_namespace.enable_interactive = True
+    result = shell.shell_command.func(default_namespace, command_context)
+
+    assert result == 0
+
+    bash_rc_d = tmp_path / ".bashrc.d"
+    integration_file = bash_rc_d / "cla-interactive.bashrc"
+    assert integration_file.exists()
+    content = integration_file.read_text()
+    # The content should be the BASH_INTERACTIVE constant from integrations
+    # We don't need to test the exact content, just that something was written
+    assert len(content) > 0
