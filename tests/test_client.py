@@ -138,36 +138,26 @@ def test_initialize_keyboard_interrupt(capsys):
 
 
 @pytest.mark.parametrize(
-    (
-        "argv",
-        "expected_command",
-    ),
+    ("argv"),
     [
-        (["c"], "chat"),  # Default to chat
-        (["c", "chat"], "chat"),
-        (["c", "history"], "history"),
-        (["c", "shell"], "shell"),
+        (["c"]),  # Default to chat
+        (["c", "chat"]),
+        (["c", "history"]),
+        (["c", "shell"]),
     ],
 )
-def test_initialize_command_selection(argv, expected_command):
+def test_initialize_command_selection(argv, capsys):
     """Test command selection logic"""
-    mock_command = Mock(return_value=MockCommand(Namespace()))
 
     with (
         patch("sys.argv", argv),
         patch("command_line_assistant.client.read_stdin", lambda: None),
-        patch("command_line_assistant.commands.chat.register_subcommand"),
-        patch("command_line_assistant.commands.history.register_subcommand"),
-        patch("command_line_assistant.commands.shell.register_subcommand"),
-        patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
-        mock_parse.return_value.func = mock_command
-        mock_parse.return_value.command = expected_command
-
         result = main()
 
-        assert result == 1
-        mock_command.assert_called_once()
+    captured = capsys.readouterr()
+    assert "usage: c" in captured.out
+    assert result == 64
 
 
 @pytest.mark.parametrize(

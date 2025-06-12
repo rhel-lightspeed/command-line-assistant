@@ -57,6 +57,13 @@ def main() -> int:
     try:
         stdin = read_stdin()
         args = add_default_command(stdin, sys.argv)
+
+        # In case that the user only calls `chat`, `history` or anything else,
+        # we just print help and return with os.EX_USAGE.
+        if len(args) == 1 and not stdin:
+            parser.print_help()
+            return os.EX_USAGE
+
         # Small workaround to include the stdin in the namespace object. If it
         # exists, it will have the value of the stdin redirection, otherwise,
         # it will be None.
