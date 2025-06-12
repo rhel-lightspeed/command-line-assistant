@@ -1,26 +1,17 @@
-"""Module to handle the chat command."""
+"""Simplified chat command implementation."""
 
 import argparse
 import logging
 import platform
 from argparse import Namespace
-from enum import auto
+from dataclasses import dataclass
 from io import TextIOWrapper
-from typing import ClassVar, Optional
+from typing import Optional
 
-from command_line_assistant.commands.base import (
-    BaseCLICommand,
-    BaseOperation,
-    CommandOperationFactory,
-    CommandOperationType,
-)
 from command_line_assistant.dbus.exceptions import (
     ChatNotFoundError,
     HistoryNotEnabledError,
 )
-from command_line_assistant.dbus.interfaces.chat import ChatInterface
-from command_line_assistant.dbus.interfaces.history import HistoryInterface
-from command_line_assistant.dbus.interfaces.user import UserInterface
 from command_line_assistant.dbus.structures.chat import (
     AttachmentInput,
     ChatList,
@@ -35,10 +26,6 @@ from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     WriteOncePerSessionDecorator,
 )
-from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
-from command_line_assistant.rendering.renders.markdown import MarkdownRenderer
-from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
-from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.parser import (
     find_output_by_index,
     parse_terminal_output,
@@ -47,16 +34,17 @@ from command_line_assistant.terminal.reader import TERMINAL_CAPTURE_FILE
 from command_line_assistant.utils.benchmark import TimingLogger
 from command_line_assistant.utils.cli import (
     CommandContext,
-    SubParsersAction,
+    argument,
+    command,
 )
+from command_line_assistant.utils.dbus import DbusUtils
 from command_line_assistant.utils.files import NamedFileLock, guess_mimetype
 from command_line_assistant.utils.renderers import (
-    create_error_renderer,
+    RenderUtils,
     create_interactive_renderer,
     create_markdown_renderer,
     create_spinner_renderer,
     create_text_renderer,
-    create_warning_renderer,
     format_datetime,
     human_readable_size,
 )
@@ -73,34 +61,213 @@ timing = TimingLogger(
     ]
 )
 
-#: Max input size we want to allow to be submitted to the backend. This
-#: corresponds to 32KB (32000 bytes)
+# Constants
 MAX_QUESTION_SIZE: int = 32_000
-
-#: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
     "This feature uses AI technology. Do not include any personal information or "
     "other sensitive information in your input. Interactions may be used to "
     "improve Red Hat's products or services."
 )
-#: Always good to have legal message.
 ALWAYS_LEGAL_MESSAGE = "Always review AI-generated content prior to use."
-
-#: Default chat description when none is given
 DEFAULT_CHAT_DESCRIPTION = "Default Command Line Assistant Chat."
-
-#: Default chat name when none is given
 DEFAULT_CHAT_NAME = "default"
 
 
-def _read_last_terminal_output(index: int) -> str:
-    """Internal function to handle reading the last terminal output.
+@dataclass
+class InputSource:
+    """Input source for the chat command.
 
-    Arguments:
-        index (int): The index to grab the output from the list
+    Parameters:
+        question (str): The question to ask.
+        stdin (str): The input from stdin.
+        attachment (str): The attachment to use.
+        attachment_mimetype (str): The mimetype of the attachment.
+        terminal_output (str): The output from the terminal.
+    """
+
+    question: str
+    stdin: str
+    attachment: str
+    attachment_mimetype: str
+    terminal_output: str
+
+    def get_input_source(self) -> str:
+        """Determine and return the appropriate input source based on combination rules.
+
+        Returns:
+            str: The input source.
+        """
+        # All present - positional and file take precedence
+        if all([self.question, self.stdin, self.attachment, self.terminal_output]):
+            logger.debug(
+                "Using positional query and file input. Stdin will be ignored."
+            )
+            return f"{self.question} {self.attachment}"
+
+        # Positional + attachment + last output
+        if self.question and self.attachment and self.terminal_output:
+            logger.info(
+                "Positional query, attachment and last output found. Using all of them at once."
+            )
+            return f"{self.question} {self.attachment} {self.terminal_output}"
+
+        # Positional + last_output
+        if self.question and self.terminal_output:
+            logger.info("Positional query and last output found. Using them.")
+            return f"{self.question} {self.terminal_output}"
+
+        # Positional + file
+        if self.question and self.attachment:
+            logger.info("Positional query and attachment found. Using them.")
+            return f"{self.question} {self.attachment}"
+
+        # Stdin + file
+        if self.stdin and self.attachment:
+            logger.info("stdin and attachment found. Using them.")
+            return f"{self.stdin} {self.attachment}"
+
+        # Stdin + positional
+        if self.stdin and self.question:
+            logger.info("Positional query and stdin found. Using them.")
+            return f"{self.question} {self.stdin}"
+
+        # Single source - return first non-empty source
+        logger.info(
+            "Defaulting to use any of positional query, stdin, attachment or last output since no combinations where provided."
+        )
+        source = next(
+            (
+                src
+                for src in [
+                    self.question,
+                    self.stdin,
+                    self.attachment,
+                    self.terminal_output,
+                ]
+                if src
+            ),
+            None,
+        )
+
+        if not source:
+            logger.error("Couldn't find a match.")
+            raise ValueError(
+                "No input provided. Please provide input via file, stdin, or direct query."
+            )
+
+        return source
+
+
+@command("chat", help="Command to ask a question to the LLM")
+@argument(
+    "query_string",
+    nargs="?",
+    help="The question that will be sent to the LLM",
+    default="",
+)
+@argument(
+    "-a",
+    "--attachment",
+    nargs="?",
+    type=argparse.FileType("r"),
+    help="File attachment to be read and sent alongside the query",
+)
+@argument(
+    "-i", "--interactive", action="store_true", help="Start an interactive chat session"
+)
+@argument(
+    "-w",
+    "--with-output",
+    nargs="?",
+    type=int,
+    help="Add output from terminal as context for the query. Use 1 to retrieve the latest output, 2 to and so on. First, enable the terminal capture with 'c shell --enable-capture' for this option to work.",
+)
+@argument("-l", "--list", action="store_true", help="List all chats")
+@argument(
+    "-d",
+    "--delete",
+    nargs="?",
+    default="",
+    help="Delete a chat session. Specify the chat session by its name.",
+)
+@argument("--delete-all", action="store_true", help="Delete all chats")
+@argument("-n", "--name", nargs="?", help="Give a name to the chat session.")
+@argument("--description", nargs="?", help="Give a description to the chat session.")
+def chat_command(args: Namespace, context: CommandContext) -> int:
+    """Main chat command implementation.
+
+    This command allows users to interact with chat sessions, either by starting an interactive chat session,
+    adding output from the terminal as context for the query, listing all chats, deleting a chat session,
+    deleting all chats, or giving a name and description to the chat session.
+
+    Args:
+        args (Namespace): The command-line arguments.
+        context (CommandContext): The command context.
 
     Returns:
-        str: The data read or an empty string
+        int: The exit code.
+    """
+    render = RenderUtils(args.plain)
+    dbus = DbusUtils()
+
+    user_id = dbus.user_proxy.GetUserId(context.effective_user_id)
+
+    try:
+        # Handle special arguments preprocessing
+        if args.with_output:
+            logger.debug(
+                "Converting the index to a negative number in order to reverse search the output list."
+            )
+            logger.debug("Original index is %s", args.with_output)
+            args.with_output = -abs(args.with_output)
+
+        # Set default name and description
+        name = args.name or DEFAULT_CHAT_NAME
+        description = args.description or DEFAULT_CHAT_DESCRIPTION
+
+        if not args.description and args.name:
+            render.render_warning(
+                "Chat description not provided. Using the default description: "
+                f"'{DEFAULT_CHAT_DESCRIPTION}'. You can specify a custom description using the '--description' option."
+            )
+
+        if not args.name and args.description:
+            render.render_warning(
+                "Chat name not provided. Using the default name: "
+                f"'{DEFAULT_CHAT_NAME}'. You can specify a custom name using the '--name' option."
+            )
+
+        # Handle different operations
+        if args.list:
+            return _list_chats(render, dbus, user_id)
+        elif args.delete:
+            return _delete_chat(render, dbus, user_id, args.delete)
+        elif args.delete_all:
+            return _delete_all_chats(render, dbus, user_id)
+        elif args.interactive:
+            # We pass down the args as there is many options we need to consult
+            return _interactive_chat(
+                render, dbus, context, args, user_id, name, description
+            )
+        else:
+            # We pass down the args as there is many options we need to consult
+            return _single_question(
+                render, dbus, context, args, user_id, name, description
+            )
+    except ChatCommandException as e:
+        logger.info("Failed to execute chat command: %s", str(e))
+        render.render_error(str(e))
+        return e.code
+
+
+def _read_last_terminal_output(index: int) -> str:
+    """Read the last terminal output by index.
+
+    Args:
+        index (int): The index of the terminal output to read.
+
+    Returns:
+        str: The contents of the terminal output.
     """
     logger.info("Reading terminal output.")
     contents = parse_terminal_output()
@@ -109,18 +276,17 @@ def _read_last_terminal_output(index: int) -> str:
         logger.info("No contents found during reading the terminal output.")
         return ""
 
-    last_output = find_output_by_index(index=index, output=contents)
-    return last_output
+    return find_output_by_index(index=index, output=contents)
 
 
 def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
-    """Parse the attachment file and read its contents.
+    """Parse attachment file and read its contents.
 
-    Arguments:
-        attachment (Optional[TextIOWrapper], optional): The attachment that will be parsed
+    Args:
+        attachment (Optional[TextIOWrapper]): The attachment file to parse.
 
     Returns:
-        str: Either the str read or None.
+        str: The contents of the attachment file.
     """
     if not attachment:
         return ""
@@ -133,676 +299,418 @@ def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
         ) from e
 
 
-def _get_input_source(query: str, stdin: str, attachment: str, last_output: str) -> str:
-    """
-    Determine and return the appropriate input source based on combination rules.
+def _create_chat_session(
+    dbus: DbusUtils, user_id: str, name: str, description: str
+) -> str:
+    """Create a new chat session for a given conversation.
 
-    Arguments:
-        query (str): The question to be asked
-        stdin (str): The input redirect via stdin
-        attachment (str): The attachment contents
-        attachment_mimetype (str): The mimetype of the attachment
-        last_output (str): The last out read from the terminal
-
-    Warning:
-        This is set to be deprecated in the future when we normalize the API
-        backend to accept the context and works with it.
-
-    Rules:
-    1. Positional query only -> use positional query
-    2. Stdin query only -> use stdin query
-    3. File query only -> use file query
-    4. Stdin + positional query -> combine as "{positional_query} {stdin}"
-    5. Stdin + file query -> combine as "{stdin} {file_query}"
-    6. Positional + file query -> combine as "{positional_query} {file_query}"
-    7. Positional + last output -> combine as "{positional_query} {last_output}"
-    8. Positional + attachment + last output -> combine as "{positional_query} {attachment} {last_output}"
-    99. All three sources -> use only positional and file as "{positional_query} {file_query}"
-
-    Raises:
-        ValueError: If no input source is provided
+    Args:
+        dbus (DbusUtils): The DbusUtils object.
+        user_id (str): The user ID.
+        name (str): The name of the chat.
+        description (str): The description of the chat.
 
     Returns:
-        str: The query string from the selected input source(s)
+        str: The ID of the created chat session.
     """
-    # Rule 99: All present - positional and file take precedence
-    if all([query, stdin, attachment, last_output]):
-        logger.debug("Using positional query and file input. Stdin will be ignored.")
-        return f"{query} {attachment}"
+    has_chat_id = None
+    try:
+        has_chat_id = dbus.chat_proxy.GetChatId(user_id, name)
+    except ChatNotFoundError:
+        # It's okay to swallow this exception as if there is no chat for
+        # this user, we will create one.
+        pass
 
-    # Rule 8: positional + attachment + last output
-    if query and attachment and last_output:
-        logger.info(
-            "Positional query, attachment and last output found. Using all of them at once."
-        )
-        return f"{query} {attachment} {last_output}"
+    # To avoid doing this check inside the CreateChat method, let's do it
+    # in here.
+    if has_chat_id:
+        return has_chat_id
 
-    # Rule 7: positional + last_output
-    if query and last_output:
-        logger.info("Positional query and last output found. Using them.")
-        return f"{query} {last_output}"
-
-    # Rule 6: Positional + file
-    if query and attachment:
-        logger.info("Positional query and attachment found. Using them.")
-        return f"{query} {attachment}"
-
-    # Rule 5: Stdin + file
-    if stdin and attachment:
-        logger.info("stdin and attachment found. Using them.")
-        return f"{stdin} {attachment}"
-
-    # Rule 4: Stdin + positional
-    if stdin and query:
-        logger.info("Positional query and stidn found. Using them.")
-        return f"{query} {stdin}"
-
-    # Rules 1-3: Single source - return first non-empty source
-    logger.info(
-        "Defaulting to use any of positional query, stdin, attachment or last output since no combinations where provided."
-    )
-    source = next(
-        (src for src in [query, stdin, attachment, last_output] if src),
-        None,
-    )
-
-    if source:
-        return source
-
-    logger.error("Couldn't find a match.")
-    raise ValueError(
-        "No input provided. Please provide input via file, stdin, or direct query."
-    )
+    return dbus.chat_proxy.CreateChat(user_id, name, description)
 
 
-class ChatOperationType(CommandOperationType):
-    """Enum to control the operations for the command"""
+def _display_response(response: str, plain: bool = False) -> None:
+    """Display message to the terminal.
 
-    LIST_CHATS = auto()
-    DELETE_CHAT = auto()
-    DELETE_ALL_CHATS = auto()
-    INTERACTIVE_CHAT = auto()
-    SINGLE_QUESTION = auto()
-
-
-class ChatOperationFactory(CommandOperationFactory):
-    """Factory for creating shell operations with decorator-based registration"""
-
-    # Mapping of CLI arguments to operation types
-    _arg_to_operation: ClassVar[dict[str, CommandOperationType]] = {
-        "list": ChatOperationType.LIST_CHATS,
-        "delete": ChatOperationType.DELETE_CHAT,
-        "delete_all": ChatOperationType.DELETE_ALL_CHATS,
-        "interactive": ChatOperationType.INTERACTIVE_CHAT,
-        "query_string": ChatOperationType.SINGLE_QUESTION,
-        "stdin": ChatOperationType.SINGLE_QUESTION,
-        "attachment": ChatOperationType.SINGLE_QUESTION,
-        "with_output": ChatOperationType.SINGLE_QUESTION,
-    }
-
-
-class BaseChatOperation(BaseOperation):
-    """Base class for handling chat operations
-
-    Attributes:
-        spinner_renderer (SpinnerRenderer): The instance of a spinner renderer
-        legal_renderer (TextRenderer): Instance of text renderer to show legal message
-        notice_renderer (TextRenderer): Instance of text renderer to show notice message
-        interactive_renderer (InteractiveRenderer): Instance of interactive renderer to handle interactive mode
+    Args:
+        response (str): The response to display.
+        plain (bool, optional): Whether to display in plain text. Defaults to False.
     """
+    legal_renderer = create_text_renderer(
+        decorators=[
+            ColorDecorator(foreground="lightyellow"),
+            WriteOncePerSessionDecorator(state_filename="legal"),
+        ],
+        plain=plain,
+    )
+    notice_renderer = create_text_renderer(
+        decorators=[ColorDecorator(foreground="lightyellow")], plain=plain
+    )
+    markdown_renderer = create_markdown_renderer(plain=plain)
 
-    def __init__(
-        self,
-        text_renderer: TextRenderer,
-        warning_renderer: TextRenderer,
-        error_renderer: TextRenderer,
-        args: Namespace,
-        context: CommandContext,
-        chat_proxy: ChatInterface,
-        history_proxy: HistoryInterface,
-        user_proxy: UserInterface,
-    ) -> None:
-        """Constructor of the class.
-
-        Arguments:
-            text_renderer (TextRenderer): Instance of text renderer class
-            warning_renderer (TextRenderer): Instance of text renderer class
-            error_renderer (TextRenderer): Instance of text renderer class
-            args (Namespace): The arguments from CLI
-            context (CommandContext): Context for the commands
-            chat_proxy (ChatInterface): The proxy object for dbus chat
-            history_proxy (HistoryInterface): The proxy object for dbus history
-            user_proxy (HistoryInterface): The proxy object for dbus user
-        """
-        super().__init__(
-            text_renderer,
-            warning_renderer,
-            error_renderer,
-            args,
-            context,
-            chat_proxy,
-            history_proxy,
-            user_proxy,
-        )
-        self.spinner_renderer: SpinnerRenderer = create_spinner_renderer(
-            message="Asking RHEL Lightspeed",
-            plain=hasattr(args, "plain") and args.plain,
-        )
-        self.legal_renderer: TextRenderer = create_text_renderer(
-            decorators=[
-                ColorDecorator(foreground="lightyellow"),
-                WriteOncePerSessionDecorator(state_filename="legal"),
-            ],
-            plain=hasattr(args, "plain") and args.plain,
-        )
-        self.notice_renderer: TextRenderer = create_text_renderer(
-            decorators=[ColorDecorator(foreground="lightyellow")],
-            plain=hasattr(args, "plain") and args.plain,
-        )
-        self.interactive_renderer: InteractiveRenderer = create_interactive_renderer()
-        self.markdown_renderer: MarkdownRenderer = create_markdown_renderer(
-            plain=hasattr(args, "plain") and args.plain
-        )
-
-    def _display_response(self, response: str) -> None:
-        """Internal method to display message to the terminal
-
-        Arguments:
-            response(str): The message to be displayed
-        """
-        self.legal_renderer.render(LEGAL_NOTICE)
-        self.text_renderer.render("─" * 72)
-        print("")
-        self.markdown_renderer.render(response)
-        print("")
-        self.text_renderer.render("─" * 72)
-        self.notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
-
-    @timing.timeit
-    def _submit_question(
-        self,
-        user_id: str,
-        chat_id: str,
-        question: str,
-        stdin: str,
-        attachment: str,
-        attachment_mimetype: str,
-        last_output: str,
-        skip_spinner: Optional[bool] = False,
-    ) -> str:
-        """Submit the question over dbus.
-
-        Arguments:
-            user_id (str): The unique identifier for the user
-            chat_id (str): The unique identifier for the chat
-            question (str): The question to be asked
-            stdin (str): The input redirect via stdin
-            attachment (str): The attachment contents
-            attachment_mimetype (str): The mimetype of the attachment
-            last_output (str): The last out read from the terminal
-            skip_spinner (Optional[bool], optional): Skip the spinner renderer. Defaults to False.
-
-        Returns:
-            str: The response from the backend server
-        """
-        response = None
-        final_question = _get_input_source(question, stdin, attachment, last_output)
-        final_question_size = len(final_question)
-        if final_question_size >= MAX_QUESTION_SIZE:
-            readable_size = human_readable_size(final_question_size)
-            max_question_size = human_readable_size(MAX_QUESTION_SIZE)
-            self.warning_renderer.render(
-                f"The total size of your question and context ({readable_size}) exceeds the limit of {max_question_size}. Trimming it down to fit in the expected size, you may lose some context."
-            )
-            logger.debug(
-                "Total size of question (%s) exceeds defined limit of %s.",
-                final_question_size,
-                MAX_QUESTION_SIZE,
-            )
-            final_question = final_question[:MAX_QUESTION_SIZE]
-            logger.debug(
-                "Final size of question after the limit %s.", final_question_size
-            )
-
-        if skip_spinner:
-            response = self._get_response(
-                user_id=user_id,
-                question=final_question,
-                stdin=stdin,
-                attachment=attachment,
-                attachment_mimetype=attachment_mimetype,
-                last_output=last_output,
-            )
-        else:
-            with self.spinner_renderer:
-                response = self._get_response(
-                    user_id=user_id,
-                    question=final_question,
-                    stdin=stdin,
-                    attachment=attachment,
-                    attachment_mimetype=attachment_mimetype,
-                    last_output=last_output,
-                )
-
-        try:
-            self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
-        except HistoryNotEnabledError:
-            logger.warning(
-                "The history is disabled in the configuration file. Skipping the write to the history."
-            )
-
-        return response
-
-    @timing.timeit
-    def _get_response(
-        self,
-        user_id: str,
-        question: str,
-        stdin: str,
-        attachment: str,
-        attachment_mimetype: str,
-        last_output: str,
-    ) -> str:
-        """Get the response from the chat session.
-
-        Arguments:
-            user_id (str): The user identifier
-            chat_id (str): The chat session identifier
-            question (str): The question to be asked
-            stdin (str): The input redirect via stdin
-            attachment (str): The attachment contents
-            attachment_mimetype (str): The mimetype of the attachment
-            last_output (str): The last out read from the terminal
-
-        Returns:
-            str: The response from the chat session
-        """
-        message_input = Question(
-            message=question,
-            stdin=StdinInput(stdin=stdin),
-            attachment=AttachmentInput(
-                contents=attachment, mimetype=attachment_mimetype
-            ),
-            terminal=TerminalInput(output=last_output),
-            systeminfo=SystemInfo(
-                os=self.context.os_release["name"],
-                version=self.context.os_release["version_id"],
-                arch=platform.machine(),
-                id=self.context.os_release["id"],
-            ),
-        )
-        response = self.chat_proxy.AskQuestion(
-            user_id,
-            message_input.structure(),
-        )
-
-        return Response.from_structure(response).message
-
-    def _create_chat_session(self, user_id: str, name: str, description: str) -> str:
-        """Create a new chat session for a given conversation.
-
-        Arguments:
-            user_id (str): The user identifier
-            name (str): The name of the chat
-            description (str): The description of the chat
-
-        Returns:
-            str: The identifier of the chat session.
-        """
-        has_chat_id = None
-        try:
-            has_chat_id = self.chat_proxy.GetChatId(user_id, name)
-        except ChatNotFoundError:
-            # It's okay to swallow this exception as if there is no chat for
-            # this user, we will create one.
-            pass
-
-        # To avoid doing this check inside the CreateChat method, let's do it
-        # in here.
-        if has_chat_id:
-            return has_chat_id
-
-        return self.chat_proxy.CreateChat(
-            user_id,
-            name,
-            description,
-        )
+    legal_renderer.render(LEGAL_NOTICE)
+    legal_renderer.render("─" * 72)
+    print("")
+    markdown_renderer.render(response)
+    print("")
+    legal_renderer.render("─" * 72)
+    notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
 
 
-@ChatOperationFactory.register(ChatOperationType.LIST_CHATS)
-class ListChatsOperation(BaseChatOperation):
-    """Class that holds the list operation"""
+@timing.timeit
+def _submit_question(
+    dbus: DbusUtils,
+    user_id: str,
+    chat_id: str,
+    message_input: Question,
+    plain: bool,
+) -> str:
+    """Submit the question over dbus.
 
-    def execute(self) -> None:
-        """Default method to execute the operation"""
-        user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-        all_chats = ChatList.from_structure(self.chat_proxy.GetAllChatFromUser(user_id))
-        if not all_chats.chats:
-            self.text_renderer.render("No chats available.")
+    Args:
+        dbus (DbusUtils): The dbus utils object.
+        user_id (str): The user id.
+        chat_id (str): The chat id.
+        message_input (Question): The question.
+        plain (bool): Whether to render in plain text.
 
-        self.text_renderer.render(f"Found a total of {len(all_chats.chats)} chats:")
-        for index, chat in enumerate(all_chats.chats):
-            created_at = format_datetime(chat.created_at)
-            self.text_renderer.render(
-                f"{index}. Chat: {chat.name} - {chat.description} (created at: {created_at})"
-            )
-
-
-@ChatOperationFactory.register(ChatOperationType.DELETE_CHAT)
-class DeleteChatOperation(BaseChatOperation):
-    """Class that holds the delete operation"""
-
-    def execute(self) -> None:
-        """Default method to execute the operation"""
-        try:
-            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            self.chat_proxy.DeleteChatForUser(user_id, self.args.delete)
-            self.text_renderer.render(f"Chat {self.args.delete} deleted successfully.")
-        except ChatNotFoundError as e:
-            raise ChatCommandException(
-                f"Failed to delete requested chat {str(e)}"
-            ) from e
-
-
-@ChatOperationFactory.register(ChatOperationType.DELETE_ALL_CHATS)
-class DeleteAllChatsOperation(BaseChatOperation):
-    """Class that holds the delete all operation"""
-
-    def execute(self) -> None:
-        """Default method to execute the operation"""
-        try:
-            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            self.chat_proxy.DeleteAllChatForUser(user_id)
-            self.text_renderer.render("Deleted all chats successfully.")
-        except ChatNotFoundError as e:
-            raise ChatCommandException(
-                f"Failed to delete all requested chats {str(e)}"
-            ) from e
-
-
-@ChatOperationFactory.register(ChatOperationType.INTERACTIVE_CHAT)
-class InteractiveChatOperation(BaseChatOperation):
-    """Class that initiates the interactive mode"""
-
-    def execute(self) -> None:
-        """Default method to execute the operation"""
-
-        terminal_file_lock = NamedFileLock(name="terminal")
-
-        if terminal_file_lock.is_locked:
-            raise ChatCommandException(
-                f"Detected a terminal capture session running with pid '{terminal_file_lock.pid}'."
-                " Interactive chat mode is not available while terminal capture is active, you must stop the previous one."
-            )
-
-        try:
-            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            chat_id = self._create_chat_session(
-                user_id, self.args.name, self.args.description
-            )
-            attachment = _parse_attachment_file(self.args.attachment)
-            attachment_mimetype = guess_mimetype(self.args.attachment)
-            stdin = self.args.stdin
-
-            while True:
-                self.interactive_renderer.render(">>> ")
-                question = self.interactive_renderer.output
-                if not question:
-                    self.error_renderer.render(
-                        "Your question can't be empty. Please, try again."
-                    )
-                    continue
-                response = self._submit_question(
-                    user_id=user_id,
-                    chat_id=chat_id,
-                    question=question,
-                    stdin=stdin,
-                    attachment=attachment,
-                    attachment_mimetype=attachment_mimetype,
-                    # For now, we won't deal with last output in interactive mode.
-                    last_output="",
-                    skip_spinner=self.args.plain,
-                )
-                self._display_response(response)
-        except (KeyboardInterrupt, EOFError) as e:
-            raise ChatCommandException(
-                "Detected keyboard interrupt. Stopping interactive mode."
-            ) from e
-        except StopInteractiveMode:
-            return
-
-
-@ChatOperationFactory.register(ChatOperationType.SINGLE_QUESTION)
-class SingleQuestionOperation(BaseChatOperation):
-    """Class that holds the single question ask operation"""
-
-    def _validate_query(self):
-        """Helper function to validate query.
-
-        Raises:
-            ChatCommandException: In case the query has invalid sizing (less than 1 character).
-        """
-        # If both are empty, raise exception
-        if not self.args.query_string and not self.args.stdin:
-            logger.debug("Both query_string and stdin are empty.")
-            raise ChatCommandException(
-                "Your query needs to have at least 2 characters. Either query or stdin are empty."
-            )
-
-        # If query_string has content but is too short
-        if self.args.query_string and len(self.args.query_string.strip()) <= 1:
-            logger.debug(
-                "Query string has only 1 or 0 characters after stripping: '%s'",
-                self.args.query_string,
-            )
-            raise ChatCommandException(
-                "Your query needs to have at least 2 characters."
-            )
-
-        # If stdin has content but is too short
-        if self.args.stdin and len(self.args.stdin.strip()) <= 1:
-            logger.debug(
-                "Stdin has only 1 or 0 characters after stripping: '%s'",
-                self.args.stdin,
-            )
-            raise ChatCommandException(
-                "Your stdin input needs to have at least 2 characters."
-            )
-
-        # If the user tries to do "c -w 1" or "c -w 1 "help me figure this out"
-        # and there is no terminal capture log file, we just error out.
-        if self.args.with_output and not TERMINAL_CAPTURE_FILE.exists():
-            raise ChatCommandException(
-                "Adding context from terminal output is only allowed if terminal capture is active."
-            )
-
-    @timing.timeit
-    def execute(self) -> None:
-        """Default method to execute the operation"""
-
-        self._validate_query()
-
-        try:
-            last_terminal_output = ""
-            if self.args.with_output:
-                logger.debug(
-                    "Retrieving context from with-output parameter (index %s)",
-                    self.args.with_output,
-                )
-                last_terminal_output = _read_last_terminal_output(self.args.with_output)
-
-            attachment = _parse_attachment_file(self.args.attachment)
-            attachment_mimetype = guess_mimetype(self.args.attachment)
-            stdin = self.args.stdin.strip() if self.args.stdin else ""
-            question = self.args.query_string.strip() if self.args.query_string else ""
-
-            user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            chat_id = self._create_chat_session(
-                user_id, self.args.name, self.args.description
-            )
-            response = self._submit_question(
-                user_id=user_id,
-                chat_id=chat_id,
-                question=question,
-                stdin=stdin,
-                attachment=attachment,
-                attachment_mimetype=attachment_mimetype,
-                last_output=last_terminal_output,
-                skip_spinner=False,
-            )
-
-            self._display_response(response)
-        except ValueError as e:
-            raise ChatCommandException(
-                f"Failed to get a response from LLM. {str(e)}"
-            ) from e
-
-
-class ChatCommand(BaseCLICommand):
-    """Class that represents the chat command."""
-
-    def run(self) -> int:
-        """Main entrypoint for the command to run.
-
-        Returns:
-            int: Status code of the execution
-        """
-        error_renderer = create_error_renderer(
-            plain=hasattr(self._args, "plain") and self._args.plain
-        )
-        operation_factory = ChatOperationFactory()
-        try:
-            operation = operation_factory.create_operation(
-                self._args,
-                self._context,
-                text_renderer=create_text_renderer(
-                    decorators=[ColorDecorator()],
-                    plain=hasattr(self._args, "plain") and self._args.plain,
-                ),
-                error_renderer=error_renderer,
-            )
-
-            if operation:
-                operation.execute()
-            return 0
-        except ChatCommandException as e:
-            logger.info("Failed to execute chat command: %s", str(e))
-            error_renderer.render(str(e))
-            return e.code
-
-
-def register_subcommand(parser: SubParsersAction) -> None:
+    Returns:
+        str: The response.
     """
-    Register this command to argparse so it's available for the root parser.
+    spinner_renderer = create_spinner_renderer(
+        message="Asking RHEL Lightspeed",
+        plain=plain,
+    )
+    with spinner_renderer:
+        response = _get_response(dbus, message_input, user_id)
 
-    Arguments:
-        parser (SubParsersAction): Root parser to register command-specific arguments
+    try:
+        dbus.history_proxy.WriteHistory(
+            chat_id, user_id, message_input.message, response
+        )
+    except HistoryNotEnabledError:
+        logger.warning(
+            "The history is disabled in the configuration file. Skipping the write to the history."
+        )
+
+    return response
+
+
+def _trim_message_size(render: RenderUtils, question: str) -> str:
+    """Trim the message size to fit within the maximum allowed size.
+
+    Args:
+        render (RenderUtils): The render object to display warnings.
+        question (str): The question to be trimmed.
+
+    Returns:
+        str: The trimmed question.
     """
-    chat_parser = parser.add_parser(
-        "chat",
-        help="Command to ask a question to the LLM.",
-    )
+    question_length = len(question)
+    final_question = question
+    if question_length >= MAX_QUESTION_SIZE:
+        readable_size = human_readable_size(question_length)
+        max_question_size = human_readable_size(MAX_QUESTION_SIZE)
+        render.render_warning(
+            f"The total size of your question and context ({readable_size}) exceeds the limit of {max_question_size}. Trimming it down to fit in the expected size, you may lose some context."
+        )
+        logger.debug(
+            "Total size of question (%s) exceeds defined limit of %s.",
+            question_length,
+            MAX_QUESTION_SIZE,
+        )
+        final_question = question[:MAX_QUESTION_SIZE]
+        logger.debug("Final size of question after the limit %s.", question_length)
 
-    question_group = chat_parser.add_argument_group("Question Options")
-    # Positional argument, required only if no optional arguments are provided
-    question_group.add_argument(
-        "query_string",
-        nargs="?",
-        help="The question that will be sent to the LLM",
-        default="",
-    )
-    question_group.add_argument(
-        "-a",
-        "--attachment",
-        nargs="?",
-        type=argparse.FileType("r"),
-        help="File attachment to be read and sent alongside the query",
-    )
-    question_group.add_argument(
-        "-i",
-        "--interactive",
-        action="store_true",
-        help="Start an interactive chat session",
-    )
-    question_group.add_argument(
-        "-w",
-        "--with-output",
-        nargs="?",
-        type=int,
-        help=(
-            "Add output from terminal as context for the query. Use 1 to retrieve "
-            "the latest output, 2 to and so on. First, enable the terminal "
-            "capture with 'c shell --enable-capture' for this option to work."
+    return final_question
+
+
+def _compose_message_input(
+    render: RenderUtils, context: CommandContext, input_source: InputSource
+) -> Question:
+    """Compose the final message that will be sent to the API.
+
+    Args:
+        render (RenderUtils): The render utility.
+        context (CommandContext): The command context.
+        input_source (InputSource): The input source.
+
+    Returns:
+        Question: The composed message input.
+    """
+    final_question = _trim_message_size(render, input_source.get_input_source())
+    message_input = Question(
+        message=final_question,
+        stdin=StdinInput(stdin=input_source.stdin),
+        attachment=AttachmentInput(
+            contents=input_source.attachment,
+            mimetype=input_source.attachment_mimetype,
+        ),
+        terminal=TerminalInput(output=input_source.terminal_output),
+        systeminfo=SystemInfo(
+            os=context.os_release["name"],
+            version=context.os_release["version_id"],
+            arch=platform.machine(),
+            id=context.os_release["id"],
         ),
     )
 
-    chat_arguments = chat_parser.add_argument_group("Chat Options")
-    chat_arguments.add_argument(
-        "-l", "--list", action="store_true", help="List all chats"
-    )
-    chat_arguments.add_argument(
-        "-d",
-        "--delete",
-        nargs="?",
-        default="",
-        help="Delete a chat session. Specify the chat session by its name.",
-    )
-    chat_arguments.add_argument(
-        "--delete-all", action="store_true", help="Delete all chats"
-    )
-    chat_arguments.add_argument(
-        "-n",
-        "--name",
-        nargs="?",
-        help="Give a name to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect.",
-    )
-    chat_arguments.add_argument(
-        "--description",
-        nargs="?",
-        help="Give a description to the chat session. Parameter has to be used together with sending a query. Otherwise has no effect.",
-    )
-
-    chat_parser.set_defaults(func=_command_factory)
+    return message_input
 
 
-def _command_factory(args: Namespace) -> ChatCommand:
-    """Internal command factory to create the command class
+def _gather_input_sources(args: Namespace) -> InputSource:
+    """Gather input sources from command-line arguments.
 
-    Arguments:
-        args (Namespace): The arguments processed with argparse.
+    Args:
+        args (Namespace): The command-line arguments.
 
     Returns:
-        ChatCommand: Return an instance of class
+        InputSource: The gathered input sources.
     """
+    terminal_output = ""
     if args.with_output:
+        message = "Retrieving context from with-output parameter (index %s)"
+        logger.debug(message, args.with_output)
+        terminal_output = _read_last_terminal_output(args.with_output)
+
+    attachment = _parse_attachment_file(args.attachment)
+    attachment_mimetype = guess_mimetype(args.attachment)
+    stdin = args.stdin.strip() if args.stdin else ""
+    question = args.query_string.strip() if args.query_string else ""
+    return InputSource(
+        question, stdin, attachment, attachment_mimetype, terminal_output
+    )
+
+
+@timing.timeit
+def _get_response(
+    dbus: DbusUtils,
+    message_input: Question,
+    user_id: str,
+) -> str:
+    """Get the response from the chat session.
+
+    Args:
+        dbus (DbusUtils): The DbusUtils instance.
+        message_input (Question): The message input.
+        user_id (str): The user ID.
+
+    Returns:
+        str: The response message.
+    """
+    response = dbus.chat_proxy.AskQuestion(user_id, message_input.structure())
+    return Response.from_structure(response).message
+
+
+def _list_chats(render: RenderUtils, dbus: DbusUtils, user_id: str) -> int:
+    """List all chats operation.
+
+    Args:
+        render (RenderUtils): The RenderUtils instance.
+        dbus (DbusUtils): The DbusUtils instance.
+        user_id (str): The user ID.
+
+    Returns:
+        int: The exit code.
+    """
+    all_chats = ChatList.from_structure(dbus.chat_proxy.GetAllChatFromUser(user_id))
+
+    if not all_chats.chats:
+        render.render_success("No chats available.")
+        return 0
+
+    render.render_success(f"Found a total of {len(all_chats.chats)} chats:")
+    for index, chat in enumerate(all_chats.chats):
+        created_at = format_datetime(chat.created_at)
+        render.render_success(
+            f"{index}. Chat: {chat.name} - {chat.description} (created at: {created_at})"
+        )
+    return 0
+
+
+def _delete_chat(
+    render: RenderUtils, dbus: DbusUtils, user_id: str, chat_name: str
+) -> int:
+    """Delete a specific chat operation.
+
+    Args:
+        render (RenderUtils): The RenderUtils instance.
+        dbus (DbusUtils): The DbusUtils instance.
+        user_id (str): The user ID.
+        chat_name (str): The chat name.
+
+    Returns:
+        int: The exit code.
+    """
+    try:
+        dbus.chat_proxy.DeleteChatForUser(user_id, chat_name)
+        render.render_success(f"Chat {chat_name} deleted successfully.")
+        return 0
+    except ChatNotFoundError as e:
+        raise ChatCommandException(f"Failed to delete requested chat {str(e)}") from e
+
+
+def _delete_all_chats(render: RenderUtils, dbus: DbusUtils, user_id: str) -> int:
+    """Delete all chats operation.
+
+    Args:
+        render (RenderUtils): The RenderUtils instance.
+        dbus (DbusUtils): The DbusUtils instance.
+        user_id (str): The user ID.
+
+    Returns:
+        int: The exit code.
+    """
+    try:
+        dbus.chat_proxy.DeleteAllChatForUser(user_id)
+        render.render_success("Deleted all chats successfully.")
+        return 0
+    except ChatNotFoundError as e:
+        raise ChatCommandException(
+            f"Failed to delete all requested chats {str(e)}"
+        ) from e
+
+
+def _interactive_chat(
+    render: RenderUtils,
+    dbus: DbusUtils,
+    context: CommandContext,
+    args: Namespace,
+    user_id: str,
+    name: str,
+    description: str,
+) -> int:
+    """Interactive chat operation.
+
+    Args:
+        render (RenderUtils): The RenderUtils instance.
+        dbus (DbusUtils): The DbusUtils instance.
+        context (CommandContext): The CommandContext instance.
+        args (Namespace): The Namespace instance.
+        user_id (str): The user ID.
+        name (str): The chat name.
+        description (str): The chat description.
+
+    Returns:
+        int: The exit code.
+    """
+    terminal_file_lock = NamedFileLock(name="terminal")
+
+    if terminal_file_lock.is_locked:
+        raise ChatCommandException(
+            f"Detected a terminal capture session running with pid '{terminal_file_lock.pid}'."
+            " Interactive chat mode is not available while terminal capture is active, you must stop the previous one."
+        )
+
+    interactive_renderer = create_interactive_renderer()
+    input_source = _gather_input_sources(args)
+    chat_id = _create_chat_session(dbus, user_id, name, description)
+
+    try:
+        while True:
+            interactive_renderer.render(">>> ")
+            question = interactive_renderer.output
+            if not question:
+                render.render_error("Your question can't be empty. Please, try again.")
+                continue
+
+            input_source.question = question
+            message_input = _compose_message_input(render, context, input_source)
+            response = _submit_question(
+                dbus=dbus,
+                user_id=user_id,
+                chat_id=chat_id,
+                message_input=message_input,
+                plain=args.plain,
+            )
+            _display_response(response, args.plain)
+    except (KeyboardInterrupt, EOFError) as e:
+        raise ChatCommandException(
+            "Detected keyboard interrupt. Stopping interactive mode."
+        ) from e
+    except StopInteractiveMode:
+        return 0
+
+
+def _single_question(
+    render: RenderUtils,
+    dbus: DbusUtils,
+    context: CommandContext,
+    args: Namespace,
+    user_id: str,
+    name: str,
+    description: str,
+) -> int:
+    """Single question operation.
+
+    Args:
+        render (RenderUtils): The RenderUtils instance.
+        dbus (DbusUtils): The DbusUtils instance.
+        context (CommandContext): The CommandContext instance.
+        args (Namespace): The Namespace instance.
+        user_id (str): The user ID.
+        name (str): The chat name.
+        description (str): The chat description.
+
+    Returns:
+        int: The exit code.
+    """
+    # Validate query
+    is_query_invalid = _validate_query_composition(args)
+
+    # In case we have any string in it, it means the query is invalid and we
+    # raise an exception with the message returned.
+    if is_query_invalid:
+        raise ChatCommandException(is_query_invalid)
+
+    input_source = _gather_input_sources(args)
+    message_input = _compose_message_input(render, context, input_source)
+
+    try:
+        chat_id = _create_chat_session(dbus, user_id, name, description)
+        response = _submit_question(
+            dbus=dbus,
+            user_id=user_id,
+            chat_id=chat_id,
+            message_input=message_input,
+            plain=args.plain,
+        )
+
+        _display_response(response, args.plain)
+        return 0
+    except ValueError as e:
+        message = f"Failed to get a response from LLM. {str(e)}"
+        raise ChatCommandException(message) from e
+
+
+def _validate_query_composition(args: Namespace) -> Optional[str]:
+    """Valid if the query compostion is valid or not.
+
+    Args:
+        args (Namespace): The Namespace instance.
+
+    Returns:
+        Optional[str]: In case the query is not valid by any means in the validation.
+    """
+    if not args.query_string and not args.stdin:
+        logger.debug("Both query_string and stdin are empty.")
+        return "Your query needs to have at least 2 characters. Either query or stdin are empty."
+
+    if args.query_string and len(args.query_string.strip()) <= 1:
         logger.debug(
-            "Converting the index to a negative number in order to reverse search the output list."
+            "Query string has only 1 or 0 characters after stripping: '%s'",
+            args.query_string,
         )
-        logger.debug("Original index is %s", args.with_output)
-        args.with_output = -abs(args.with_output)
+        return "Your query needs to have at least 2 characters."
 
-    warning_renderer = create_warning_renderer()
-
-    # Overriding the default description in case the user has not given us any.
-    # We don't log this as warning to avoid spamming the user terminal with
-    # this message.
-    if not args.description and not args.name:
-        args.description = DEFAULT_CHAT_DESCRIPTION
-        args.name = DEFAULT_CHAT_NAME
-        logger.debug("No name or description provided. Using default values.")
-
-    if not args.description and args.name:
-        args.description = DEFAULT_CHAT_DESCRIPTION
-        warning_renderer.render(
-            "Chat description not provided. Using the default description: "
-            f"'{DEFAULT_CHAT_DESCRIPTION}'. You can specify a custom description using the '--description' option."
+    if args.stdin and len(args.stdin.strip()) <= 1:
+        logger.debug(
+            "Stdin has only 1 or 0 characters after stripping: '%s'",
+            args.stdin,
         )
+        return "Your stdin input needs to have at least 2 characters."
 
-    if not args.name and args.description:
-        args.name = DEFAULT_CHAT_NAME
-        warning_renderer.render(
-            "Chat name not provided. Using the default name: "
-            f"'{DEFAULT_CHAT_NAME}'. You can specify a custom name using the '--name' option."
-        )
+    if args.with_output and not TERMINAL_CAPTURE_FILE.exists():
+        return "Adding context from terminal output is only allowed if terminal capture is active."
 
-    return ChatCommand(args)
+    return None

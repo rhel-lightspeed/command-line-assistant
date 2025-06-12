@@ -1,126 +1,83 @@
-from argparse import ArgumentParser, Namespace
-from unittest.mock import patch
+from argparse import Namespace
 
 import pytest
 
-from command_line_assistant.commands.feedback import (
-    DefaultFeedbackOperation,
-    FeedbackCommand,
-    FeedbackOperationFactory,
-    _command_factory,
-    register_subcommand,
-)
-from command_line_assistant.exceptions import FeedbackCommandException
-from command_line_assistant.utils.renderers import (
-    create_text_renderer,
-    create_warning_renderer,
-)
+from command_line_assistant.commands import feedback
+from command_line_assistant.utils.cli import CommandContext
 
 
-def test_default_feedback_operation(default_kwargs, capsys):
-    default_kwargs["text_renderer"] = create_text_renderer()
-    default_kwargs["warning_renderer"] = create_warning_renderer()
-
-    operation = DefaultFeedbackOperation(**default_kwargs)
-
-    operation.execute()
-
-    captured = capsys.readouterr()
-
-    assert (
-        "Do not include any personal information or other sensitive information in\nyour feedback."
-        in captured.err
-    )
-    assert (
-        "To submit feedback, use the following email address: <cla-feedback@redhat.com>."
-        in captured.out.strip()
-    )
-
-
-@pytest.mark.parametrize(
-    ("operation"),
-    (DefaultFeedbackOperation,),
-)
-def test_feedback_operations(operation, default_kwargs):
-    """Test that all shell operations will work when executed.
-
-    We are calling it this way because all operations are very simply and only
-    change the contents and filepath to write. Once we start to make them more
-    verbose and complex, we can come back and remove the specific operation
-    from the parametrize and make a special test for them. But right now, this
-    simple verification should be enough.
-
-    In case there is a failure during the execution, we will catch this
-    exception and makr the test as a failed.
-    """
-    op = operation(**default_kwargs)
-    try:
-        op.execute()
-    except Exception as e:
-        pytest.fail(f"We got a failure in {op} with stack: {str(e)}")
-
-
-def test_feedback_run(capsys):
-    args = Namespace(
+@pytest.fixture
+def default_namespace():
+    return Namespace(
         submit=True,
+        plain=True,
     )
-    result = FeedbackCommand(args).run()
+
+
+@pytest.fixture
+def command_context():
+    return CommandContext()
+
+
+def test_feedback_command_success(default_namespace, command_context, capsys):
+    """Test feedback command executes successfully."""
+    result = feedback.feedback_command.func(default_namespace, command_context)
 
     captured = capsys.readouterr()
     assert result == 0
+    assert "Do not include any personal information" in captured.err
     assert (
-        "Do not include any personal information or other sensitive information in\nyour feedback."
-        in captured.err
-    )
-    assert (
-        "To submit feedback, use the following email address: <cla-feedback@redhat.com>."
-        in captured.out.strip()
+        "To submit feedback, use the following email address: <cla-feedback@redhat.com>"
+        in captured.out
     )
 
 
-def test_register_subcommand():
-    """Test register_subcommand function"""
-    parser = ArgumentParser()
-    subparsers = parser.add_subparsers()
+def test_feedback_command_plain_mode(command_context, capsys):
+    """Test feedback command in plain mode."""
+    args = Namespace(submit=True, plain=True)
+    result = feedback.feedback_command.func(args, command_context)
 
-    # Register the subcommand
-    register_subcommand(subparsers)
-
-    # Parse a test command
-    args = parser.parse_args(["feedback"])
-
-    assert args.submit
-    assert hasattr(args, "func")
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "Do not include any personal information" in captured.err
+    assert "cla-feedback@redhat.com" in captured.out
 
 
-@pytest.mark.parametrize(
-    ("namespace",),
-    (
-        (
-            Namespace(
-                submit=True,
-            ),
-        ),
-    ),
-)
-def test_command_factory(namespace):
-    """Test _command_factory function"""
-    command = _command_factory(namespace)
+def test_feedback_command_submit_false(command_context, capsys):
+    """Test feedback command with submit=False (should still work since it's default action)."""
+    args = Namespace(submit=False, plain=False)
+    result = feedback.feedback_command.func(args, command_context)
 
-    assert isinstance(command, FeedbackCommand)
-    assert command._args.submit is True
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "cla-feedback@redhat.com" in captured.out
 
 
-def test_feedback_command_exception_handling():
-    """Test exception handling in the feedback command"""
-    args = Namespace(submit=True)
-    command = FeedbackCommand(args)
+def test_feedback_command_warning_message_content(
+    default_namespace, command_context, capsys
+):
+    """Test that the warning message contains expected content."""
+    feedback.feedback_command.func(default_namespace, command_context)
 
-    with patch.object(
-        FeedbackOperationFactory,
-        "create_operation",
-        side_effect=FeedbackCommandException("Test error"),
-    ):
-        result = command.run()
+    captured = capsys.readouterr()
+    warning_output = captured.err
 
-    assert result == 83  # Should return error code
+    # Check key parts of the warning message
+    assert "Do not include any personal information" in warning_output
+    assert "other sensitive information" in warning_output
+    assert "in your feedback" in warning_output
+    assert "may be used to improve Red Hat's products or services" in warning_output
+
+
+def test_feedback_command_success_message_content(
+    default_namespace, command_context, capsys
+):
+    """Test that the success message contains expected content."""
+    feedback.feedback_command.func(default_namespace, command_context)
+
+    captured = capsys.readouterr()
+    success_output = captured.out
+
+    # Check the feedback email message
+    assert "To submit feedback" in success_output
+    assert "cla-feedback@redhat.com" in success_output

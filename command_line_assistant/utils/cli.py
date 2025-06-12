@@ -6,14 +6,17 @@ that is reused across commands and other interactions.
 import argparse
 import dataclasses
 import getpass
+import logging
 import os
 import select
 import sys
-from argparse import SUPPRESS, ArgumentParser, _SubParsersAction
+from argparse import SUPPRESS, ArgumentParser, Namespace, _SubParsersAction
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Optional
 
 from command_line_assistant.constants import VERSION
+
+logger = logging.getLogger(__name__)
 
 # Define the type here so pyright is happy with it.
 SubParsersAction = _SubParsersAction
@@ -30,6 +33,15 @@ GLOBAL_FLAGS: list[str] = [
 ARGS_WITH_VALUES: list[str] = ["--clear"]
 
 OS_RELEASE_PATH = Path("/etc/os-release")
+
+# Type definitions
+CommandFunc = Callable[[Namespace, "CommandContext"], int]
+ArgumentSpec = tuple[tuple[str, ...], dict[str, Any]]
+
+# Global storage for registered commands
+_commands: dict[str, "Command"] = {}
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -48,7 +60,8 @@ class CommandContext:
     username: str = getpass.getuser()
     effective_user_id: int = os.getegid()
 
-    # Empty dictionary for os_release information. Parsed at the __post__init__ method.
+    # Empty dictionary for os_release information. Parsed at the __post__init__
+    # method.
     os_release: dict[str, str] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
@@ -94,6 +107,7 @@ def add_default_command(stdin: Optional[str], argv: list[str]):
     subcommand = _subcommand_used(argv)
     if not subcommand:
         return global_flags + ["chat"] + command_args
+
     return args
 
 
@@ -126,11 +140,16 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     """Create the argument parser for command line assistant.
 
     Returns:
-        tuple[ArgumentParser, SubParsersAction]: The parent and subparser created
+        tuple[ArgumentParser, SubParsersAction]: The parent and subparser
+        created
     """
     parser = ArgumentParser(
         prog="c",
-        description="The Command Line Assistant powered by RHEL Lightspeed is an optional generative AI assistant available within the RHEL command line interface.",
+        description=(
+            "The Command Line Assistant powered by RHEL Lightspeed is an "
+            "optional generative AI assistant available within the RHEL "
+            "command line interface."
+        ),
         add_help=False,
     )
     parser.add_argument(
@@ -172,7 +191,8 @@ def read_stdin() -> str:
         >>> cat error-log | c "How to fix this?"
 
     Returns:
-        str: Return the stdin that was read or if there is nothing, return an empty string.
+        str: Return the stdin that was read or if there is nothing, return an
+        empty string.
     """
     # Check if there's input available on stdin
     if select.select([sys.stdin], [], [], 0.0)[0]:
@@ -202,7 +222,9 @@ def create_subparser(parser: SubParsersAction, name: str, help: str) -> Argument
         name,
         help=help,
         add_help=False,
-        # Disable abbreviated argument matching. This prevents partial strings from matching to valid options (for example, --from matching to --from-chat).
+        # Disable abbreviated argument matching. This prevents partial strings
+        # from matching to valid options (for example, --from matching to
+        # --from-chat).
         allow_abbrev=False,
     )
     custom_parser.add_argument(
@@ -214,3 +236,140 @@ def create_subparser(parser: SubParsersAction, name: str, help: str) -> Argument
     )
 
     return custom_parser
+
+
+def command(
+    name: str, help: Optional[str] = None, description: Optional[str] = None
+) -> Callable[[CommandFunc], "Command"]:
+    """Decorator to register a command function.
+
+    Args:
+        name (str): Command name
+        help (Optional[str], optional): Short help text
+        description (Optional[str], optional): Longer description
+
+    Returns:
+        Callable[[CommandFunc], CommandFunc]: Decorator function
+    """
+
+    def decorator(func: CommandFunc) -> Command:
+        """Decorator to register a command function.
+
+        Args:
+            func (CommandFunc): Command function
+
+        Returns:
+            CommandFunc: Command function
+        """
+        cmd = Command(name, func, help, description)
+        _commands[name] = cmd
+
+        logger.debug("Registered command: %s", name)
+        return cmd
+
+    return decorator
+
+
+def argument(*args: str, **kwargs: Any) -> Callable[[CommandFunc], CommandFunc]:
+    """Decorator to add arguments to a command.
+
+    Args:
+        *args: Positional argument names
+        **kwargs: Argument options
+
+    Returns:
+        Decorator function
+    """
+
+    def decorator(func: CommandFunc) -> CommandFunc:
+        """Decorator to add arguments to a command.
+
+        Args:
+            func (CommandFunc): Command function
+
+        Returns:
+            CommandFunc: Command function
+        """
+        if not hasattr(func, "_cmd_arguments"):
+            func._cmd_arguments = []  # type: ignore
+
+        func._cmd_arguments.append((args, kwargs))  # type: ignore
+        return func
+
+    return decorator
+
+
+class Command:
+    """Represents a single CLI command."""
+
+    def __init__(
+        self,
+        name: str,
+        func: CommandFunc,
+        help: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> None:
+        """Initialize a new command.
+
+        Args:
+            name (str): Command name
+            func (CommandFunc): Command function
+            help (Optional[str], optional): Short help message. Defaults to None.
+            description (Optional[str], optional): Longer description. Defaults to None.
+        """
+        self.name = name
+        self.func = func
+        self.help = help
+        self.description = description
+        self.arguments: list[ArgumentSpec] = getattr(func, "_cmd_arguments", [])
+
+    def register(self, parser: _SubParsersAction) -> None:
+        """Register this command with the argument parser.
+
+        Args:
+            parser (_SubParsersAction): Subparser to register with
+        """
+        subparser = parser.add_parser(
+            self.name, help=self.help, description=self.description
+        )
+
+        # Add arguments in reverse order (decorators are applied bottom-up)
+        for args, kwargs in reversed(self.arguments):
+            subparser.add_argument(*args, **kwargs)
+
+        # Set the command function as default
+        subparser.set_defaults(func=self._create_wrapper())
+
+    def _create_wrapper(self) -> Callable[[Namespace], Any]:
+        """Create a wrapper function for the command.
+
+        Returns:
+            Wrapper function
+        """
+
+        def wrapper(args: Namespace) -> Any:
+            """Wrapper function for the command.
+
+            Args:
+                args (Namespace): Command arguments
+
+            Returns:
+                Any: Command result
+            """
+            context = CommandContext()
+            try:
+                return self.func(args, context)
+            except Exception:
+                raise
+
+        return wrapper
+
+
+def register_all_commands(parser: _SubParsersAction, commands: list[Command]) -> None:
+    """Register all commands with the parser.
+
+    Args:
+        parser (_SubParsersAction): Subparser to register commands with
+    """
+    for cmd in commands:
+        cmd.register(parser)

@@ -7,12 +7,16 @@ from argparse import ArgumentParser, Namespace
 
 from dasbus.error import DBusError
 
-from command_line_assistant.commands import chat, feedback, history, shell
+from command_line_assistant.commands.chat import chat_command
+from command_line_assistant.commands.feedback import feedback_command
+from command_line_assistant.commands.history import history_command
+from command_line_assistant.commands.shell import shell_command
 from command_line_assistant.logger import setup_client_logging
 from command_line_assistant.utils.cli import (
     add_default_command,
     create_argument_parser,
     read_stdin,
+    register_all_commands,
 )
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
@@ -28,10 +32,11 @@ def register_subcommands() -> ArgumentParser:
     """
     parser, commands_parser = create_argument_parser()
 
-    chat.register_subcommand(commands_parser)  # type: ignore
-    feedback.register_subcommand(commands_parser)  # type: ignore
-    history.register_subcommand(commands_parser)  # type: ignore
-    shell.register_subcommand(commands_parser)  # type: ignore
+    # Register all decorator-based commands (includes chat, feedback, history, shell, example)
+    register_all_commands(
+        commands_parser,
+        [chat_command, feedback_command, history_command, shell_command],
+    )
 
     return parser
 
@@ -57,28 +62,27 @@ def main() -> int:
     try:
         stdin = read_stdin()
         args = add_default_command(stdin, sys.argv)
+        # In case that the user only calls `chat`, `history` or anything else,
+        # we just print help and return with os.EX_USAGE.
+        if len(args) <= 1 and not stdin and "feedback" not in args:
+            parser.print_help()
+            return os.EX_USAGE
+
         # Small workaround to include the stdin in the namespace object. If it
         # exists, it will have the value of the stdin redirection, otherwise,
         # it will be None.
         namespace = Namespace(stdin=stdin)
-        args = parser.parse_args(args, namespace=namespace)
-        if not hasattr(args, "func"):
+        parsed_args = parser.parse_args(args, namespace=namespace)
+
+        if not hasattr(parsed_args, "func"):
             parser.print_help()
             return os.EX_USAGE
 
-        error_renderer = create_error_renderer(
-            plain=hasattr(args, "plain") and args.plain
-        )
-        warning_renderer = create_warning_renderer(
-            plain=hasattr(args, "plain") and args.plain
-        )
-
         # In case the uder specify the --debug, we will enable the logging here.
-        if args.debug:
+        if parsed_args.debug:
             setup_client_logging()
 
-        service = args.func(args)
-        return service.run()
+        return parsed_args.func(parsed_args)
     except ValueError as e:
         error_renderer.render(str(e))
         return os.EX_DATAERR
