@@ -11,6 +11,10 @@ changelog:
       labels:
         - kind/breaking
         - breaking-change
+    - title: Refactor 🔧
+      labels:
+        - kind/refactor
+        - refactor
     - title: Enhancements 🎉
       labels:
         - kind/feature
