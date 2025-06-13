@@ -14,7 +14,6 @@ from command_line_assistant.commands.chat import (
     InteractiveChatOperation,
     SingleQuestionOperation,
     _command_factory,
-    _get_input_source,
     _handle_legal_message,
     _parse_attachment_file,
     _read_last_terminal_output,
@@ -230,62 +229,6 @@ def test_command_factory_validations(args, expected, capsys, default_namespace):
 
     captured = capsys.readouterr()
     assert expected in captured.err.strip()
-
-
-@pytest.mark.parametrize(
-    ("query_string", "stdin", "attachment", "last_output", "expected"),
-    (
-        ("test query", None, None, "", "test query"),
-        (None, "stdin", None, "", "stdin"),
-        ("query", "stdin", None, "", "query stdin"),
-        (None, None, "file query", "", "file query"),
-        ("query", None, "file query", "", "query file query"),
-        (None, "stdin", "file query", "", "stdin file query"),
-        (None, None, None, "last output", "last output"),
-        ("query", None, "attachment", "last output", "query attachment last output"),
-        # Stdin in this case is ignored.
-        ("test query", "test stdin", "file query", "", "test query file query"),
-    ),
-)
-def test_get_input_source(
-    query_string, stdin, attachment, last_output, expected, tmp_path, default_namespace
-):
-    """Test _command_factory function"""
-    file_attachment = None
-
-    if attachment:
-        file_attachment = tmp_path / "test.txt"
-        file_attachment.write_text(attachment)
-        file_attachment = open(file_attachment, "r")
-
-    output = _get_input_source(query_string, stdin, attachment, last_output)
-
-    assert output == expected
-
-
-def test_get_inout_source_all_values_warning_message(tmp_path, caplog):
-    file_attachment = tmp_path / "test.txt"
-    file_attachment.write_text("file")
-    file_attachment = open(file_attachment, "r")
-    query_string = "query"
-    stdin = "stdin"
-    attachment = file_attachment.read()
-
-    output = _get_input_source(query_string, stdin, attachment, "last_output")
-
-    assert output == "query file"
-    assert (
-        "Using positional query and file input. Stdin will be ignored."
-        in caplog.records[-1].message
-    )
-
-
-def test_get_input_source_value_error():
-    with pytest.raises(
-        ValueError,
-        match="No input provided. Please provide input via file, stdin, or direct query.",
-    ):
-        _get_input_source("", "", "", "")
 
 
 @pytest.mark.parametrize(
@@ -585,6 +528,27 @@ def test_submit_question(mock_dbus_service, default_kwargs, capsys):
     assert "Asking RHEL Lightspeed" in captured.out
 
 
+def test_submit_question_static_message(mock_dbus_service, default_kwargs, capsys):
+    mock_dbus_service.WriteHistory.return_value = None
+    mock_dbus_service.AskQuestion.return_value = Response("test").structure()
+
+    default_kwargs["text_renderer"] = create_text_renderer()
+
+    chat_op = BaseChatOperation(**default_kwargs)
+    result = chat_op._submit_question(
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "1b3fcbda-e875-11ef-abad-52b437312584",
+        "test",
+        "",
+        "",
+        "",
+        "",
+    )
+    assert result == "test"
+    captured = capsys.readouterr()
+    assert "Asking RHEL Lightspeed" in captured.out
+
+
 @pytest.mark.parametrize(
     ("question", "stdin", "attachment", "last_output"),
     (
@@ -626,8 +590,8 @@ def test_trim_down_message_size(
     )
     assert "test" in result
     captured = capsys.readouterr()
-    assert "The total size of your question and context" in captured.out
-    assert "Final size of question after the limit" in caplog.records[-3].message
+    assert "The total size" in captured.out
+    assert "Final size of input after the limit" in caplog.records[-3].message
 
 
 def test_submit_question_history_disabled(

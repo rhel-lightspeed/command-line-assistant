@@ -1,11 +1,16 @@
 """D-Bus interfaces that defines and powers our commands."""
 
 import logging
+import subprocess
+from dataclasses import dataclass
+from functools import cached_property
+from typing import Any
 
 from dasbus.server.interface import dbus_interface
 from dasbus.server.template import InterfaceTemplate
 from dasbus.typing import Str, Structure
 
+from command_line_assistant.constants import VERSION
 from command_line_assistant.daemon.database.manager import DatabaseManager
 from command_line_assistant.daemon.database.repository.chat import ChatRepository
 from command_line_assistant.daemon.http.query import submit
@@ -20,6 +25,62 @@ from command_line_assistant.dbus.structures.chat import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class InferencePayload:
+    """The payload to be submitted to the backend for inference."""
+
+    content: Question
+
+    @cached_property
+    def _cla_nevra(self) -> str:
+        """Determine the CLA NEVRA string.
+
+        Returns:
+            str: The NEVRA string for the CLA.
+        """
+        result = subprocess.run(
+            ["rpm", "-q", "command-line-assistant"],
+            capture_output=True,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            logger.error(
+                "Failed to get the NEVRA string for command-line-assistant.",
+                extra={"audit": True, "error": result.stderr},
+            )
+            return ""
+
+        # The output is in the format: command-line-assistant-1.0.0-1.el9.x86_64
+        # We need to return the NEVRA part, which is everything before the last hyphen.
+        return result.stdout
+
+    def to_dict(self) -> dict[str, Any]:
+        """Turn content into dictionary for submission to the backend.
+
+        Returns:
+            dict[str, Any]: The content in dictionary format.
+        """
+        return {
+            "question": self.content.message,
+            "context": {
+                "stdin": self.content.stdin.stdin,
+                "attachments": {
+                    "contents": self.content.attachment.contents,
+                    "mimetype": self.content.attachment.mimetype,
+                },
+                "terminal": {"output": self.content.terminal.output},
+                "systeminfo": {
+                    "os": self.content.systeminfo.os,
+                    "version": self.content.systeminfo.version,
+                    "arch": self.content.systeminfo.arch,
+                    "id": self.content.systeminfo.id,
+                },
+                "cla": {"nevra": self._cla_nevra, "version": VERSION},
+            },
+        }
 
 
 @dbus_interface(CHAT_IDENTIFIER.interface_name)
@@ -214,26 +275,10 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Structure: The message output in format of a d-bus structure.
         """
-        content = Question.from_structure(message_input)
-
         # Submit query to backend
-        data = {
-            "question": content.message,
-            "context": {
-                "stdin": content.stdin.stdin,
-                "attachments": {
-                    "contents": content.attachment.contents,
-                    "mimetype": content.attachment.mimetype,
-                },
-                "terminal": {"output": content.terminal.output},
-                "systeminfo": {
-                    "os": content.systeminfo.os,
-                    "version": content.systeminfo.version,
-                    "arch": content.systeminfo.arch,
-                    "id": content.systeminfo.id,
-                },
-            },
-        }
+        content = Question.from_structure(message_input)
+        payload = InferencePayload(content)
+
         logger.info(
             "Submitting question from user.",
             extra={
@@ -241,7 +286,7 @@ class ChatInterface(InterfaceTemplate):
                 "user": user_id,
             },
         )
-        llm_response = submit(data, self.implementation.config)
+        llm_response = submit(payload.to_dict(), self.implementation.config)
 
         # Create message object
         response = Response(llm_response)

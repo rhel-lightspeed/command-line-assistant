@@ -36,6 +36,7 @@ repos:
       - id: "check-toml"
       - id: "check-yaml"
       - id: "check-merge-conflict"
+        exclude: docs/
 
   - repo: https://github.com/packit/pre-commit-hooks
     rev: v1.3.0

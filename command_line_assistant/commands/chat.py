@@ -137,88 +137,6 @@ def _parse_attachment_file(attachment: Optional[TextIOWrapper] = None) -> str:
         ) from e
 
 
-def _get_input_source(query: str, stdin: str, attachment: str, last_output: str) -> str:
-    """
-    Determine and return the appropriate input source based on combination rules.
-
-    Arguments:
-        query (str): The question to be asked
-        stdin (str): The input redirect via stdin
-        attachment (str): The attachment contents
-        attachment_mimetype (str): The mimetype of the attachment
-        last_output (str): The last out read from the terminal
-
-    Warning:
-        This is set to be deprecated in the future when we normalize the API
-        backend to accept the context and works with it.
-
-    Rules:
-    1. Positional query only -> use positional query
-    2. Stdin query only -> use stdin query
-    3. File query only -> use file query
-    4. Stdin + positional query -> combine as "{positional_query} {stdin}"
-    5. Stdin + file query -> combine as "{stdin} {file_query}"
-    6. Positional + file query -> combine as "{positional_query} {file_query}"
-    7. Positional + last output -> combine as "{positional_query} {last_output}"
-    8. Positional + attachment + last output -> combine as "{positional_query} {attachment} {last_output}"
-    99. All three sources -> use only positional and file as "{positional_query} {file_query}"
-
-    Raises:
-        ValueError: If no input source is provided
-
-    Returns:
-        str: The query string from the selected input source(s)
-    """
-    # Rule 99: All present - positional and file take precedence
-    if all([query, stdin, attachment, last_output]):
-        logger.debug("Using positional query and file input. Stdin will be ignored.")
-        return f"{query} {attachment}"
-
-    # Rule 8: positional + attachment + last output
-    if query and attachment and last_output:
-        logger.info(
-            "Positional query, attachment and last output found. Using all of them at once."
-        )
-        return f"{query} {attachment} {last_output}"
-
-    # Rule 7: positional + last_output
-    if query and last_output:
-        logger.info("Positional query and last output found. Using them.")
-        return f"{query} {last_output}"
-
-    # Rule 6: Positional + file
-    if query and attachment:
-        logger.info("Positional query and attachment found. Using them.")
-        return f"{query} {attachment}"
-
-    # Rule 5: Stdin + file
-    if stdin and attachment:
-        logger.info("stdin and attachment found. Using them.")
-        return f"{stdin} {attachment}"
-
-    # Rule 4: Stdin + positional
-    if stdin and query:
-        logger.info("Positional query and stidn found. Using them.")
-        return f"{query} {stdin}"
-
-    # Rules 1-3: Single source - return first non-empty source
-    logger.info(
-        "Defaulting to use any of positional query, stdin, attachment or last output since no combinations where provided."
-    )
-    source = next(
-        (src for src in [query, stdin, attachment, last_output] if src),
-        None,
-    )
-
-    if source:
-        return source
-
-    logger.error("Couldn't find a match.")
-    raise ValueError(
-        "No input provided. Please provide input via file, stdin, or direct query."
-    )
-
-
 def _handle_legal_message() -> bool:
     """Handle legal message screen output
 
@@ -365,41 +283,67 @@ class BaseChatOperation(BaseOperation):
             str: The response from the backend server
         """
         response = None
-        final_question = _get_input_source(question, stdin, attachment, last_output)
-        final_question_size = len(final_question)
-        if final_question_size >= MAX_QUESTION_SIZE:
-            readable_size = human_readable_size(final_question_size)
-            max_question_size = human_readable_size(MAX_QUESTION_SIZE)
-            self.warning_renderer.render(
-                f"The total size of your question and context ({readable_size}) exceeds the limit of {max_question_size}. Trimming it down to fit in the expected size, you may lose some context."
-            )
-            logger.debug(
-                "Total size of question (%s) exceeds defined limit of %s.",
-                final_question_size,
-                MAX_QUESTION_SIZE,
-            )
-            final_question = final_question[:MAX_QUESTION_SIZE]
-            logger.debug(
-                "Final size of question after the limit %s.", final_question_size
-            )
+
+        sources = self._validate_input_sources_max_size(
+            question, stdin, " ".join(attachment.split()[::-1]), last_output
+        )
 
         with self.spinner_renderer:
             response = self._get_response(
                 user_id=user_id,
-                question=final_question,
-                stdin=stdin,
-                attachment=attachment,
                 attachment_mimetype=attachment_mimetype,
-                last_output=last_output,
+                **sources,
             )
         try:
-            self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
+            self.history_proxy.WriteHistory(chat_id, user_id, question, response)
         except HistoryNotEnabledError:
             logger.warning(
                 "The history is disabled in the configuration file. Skipping the write to the history."
             )
 
         return response
+
+    def _validate_input_sources_max_size(
+        self, question: str, stdin: str, attachment: str, last_output: str
+    ):
+        """Validate the input sources and trim them down to fit the maximum size.
+
+        Arguments:
+            question (str): The question to be asked
+            stdin (str): The input redirect via stdin
+            attachment (str): The attachment contents
+            last_output (str): The last out read from the terminal
+
+        Returns:
+            dict: A dictionary with the sources and their values, trimmed to fit the maximum size.
+        """
+        sources = {
+            "question": question,
+            "stdin": stdin,
+            "attachment": attachment,
+            "last_output": last_output,
+        }
+
+        for source, value in sources.items():
+            if len(value) <= MAX_QUESTION_SIZE:
+                continue
+
+            # If the value is larger than the maximum size, we need to trim it down
+            readable_size = human_readable_size(len(value))
+            max_question_size = human_readable_size(MAX_QUESTION_SIZE)
+            self.warning_renderer.render(
+                f"The total size of your input '{source}' ({readable_size}) exceeds the limit of {max_question_size}. "
+                "Trimming it down to fit in the expected size, you may lose some context."
+            )
+            logger.debug(
+                "Size of input (%s) exceeds defined limit of %s.",
+                source,
+                MAX_QUESTION_SIZE,
+            )
+            sources[source] = value[:MAX_QUESTION_SIZE]
+            logger.debug("Final size of input after the limit %s.", len(source))
+
+        return sources
 
     @timing.timeit
     def _get_response(
