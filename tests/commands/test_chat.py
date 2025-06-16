@@ -577,33 +577,10 @@ def test_submit_question(mock_dbus_service, default_kwargs, capsys):
         "",
         "",
         "",
-        False,
     )
     assert result == "test"
     captured = capsys.readouterr()
     assert "Asking RHEL Lightspeed" in captured.out
-
-
-def test_submit_question_no_spinner(mock_dbus_service, default_kwargs, capsys):
-    mock_dbus_service.WriteHistory.return_value = None
-    mock_dbus_service.AskQuestion.return_value = Response("test").structure()
-
-    default_kwargs["text_renderer"] = create_text_renderer()
-
-    chat_op = BaseChatOperation(**default_kwargs)
-    result = chat_op._submit_question(
-        "1b3fcbda-e875-11ef-abad-52b437312584",
-        "1b3fcbda-e875-11ef-abad-52b437312584",
-        "test",
-        "",
-        "",
-        "",
-        "",
-        True,
-    )
-    assert result == "test"
-    captured = capsys.readouterr()
-    assert "Asking RHEL Lightspeed" not in captured.out
 
 
 @pytest.mark.parametrize(
@@ -644,7 +621,6 @@ def test_trim_down_message_size(
         attachment,
         "",
         last_output,
-        True,
     )
     assert "test" in result
     captured = capsys.readouterr()
@@ -671,11 +647,10 @@ def test_submit_question_history_disabled(
         "",
         "",
         "",
-        True,
     )
     captured = capsys.readouterr()
     assert result == "test"
-    assert "Asking RHEL Lightspeed" not in captured.out
+    assert "Asking RHEL Lightspeed" in captured.out
     assert (
         "The history is disabled in the configuration file. Skipping the write to the history."
         in caplog.records[-2].message
@@ -728,7 +703,6 @@ def test_chat_operation_with_history_disabled(default_kwargs, capsys, caplog):
         "",
         "",
         "",
-        True,
     )
 
     assert result == "test response"

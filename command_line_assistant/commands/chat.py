@@ -328,7 +328,6 @@ class BaseChatOperation(BaseOperation):
         attachment: str,
         attachment_mimetype: str,
         last_output: str,
-        skip_spinner: Optional[bool] = False,
     ) -> str:
         """Submit the question over dbus.
 
@@ -340,7 +339,6 @@ class BaseChatOperation(BaseOperation):
             attachment (str): The attachment contents
             attachment_mimetype (str): The mimetype of the attachment
             last_output (str): The last out read from the terminal
-            skip_spinner (Optional[bool], optional): Skip the spinner renderer. Defaults to False.
 
         Returns:
             str: The response from the backend server
@@ -364,7 +362,7 @@ class BaseChatOperation(BaseOperation):
                 "Final size of question after the limit %s.", final_question_size
             )
 
-        if skip_spinner:
+        with self.spinner_renderer:
             response = self._get_response(
                 user_id=user_id,
                 question=final_question,
@@ -373,17 +371,6 @@ class BaseChatOperation(BaseOperation):
                 attachment_mimetype=attachment_mimetype,
                 last_output=last_output,
             )
-        else:
-            with self.spinner_renderer:
-                response = self._get_response(
-                    user_id=user_id,
-                    question=final_question,
-                    stdin=stdin,
-                    attachment=attachment,
-                    attachment_mimetype=attachment_mimetype,
-                    last_output=last_output,
-                )
-
         try:
             self.history_proxy.WriteHistory(chat_id, user_id, final_question, response)
         except HistoryNotEnabledError:
@@ -561,7 +548,6 @@ class InteractiveChatOperation(BaseChatOperation):
                     attachment_mimetype=attachment_mimetype,
                     # For now, we won't deal with last output in interactive mode.
                     last_output="",
-                    skip_spinner=self.args.plain,
                 )
                 self._display_response(response)
         except (KeyboardInterrupt, EOFError) as e:
@@ -648,7 +634,6 @@ class SingleQuestionOperation(BaseChatOperation):
                 attachment=attachment,
                 attachment_mimetype=attachment_mimetype,
                 last_output=last_terminal_output,
-                skip_spinner=False,
             )
 
             self._display_response(response)
