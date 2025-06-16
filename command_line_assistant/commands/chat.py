@@ -327,7 +327,7 @@ class BaseChatOperation(BaseOperation):
         stdin: str,
         attachment: str,
         attachment_mimetype: str,
-        last_output: str
+        last_output: str,
     ) -> str:
         """Submit the question over dbus.
 
