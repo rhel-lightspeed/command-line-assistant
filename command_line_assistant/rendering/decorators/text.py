@@ -1,15 +1,11 @@
 """Module to track all *text* decorations applied to renderers"""
 
 import logging
-import os
 import shutil
 import textwrap
-from pathlib import Path
 from typing import Optional, Union
 
 from command_line_assistant.rendering.base import BaseDecorator
-from command_line_assistant.utils.environment import get_xdg_state_path
-from command_line_assistant.utils.files import create_folder, write_file
 
 logger = logging.getLogger(__name__)
 
@@ -114,59 +110,3 @@ class TextWrapDecorator(BaseDecorator):
             initial_indent=self._indent,
             subsequent_indent=self._indent,
         )
-
-
-class WriteOncePerSessionDecorator(BaseDecorator):
-    """Decorator that ensures content is written only once by checking a state file.
-
-    The state file is created under
-    $XDG_STATE_HOME/command-line-assistant/<state_filename>
-
-    Example:
-        This is an example on how to use this decorator:
-
-        >>> message = "Message that will be printed only once"
-        >>> decorator = WriteOncePerSessionDecorator(state_filename="legal")
-        >>> renderer.update(decorator)
-        >>> renderer.render(message)
-        >>> renderer.render(message) # This won't show again
-    """
-
-    def __init__(self, state_filename: str = "written") -> None:
-        """Constructor of the class
-
-        Arguments:
-            state_filename (str): Name of the state file to create/check. Defaults to "written"
-        """
-        self._state_dir: Path = get_xdg_state_path()
-        self._state_file: Path = self._state_dir / state_filename
-        self._parent_pid: str = str(os.getppid())
-
-    def _should_write(self) -> bool:
-        """Check if content should be written by verifying state file existence.
-
-        Returns:
-            bool: In Return a boolean value if the state file can be written.
-        """
-        if self._state_file.exists():
-            if self._state_file.read_text() == self._parent_pid:
-                logger.info(
-                    "The state file already exists. Skipping writting it a second time."
-                )
-                return False
-        create_folder(self._state_dir, parents=True)
-        # Write state file
-        write_file(self._parent_pid, self._state_file)
-        return True
-
-    def decorate(self, text: str) -> str:
-        """Write the text only if it hasn't been written before.
-
-        Arguments:
-            text (str): The text that needs to be decorated. This usually is
-            being set from a renderer class.
-
-        Returns:
-            str: The text decorated if it can writes, otherwise, blank string.
-        """
-        return text if self._should_write() else ""
