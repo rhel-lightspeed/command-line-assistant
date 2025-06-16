@@ -1,3 +1,4 @@
+import os
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
 from unittest import mock
@@ -14,6 +15,7 @@ from command_line_assistant.commands.chat import (
     SingleQuestionOperation,
     _command_factory,
     _get_input_source,
+    _handle_legal_message,
     _parse_attachment_file,
     _read_last_terminal_output,
     register_subcommand,
@@ -775,3 +777,47 @@ def test_validate_query(args, expected, default_kwargs):
     default_kwargs["args"] = Namespace(**args)
     with pytest.raises(ChatCommandException, match=expected):
         SingleQuestionOperation(**default_kwargs).execute()
+
+
+def test_handle_legal_message_first_write(tmp_path, monkeypatch):
+    """Test first write with decorator"""
+    state_file = tmp_path / "legal"
+    monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+    result = _handle_legal_message()
+    assert result
+    assert state_file.exists()
+
+
+def test_handle_legal_message_file_exists(tmp_path, monkeypatch):
+    """Test subsequent writes with decorator"""
+    parent_pid = str(os.getppid())
+    state_file = tmp_path / "legal"
+    state_file.write_text(parent_pid)
+    monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+    result = _handle_legal_message()
+
+    assert not result
+    assert state_file.read_text() == parent_pid
+
+
+def test_state_file_and_folder_permissions(tmp_path, monkeypatch):
+    """Test state file permissions"""
+    state_file = tmp_path / "legal"
+    monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+    result = _handle_legal_message()
+
+    assert result
+    assert state_file.exists()
+    assert oct(state_file.stat().st_mode)[-3:] == "600"
+    assert oct(tmp_path.stat().st_mode)[-3:] == "700"
+
+
+def test_different_pid(tmp_path, monkeypatch):
+    state_file = tmp_path / "legal"
+    state_file.write_text("1234")
+    monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+    result = _handle_legal_message()
+
+    current_pid = str(os.getppid())
+    assert result
+    assert state_file.read_text() == current_pid

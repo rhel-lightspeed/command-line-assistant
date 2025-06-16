@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import os
 import platform
 from argparse import Namespace
 from enum import auto
@@ -32,9 +33,6 @@ from command_line_assistant.dbus.structures.chat import (
 )
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
-from command_line_assistant.rendering.decorators.text import (
-    WriteOncePerSessionDecorator,
-)
 from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
 from command_line_assistant.rendering.renders.markdown import MarkdownRenderer
 from command_line_assistant.rendering.renders.spinner import SpinnerRenderer
@@ -49,7 +47,13 @@ from command_line_assistant.utils.cli import (
     CommandContext,
     SubParsersAction,
 )
-from command_line_assistant.utils.files import NamedFileLock, guess_mimetype
+from command_line_assistant.utils.environment import get_xdg_state_path
+from command_line_assistant.utils.files import (
+    NamedFileLock,
+    create_folder,
+    guess_mimetype,
+    write_file,
+)
 from command_line_assistant.utils.renderers import (
     create_error_renderer,
     create_interactive_renderer,
@@ -215,6 +219,29 @@ def _get_input_source(query: str, stdin: str, attachment: str, last_output: str)
     )
 
 
+def _handle_legal_message() -> bool:
+    """Handle legal message screen output
+
+    Returns:
+        bool: True if the legal message was handled successfully, False
+        otherwise.
+    """
+    state_file = get_xdg_state_path() / "legal"
+    parent_pid = str(os.getppid())
+
+    if state_file.exists():
+        if state_file.read_text() == parent_pid:
+            logger.info(
+                "The state file already exists. Skipping writting it a second time."
+            )
+            return False
+
+    create_folder(state_file.parent, parents=True)
+    # Write state file
+    write_file(parent_pid, state_file)
+    return True
+
+
 class ChatOperationType(CommandOperationType):
     """Enum to control the operations for the command"""
 
@@ -246,7 +273,6 @@ class BaseChatOperation(BaseOperation):
 
     Attributes:
         spinner_renderer (SpinnerRenderer): The instance of a spinner renderer
-        legal_renderer (TextRenderer): Instance of text renderer to show legal message
         notice_renderer (TextRenderer): Instance of text renderer to show notice message
         interactive_renderer (InteractiveRenderer): Instance of interactive renderer to handle interactive mode
     """
@@ -288,13 +314,6 @@ class BaseChatOperation(BaseOperation):
             message="Asking RHEL Lightspeed",
             plain=hasattr(args, "plain") and args.plain,
         )
-        self.legal_renderer: TextRenderer = create_text_renderer(
-            decorators=[
-                ColorDecorator(foreground="lightyellow"),
-                WriteOncePerSessionDecorator(state_filename="legal"),
-            ],
-            plain=hasattr(args, "plain") and args.plain,
-        )
         self.notice_renderer: TextRenderer = create_text_renderer(
             decorators=[ColorDecorator(foreground="lightyellow")],
             plain=hasattr(args, "plain") and args.plain,
@@ -310,9 +329,11 @@ class BaseChatOperation(BaseOperation):
         Arguments:
             response(str): The message to be displayed
         """
-        self.legal_renderer.render(LEGAL_NOTICE)
-        self.text_renderer.render("─" * 72)
-        print("")
+        if _handle_legal_message():
+            self.notice_renderer.render(LEGAL_NOTICE)
+            self.text_renderer.render("─" * 72)
+            print("")
+
         self.markdown_renderer.render(response)
         print("")
         self.text_renderer.render("─" * 72)
