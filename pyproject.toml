@@ -39,7 +39,7 @@ pytest-randomly = "3.16.0"
 coverage = "7.8.2"
 pytest-sugar = "1.0.0"
 pytest-clarity = "1.0.1"
-tox = "4.26.0"
+tox = "4.27.0"
 responses = "0.25.7"
 PyGObject = "3.50.0"
 # added here mainly for editor happines
