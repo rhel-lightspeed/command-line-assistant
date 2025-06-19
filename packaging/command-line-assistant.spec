@@ -84,8 +84,9 @@ popd
 ln -sr %{buildroot}/%{_bindir}/%{binary_name} %{buildroot}/%{_bindir}/%{symlink_binary_name}
 ln -sr %{buildroot}%{_mandir}/man1/%{binary_name}.1 %{buildroot}%{_mandir}/man1/%{symlink_binary_name}.1
 
-# System units
+# System units & tmpfiles.d config
 %{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
+%{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{daemon_binary_name}.conf
 
 # d-bus policy config
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_datadir}/dbus-1/system.d/com.redhat.lightspeed.conf
