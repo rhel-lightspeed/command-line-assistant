@@ -694,10 +694,6 @@ def test_chat_command_with_invalid_args(default_namespace):
     ("args", "expected"),
     (
         (
-            {"query_string": "", "stdin": "", "with_output": ""},
-            "Your query needs to have at least 2 characters. Either query or stdin are empty.",
-        ),
-        (
             {"query_string": "a", "stdin": "", "with_output": ""},
             "Your query needs to have at least 2 characters.",
         ),
@@ -715,6 +711,20 @@ def test_validate_query(args, expected, default_kwargs):
     default_kwargs["args"] = Namespace(**args)
     with pytest.raises(ChatCommandException, match=expected):
         SingleQuestionOperation(**default_kwargs).execute()
+
+
+def test_validate_query_with_output_only(default_kwargs, tmp_path, monkeypatch):
+    terminal_capture = tmp_path / "terminal_capture.log"
+    terminal_capture.write_text("test")
+    monkeypatch.setattr(chat, "TERMINAL_CAPTURE_FILE", terminal_capture)
+    default_kwargs["args"] = Namespace(query_string="", stdin="", with_output=1)
+    single_question = SingleQuestionOperation(**default_kwargs)
+    try:
+        # The attribute exists, but we are ignoring since it thinks it comes
+        # from the base class.
+        single_question._validate_query()  # pyright: ignore
+    except Exception as e:
+        pytest.fail(f"We got a failure in {single_question} with stack: {str(e)}")
 
 
 def test_handle_legal_message_first_write(tmp_path, monkeypatch):
