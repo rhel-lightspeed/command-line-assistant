@@ -1,9 +1,7 @@
 """D-Bus interfaces that defines and powers our commands."""
 
 import logging
-import subprocess
 from dataclasses import dataclass
-from functools import cached_property
 from typing import Any
 
 from dasbus.server.interface import dbus_interface
