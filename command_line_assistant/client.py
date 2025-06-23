@@ -60,7 +60,7 @@ def main() -> int:
 
         # In case that the user only calls `chat`, `history` or anything else,
         # we just print help and return with os.EX_USAGE.
-        if len(args) == 1 and not stdin:
+        if len(args) <= 1 and not stdin and "feedback" not in args:
             parser.print_help()
             return os.EX_USAGE
 
