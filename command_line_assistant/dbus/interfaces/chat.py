@@ -33,30 +33,6 @@ class InferencePayload:
 
     content: Question
 
-    @cached_property
-    def _cla_nevra(self) -> str:
-        """Determine the CLA NEVRA string.
-
-        Returns:
-            str: The NEVRA string for the CLA.
-        """
-        result = subprocess.run(
-            ["rpm", "-q", "command-line-assistant"],
-            capture_output=True,
-            text=True,
-        )
-
-        if result.returncode != 0:
-            logger.error(
-                "Failed to get the NEVRA string for command-line-assistant.",
-                extra={"audit": True, "error": result.stderr},
-            )
-            return ""
-
-        # The output is in the format: command-line-assistant-1.0.0-1.el9.x86_64
-        # We need to return the NEVRA part, which is everything before the last hyphen.
-        return result.stdout
-
     def to_dict(self) -> dict[str, Any]:
         """Turn content into dictionary for submission to the backend.
 
@@ -78,7 +54,7 @@ class InferencePayload:
                     "arch": self.content.systeminfo.arch,
                     "id": self.content.systeminfo.id,
                 },
-                "cla": {"nevra": self._cla_nevra, "version": VERSION},
+                "cla": {"version": VERSION},
             },
         }
 

@@ -50,7 +50,7 @@ def test_chat_interface_ask_question(chat_interface, mock_config):
                     "attachments": {"contents": "", "mimetype": ""},
                     "terminal": {"output": ""},
                     "systeminfo": {"os": "", "arch": "", "id": "", "version": ""},
-                    "cla": {"nevra": "", "version": "0.4.0"},
+                    "cla": {"version": "0.4.0"},
                 },
             },
             mock_config,
