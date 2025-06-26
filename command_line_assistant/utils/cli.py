@@ -46,7 +46,7 @@ class CommandContext:
     """
 
     username: str = getpass.getuser()
-    effective_user_id: int = os.getegid()
+    effective_user_id: int = os.geteuid()
 
     # Empty dictionary for os_release information. Parsed at the __post__init__ method.
     os_release: dict[str, str] = dataclasses.field(default_factory=dict)
