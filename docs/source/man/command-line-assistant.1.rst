@@ -190,11 +190,12 @@ order to maintain a correct order of querying. The rules can be seen here::
     1. Positional query only -> use positional query
     2. Stdin query only -> use stdin query
     3. File query only -> use file query
-    4. Stdin + positional query -> combine as "{positional_query} {stdin}"
-    5. Stdin + file query -> combine as "{stdin} {file_query}"
-    6. Positional + file query -> combine as "{positional_query} {file_query}"
-    7. Positional + last output -> combine as "{positional_query} {last_output}"
-    8. Positional + attachment + last output -> combine as "{positional_query} {attachment} {last_output}"
+    4. Last terminal output -> use last terminal output
+    5. Stdin + positional query -> combine as "{positional_query} {stdin}"
+    6. Stdin + file query -> combine as "{stdin} {file_query}"
+    7. Positional + file query -> combine as "{positional_query} {file_query}"
+    8. Positional + last output -> combine as "{positional_query} {last_output}"
+    9. Positional + attachment + last output -> combine as "{positional_query} {attachment} {last_output}"
     99. All three sources -> use only positional and file as "{positional_query} {file_query}"
 
 Files

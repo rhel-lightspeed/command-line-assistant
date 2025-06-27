@@ -533,13 +533,6 @@ class SingleQuestionOperation(BaseChatOperation):
         Raises:
             ChatCommandException: In case the query has invalid sizing (less than 1 character).
         """
-        # If both are empty, raise exception
-        if not self.args.query_string and not self.args.stdin:
-            logger.debug("Both query_string and stdin are empty.")
-            raise ChatCommandException(
-                "Your query needs to have at least 2 characters. Either query or stdin are empty."
-            )
-
         # If query_string has content but is too short
         if self.args.query_string and len(self.args.query_string.strip()) <= 1:
             logger.debug(
