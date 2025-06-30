@@ -27,7 +27,7 @@ jobs:
           # ((?:RHELC?|HMS)-\d+) Get RSPED or RHEL keys, add to a group
           # \b Word boundary to indicate this should be the end of the match
           # (?!\]\() Negative lookahead of ]( to prevent Jira keys in markdown links
-          regex=re.compile(r"(?<!\/)((?:RPSEED|RHEL)-\d+)\b(?!\]\()", re.MULTILINE)
+          regex=re.compile(r"(?<!\/)((?:RSPEED|RHEL)-\d+)\b(?!\]\()", re.MULTILINE)
           with open("releaseBody.txt", 'r+') as f:
             data = f.read()
             f.seek(0)
