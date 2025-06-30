@@ -147,13 +147,16 @@ def _handle_legal_message() -> bool:
     state_file = get_xdg_state_path() / "legal"
     parent_pid = str(os.getppid())
 
-    if state_file.exists():
+    try:
         if state_file.read_text() == parent_pid:
             logger.info(
                 "The state file already exists. Skipping writting it a second time."
             )
             return False
+    except FileNotFoundError:
+        logger.debug("Couldn't find state file at '%s'.", state_file)
 
+    logger.info("Trying to create parent directory and write to state file.")
     create_folder(state_file.parent, parents=True)
     # Write state file
     write_file(parent_pid, state_file)
