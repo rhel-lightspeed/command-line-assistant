@@ -79,6 +79,7 @@ class DatabaseManager:
                 # correct permissions.
                 with engine.connect():
                     pass
+
                 os.umask(original_mask)
                 return engine
 

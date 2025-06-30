@@ -148,7 +148,7 @@ class NamedFileLock:
             # will raise an OSError if no process with that pid is running.
             os.kill(pid, 0)
             return True
-        except (ValueError, OSError, FileNotFoundError):
+        except (ValueError, FileNotFoundError):
             # Clean up stale lock file
             self._lock_file.unlink(missing_ok=True)
             return False
