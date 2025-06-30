@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from command_line_assistant.config.schemas.backend import AuthSchema, BackendSchema
@@ -24,9 +26,8 @@ def test_initialize_schemas_default_values(schema):
 def test_backend_schema_with_auth_dict():
     """Test BackendSchema initialization with auth as dict"""
     auth_dict = {
-        "cert_file": "/path/to/cert.pem",
-        "key_file": "/path/to/key.pem",
-        "verify_ssl": False,
+        "cert_file": Path("/path/to/cert.pem"),
+        "key_file": Path("/path/to/key.pem"),
     }
 
     schema = BackendSchema(
@@ -36,7 +37,6 @@ def test_backend_schema_with_auth_dict():
     assert isinstance(schema.auth, AuthSchema)
     assert str(schema.auth.cert_file) == "/path/to/cert.pem"
     assert str(schema.auth.key_file) == "/path/to/key.pem"
-    assert schema.auth.verify_ssl is False
 
 
 @pytest.mark.parametrize(

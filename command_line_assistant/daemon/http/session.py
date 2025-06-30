@@ -2,7 +2,6 @@
 
 import logging
 
-import urllib3
 from requests.sessions import Session
 
 from command_line_assistant.config import Config
@@ -42,12 +41,6 @@ def get_session(config: Config) -> Session:
     retry_adapter = RetryAdapter()
 
     session.mount(config.backend.endpoint, retry_adapter)
-
-    if not config.backend.auth.verify_ssl:  # type: ignore
-        logger.warning("Disabling SSL verification as per user requested.")
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        session.verify = False
-        return session
 
     session.cert = (config.backend.auth.cert_file, config.backend.auth.key_file)  # type: ignore
 

@@ -1,8 +1,11 @@
 """Schemas for the backend config."""
 
 import dataclasses
+import logging
 import os
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -23,6 +26,13 @@ class AuthSchema:
         """Post initialization method to normalize values"""
         self.cert_file = Path(self.cert_file).expanduser()
         self.key_file = Path(self.key_file).expanduser()
+
+        # TODO(r0x0d): Once we remove the depreaction notice, remove this as well.
+        if self.verify_ssl:
+            logger.info(
+                "Verify SSL option is deprecated and will be removed in the future."
+            )
+            logger.info("Ignoring Verify SSL option as it has no effect anymore.")
 
 
 @dataclasses.dataclass

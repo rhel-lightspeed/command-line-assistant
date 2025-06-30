@@ -12,7 +12,6 @@ endpoint = "http://localhost:8000"
 [backend.auth]
 cert_file = "data/development/certificate/fake-certificate.pem"
 key_file = "data/development/certificate/fake-key.pem"
-verify_ssl = false
 
 [logging]
 level = "INFO"
