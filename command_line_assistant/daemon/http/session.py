@@ -43,7 +43,8 @@ def get_session(config: Config) -> Session:
 
     session.mount(config.backend.endpoint, retry_adapter)
 
-    # TODO(r0x0d): Remove this as it is not needed anymore.
+    # TODO(r0x0d): Remove this as it is not needed anymore. 
+    # https://issues.redhat.com/browse/RSPEED-1716
     if not config.backend.auth.verify_ssl:  # type: ignore
         logger.warning("Disabling SSL verification as per user requested.")
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
