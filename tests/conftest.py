@@ -100,9 +100,7 @@ def mock_config(tmp_path):
         return config.Config(
             backend=BackendSchema(
                 endpoint="http://localhost",
-                auth=AuthSchema(
-                    cert_file=cert_file, key_file=key_file, verify_ssl=False
-                ),
+                auth=AuthSchema(cert_file=cert_file, key_file=key_file),
             ),
             history=HistorySchema(
                 enabled=True,
