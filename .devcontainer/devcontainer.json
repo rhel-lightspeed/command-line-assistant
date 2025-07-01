@@ -1,0 +1,32 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+    "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
+    "name": "clad-devcontainer",
+    "build": {
+        "dockerfile": "Containerfile",
+        "context": "."
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "username": "clad",
+            "installZsh": false,
+            "installOhMyZsh": false,
+            "installOhMyZshConfig": false
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "github.vscode-github-actions",
+                "github.vscode-pull-request-github",
+                "mads-hartmann.bash-ide-vscode"
+            ]
+        }
+    },
+    "runArgs": [
+        "--name",
+        "devcontainer-${containerWorkspaceFolderBasename}"
+    ],
+    "remoteUser": "clad",
+    "containerUser": "clad"
+}
