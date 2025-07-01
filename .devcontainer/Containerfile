@@ -2,24 +2,14 @@
 FROM quay.io/centos/centos:stream10
 
 # Install Python, pip, and development tools
-RUN dnf -y update && \
-    dnf -y install \
-    cairo-devel \
-    gcc \
-    git \
-    gobject-introspection-devel \
-    make \
-    mariadb-devel \
-    cmake \
-    cairo-gobject-devel \
-    python3 \
-    python3-cairo \
-    python3-devel \
-    python3-gobject \
+RUN dnf install -y \
     python3-pip \
-    && \
+    'pkgconfig(cairo)' \
+    'pkgconfig(cairo-gobject)' \
+    'pkgconfig(gobject-introspection-1.0)' \
+    'pkgconfig(mariadb)' \
+    /usr/bin/pg_config && \
     dnf clean all
-
 
 # Upgrade pip
 RUN python -m pip install --upgrade pip
