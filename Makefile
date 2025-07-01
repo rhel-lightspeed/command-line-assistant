@@ -173,3 +173,9 @@ release: ## Interactively bump the version (major, minor, or patch)
 	esac; \
 	echo "Bumping version to $$new_version"; \
 	python scripts/prepare_release.py $$new_version
+
+build-container: ## Build a container image
+	podman build -t rhel-ligspeed/command-line-assistant:latest .
+
+launch-container: ## Launch CLA container
+	podman run --detach -it rhel-ligspeed/command-line-assistant:latest
