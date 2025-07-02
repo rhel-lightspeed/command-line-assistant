@@ -140,6 +140,7 @@ fi
 
 # System units
 %{_unitdir}/%{daemon_binary_name}.service
+%{_tmpfilesdir}/%{daemon_binary_name}.conf
 
 # d-bus policy config
 %{_datadir}/dbus-1/system.d/com.redhat.lightspeed.conf
