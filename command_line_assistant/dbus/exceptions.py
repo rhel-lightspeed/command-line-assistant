@@ -3,7 +3,7 @@
 from dasbus.error import DBusError, get_error_decorator
 
 from command_line_assistant.dbus.constants import (
-    CHAT_NAMESAPCE,
+    CHAT_NAMESPACE,
     ERROR_MAPPER,
     HISTORY_NAMESPACE,
 )
@@ -12,7 +12,7 @@ from command_line_assistant.dbus.constants import (
 dbus_error = get_error_decorator(ERROR_MAPPER)
 
 
-@dbus_error("RequestFailedError", namespace=CHAT_NAMESAPCE)
+@dbus_error("RequestFailedError", namespace=CHAT_NAMESPACE)
 class RequestFailedError(DBusError):
     """Failed submit a request to the server."""
 
@@ -37,6 +37,6 @@ class HistoryNotEnabledError(DBusError):
     """History for that particular user is not enabled."""
 
 
-@dbus_error("ChatNotFound", namespace=CHAT_NAMESAPCE)
+@dbus_error("ChatNotFound", namespace=CHAT_NAMESPACE)
 class ChatNotFoundError(DBusError):
     """Couldn't find chat for the given user."""
