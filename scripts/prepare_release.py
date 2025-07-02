@@ -21,6 +21,7 @@ VERSION_FILES = {
     "pyproject": PROJECT_ROOT / "pyproject.toml",
     "docs": PROJECT_ROOT / "docs" / "source" / "conf.py",
     "makefile": PROJECT_ROOT / "Makefile",
+    "containerfile": PROJECT_ROOT / "Containerfile",
 }
 
 
@@ -80,6 +81,21 @@ def update_pyproject_version(new_version: str) -> None:
     updated = re.sub(r'version = "[\d.]+"', f'version = "{new_version}"', content)
 
     with VERSION_FILES["pyproject"].open("w") as f:
+        f.write(updated)
+
+
+def update_containerfile_version(new_version: str) -> None:
+    """Update version in Containerfile.
+
+    Arguments:
+        new_version (str): New version to set
+    """
+    with VERSION_FILES["containerfile"].open("r") as f:
+        content = f.read()
+
+    updated = re.sub(r"VERSION=[\d.]+", f"VERSION={new_version}", content)
+
+    with VERSION_FILES["containerfile"].open("w") as f:
         f.write(updated)
 
 
@@ -319,6 +335,9 @@ def main() -> int:
 
         update_pyproject_version(args.version)
         print("✓ Updated pyproject.toml")
+
+        update_containerfile_version(args.version)
+        print("✓ Updated Containerfile")
 
         update_docs_version(args.version)
         print("✓ Updated conf.py")
