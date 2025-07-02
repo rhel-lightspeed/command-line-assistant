@@ -28,28 +28,10 @@ scripts = { c = "command_line_assistant.client:main", clad = "command_line_assis
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# ----- Tooling specifics
-
-[tool.poetry.group.dev.dependencies]
-psycopg2_binary = "2.9.10"
-mysqlclient = "2.2.7"
-pytest = "8.4.1"
-pytest-cov = "6.2.1"
-pytest-randomly = "3.16.0"
-coverage = "7.9.2"
-pytest-sugar = "1.0.0"
-pytest-clarity = "1.0.1"
-tox = "4.27.0"
-responses = "0.25.7"
-PyGObject = "3.50.0"
-# added here mainly for editor happines
-ruff = "0.12.2"
-
-[tool.poetry.group.docs.dependencies]
-sphinx = "7.4.7"
-sphinx-autodoc-typehints = "2.3.0"
-sphinx-rtd-theme = "3.0.2"
-sphinx-argparse-cli = "1.17.0"
+[project.optional-dependencies]
+dev = ["pytest==8.4.1", "pytest-cov==6.2.1", "pytest-randomly==3.16.0", "coverage==7.9.2", "pytest-sugar==1.0.0", "pytest-clarity==1.0.1", "tox==4.27.0", "responses==0.25.7", "PyGObject==3.50.0"]
+docs = ["sphinx==7.4.7", "sphinx-autodoc-typehints==2.3.0", "sphinx-rtd-theme==3.0.2", "sphinx-argparse-cli==1.17.0"]
+db = ["psycopg2_binary==2.9.10", "mysqlclient==2.2.7"]
 
 [tool.setuptools.packages.find]
 include = ["command_line_assistant*"]
@@ -73,7 +55,7 @@ lint.ignore = [
 ]
 
 [tool.poetry]
-package-mode = false
+package-mode = true
 
 [tool.pytest.init_options]
 testpaths = ["tests"]

@@ -44,7 +44,7 @@ install-tools: ## Install required utilities/tools
 	@poetry --version
 
 install: install-tools ## Sync all required dependencies for Command Line Assistant to work
-	@poetry install
+	@poetry install -E dev -E docs
 
 unit-test: ## Unit test cla
 	@echo "Running tests..."
