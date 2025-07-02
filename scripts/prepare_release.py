@@ -83,6 +83,7 @@ def update_pyproject_version(new_version: str) -> None:
     with VERSION_FILES["pyproject"].open("w") as f:
         f.write(updated)
 
+
 def update_containerfile_version(new_version: str) -> None:
     """Update version in Containerfile.
 
@@ -92,7 +93,7 @@ def update_containerfile_version(new_version: str) -> None:
     with VERSION_FILES["containerfile"].open("r") as f:
         content = f.read()
 
-    updated = re.sub(r'VERSION=[\d.]+', f'VERSION={new_version}', content)
+    updated = re.sub(r"VERSION=[\d.]+", f"VERSION={new_version}", content)
 
     with VERSION_FILES["containerfile"].open("w") as f:
         f.write(updated)
