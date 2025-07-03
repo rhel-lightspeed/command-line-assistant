@@ -14,7 +14,7 @@ SYSTEM_BUS: SystemMessageBus = SystemMessageBus(error_mapper=ERROR_MAPPER)
 SERVICE_NAMESPACE = ("com", "redhat", "lightspeed")
 
 #: The chat namespace
-CHAT_NAMESAPCE = (*SERVICE_NAMESPACE, "chat")
+CHAT_NAMESPACE = (*SERVICE_NAMESPACE, "chat")
 
 #: The history namespace
 HISTORY_NAMESPACE = (*SERVICE_NAMESPACE, "history")
@@ -24,7 +24,7 @@ USER_NAMESPACE = (*SERVICE_NAMESPACE, "user")
 
 #: The chat identifier that represents a dbus service
 CHAT_IDENTIFIER = DBusServiceIdentifier(
-    namespace=CHAT_NAMESAPCE, message_bus=SYSTEM_BUS
+    namespace=CHAT_NAMESPACE, message_bus=SYSTEM_BUS
 )
 
 #: The history identifier that represents a dbus service
