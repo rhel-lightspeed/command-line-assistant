@@ -135,7 +135,6 @@ def _handle_error_response(response: Response) -> None:
         # Catch the JSONDecodeError and log it to the debug log, but continue
         # the error creation.
         logger.debug("Failed to decode JSON: %s", e)
-        pass
 
     error_message = error_message.format(detailed_message=detailed_message)
 
