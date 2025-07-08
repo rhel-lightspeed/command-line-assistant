@@ -23,9 +23,6 @@ enabled = true
 [backend]
 endpoint = "https://localhost"
 
-[backend.auth]
-verify_ssl = true
-
 [logging]
 level = "INFO"
 """

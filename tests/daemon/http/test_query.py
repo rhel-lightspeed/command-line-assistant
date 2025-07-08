@@ -58,19 +58,6 @@ def test_handle_query_raising_status_from_gateway(mock_config, default_payload):
 
 
 @responses.activate
-def test_disable_ssl_verification(caplog, default_payload, mock_config):
-    mock_config.backend.auth.verify_ssl = False
-    responses.post(url="http://localhost/infer", json={"data": {"text": "yeah, test!"}})
-
-    result = query.submit(default_payload, config=mock_config)
-    assert result == "yeah, test!"
-    assert (
-        "Disabling SSL verification as per user requested."
-        in caplog.records[-2].message
-    )
-
-
-@responses.activate
 def test_submit_empty_query(mock_config):
     """Test submitting an empty query"""
     empty_payload = {
