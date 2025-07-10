@@ -43,7 +43,7 @@ COPY --from=build /project/dist/command_line_assistant-${VERSION}-py3-none-any.w
 RUN dnf install ${DNF_DEFAULT_OPTS} python3-PyMySQL python3-psycopg2 \
     && pip install --prefix=/usr --no-cache-dir /tmp/command_line_assistant-${VERSION}-py3-none-any.whl \
     && dnf remove -y python3-pip \
-    && dnf clean all && rm -rf /var/cache/dnf /var/tmp/* /tmp/*
+    && dnf clean all && rm -rf /var/cache/dnf /var/tmp/* /tmp/command_line_assistant-*
 
 # Config
 COPY data/release/xdg/config.toml /etc/xdg/command-line-assistant/config.toml
