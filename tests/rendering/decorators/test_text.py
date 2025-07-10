@@ -1,5 +1,6 @@
 import shutil
 from typing import Iterator
+from unittest.mock import patch
 
 import pytest
 
@@ -84,6 +85,19 @@ class TestTextWrapDecorator:
         """Test text wrap decorator with custom indent"""
         decorator = TextWrapDecorator(indent="  ")
         assert decorator._indent == "  "
+
+    @patch("shutil.get_terminal_size")
+    def test_zero_terminal_width(self, mock_get_terminal_size):
+        """Test text wrap decorator when terminal width is detected as 0"""
+        # Mock terminal size to return 0 columns
+        mock_terminal_size = type("TerminalSize", (), {"columns": 0, "lines": 24})()
+        mock_get_terminal_size.return_value = mock_terminal_size
+
+        decorator = TextWrapDecorator()
+        result = decorator.decorate("Hello world")
+
+        assert isinstance(result, str)
+        assert result is not None
 
     @pytest.mark.parametrize(
         ("width", "indent", "text", "expected"),

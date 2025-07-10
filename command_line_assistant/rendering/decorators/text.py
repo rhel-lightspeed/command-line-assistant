@@ -92,7 +92,7 @@ class TextWrapDecorator(BaseDecorator):
             width (Optional[int], optional): The width of the terminal. Defaults to `shutil.get_terminal_size().columns`.
             indent (str, optional): Indentation mode for the string. Defaults to "".
         """
-        self._width = width or shutil.get_terminal_size().columns
+        self._width = width or shutil.get_terminal_size().columns or 80
         self._indent = indent
 
     def decorate(self, text: str) -> str:
