@@ -252,8 +252,9 @@ class BaseChatOperation(BaseOperation):
         """
         if _handle_legal_message():
             self.notice_renderer.render(LEGAL_NOTICE)
-            self.text_renderer.render("─" * 72)
-            print("")
+    
+        self.text_renderer.render("─" * 72)
+        print("")
 
         self.markdown_renderer.render(response)
         print("")
