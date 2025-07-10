@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "May 27, 2025" "0.4.0" "Command Line Assistant"
+.TH "C" "1" "Jul 10, 2025" "0.4.1" "Command Line Assistant"
 .SH NAME
 c \- Command Line Assistant Client
 .SH SYNOPSIS
@@ -493,11 +493,12 @@ order to maintain a correct order of querying. The rules can be seen here:
 1. Positional query only \-> use positional query
 2. Stdin query only \-> use stdin query
 3. File query only \-> use file query
-4. Stdin + positional query \-> combine as \(dq{positional_query} {stdin}\(dq
-5. Stdin + file query \-> combine as \(dq{stdin} {file_query}\(dq
-6. Positional + file query \-> combine as \(dq{positional_query} {file_query}\(dq
-7. Positional + last output \-> combine as \(dq{positional_query} {last_output}\(dq
-8. Positional + attachment + last output \-> combine as \(dq{positional_query} {attachment} {last_output}\(dq
+4. Last terminal output \-> use last terminal output
+5. Stdin + positional query \-> combine as \(dq{positional_query} {stdin}\(dq
+6. Stdin + file query \-> combine as \(dq{stdin} {file_query}\(dq
+7. Positional + file query \-> combine as \(dq{positional_query} {file_query}\(dq
+8. Positional + last output \-> combine as \(dq{positional_query} {last_output}\(dq
+9. Positional + attachment + last output \-> combine as \(dq{positional_query} {attachment} {last_output}\(dq
 99. All three sources \-> use only positional and file as \(dq{positional_query} {file_query}\(dq
 .EE
 .UNINDENT

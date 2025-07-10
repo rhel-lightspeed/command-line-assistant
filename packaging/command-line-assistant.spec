@@ -10,7 +10,7 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.4.0
+Version:        0.4.1
 Release:        1%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
@@ -167,6 +167,19 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Thu Jul 10 2025 Link Dupont <link@redhat.com> - 0.4.1
+- Add horizontal lines back
+- Limit permission for history database to own user
+- Fix interactive mode regression
+- Fix legal message regression found in 0.4
+- Print help message in case of command has no arguments (RHEL-93272)
+- Fix CommandContext to get user ID correctly by changing from os.getegid() to os.geteuid()
+- Allow to pass terminal output without question or stdin
+- Add missing line for %files in rpmbuild
+- Add horizontal line after spinner message
+- Fix terminal width handling in TextWrapDecorator (RHEL-95741)
+- Fix regression for c history
+
 * Tue May 27 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.4.0
 - Refactor error codes
 - Add support for plain, simple output

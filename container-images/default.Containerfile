@@ -5,7 +5,7 @@ ENV DNF_DEFAULT_OPTS -y --nodocs --setopt=keepcache=0 --setopt=tsflags=nodocs
 # Add in data about the build. (These come from Konflux.)
 ARG COMMIT_SHA=development
 ARG COMMIT_TIMESTAMP=development
-ARG VERSION=0.4.0
+ARG VERSION=0.4.1
 ENV VERSION=${VERSION}
 ENV COMMIT_SHA=${COMMIT_SHA} \
     COMMIT_TIMESTAMP=${COMMIT_TIMESTAMP}

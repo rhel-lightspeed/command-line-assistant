@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from dasbus.server.template import InterfaceTemplate
 
+from command_line_assistant.constants import VERSION
 from command_line_assistant.daemon.database.manager import DatabaseManager
 from command_line_assistant.daemon.database.repository.chat import ChatRepository
 from command_line_assistant.dbus.exceptions import ChatNotFoundError
@@ -50,7 +51,7 @@ def test_chat_interface_ask_question(chat_interface, mock_config):
                     "attachments": {"contents": "", "mimetype": ""},
                     "terminal": {"output": ""},
                     "systeminfo": {"os": "", "arch": "", "id": "", "version": ""},
-                    "cla": {"version": "0.4.0"},
+                    "cla": {"version": VERSION},
                 },
             },
             mock_config,
