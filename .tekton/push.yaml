@@ -1,0 +1,49 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  annotations:
+    build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhel-lightspeed/enhanced-shell/command-line-assistant/-/tree/{{ revision }}
+    build.appstudio.redhat.com/commit_sha: '{{ revision }}'
+    build.appstudio.redhat.com/target_branch: '{{ target_branch }}'
+    pipelinesascode.tekton.dev/max-keep-runs: "3"
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "main"
+
+  creationTimestamp: null
+
+  labels:
+    appstudio.openshift.io/application: command-line-assistant
+    appstudio.openshift.io/component: command-line-assistant
+    pipelines.appstudio.openshift.io/type: build
+
+  namespace: rhel-lightspeed-tenant
+  name: command-line-assistant-on-push
+
+spec:
+  params:
+    - name: git-url
+      value: '{{ source_url }}'
+
+    - name: revision
+      value: '{{ revision }}'
+
+    - name: output-image
+      value: quay.io/redhat-user-workloads/rhel-lightspeed-tenant/command-line-assistant:{{ revision }}
+
+    - name: dockerfile
+      value: /container-images/default.Containerfile
+
+    - name: additional-tags
+      value:
+        - latest
+        - '{{ target_branch }}'
+
+  pipelineRef:
+    name: pipeline-build
+
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-command-line-assistant
+
+  workspaces:
+    - name: git-auth
+      secret:
+        secretName: '{{ git_auth_secret }}'
