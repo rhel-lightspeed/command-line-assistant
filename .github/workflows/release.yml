@@ -13,14 +13,14 @@ jobs:
     name: Generate  builds
     runs-on: ubuntu-latest
     steps:
-      - uses: olegtarasov/get-tag@v2.1
+      - uses: olegtarasov/get-tag@53af8e1e538a0ffab949cdde3e332d8e58e8630f # v2.1
         id: tagName
         with:
           tagRegex: "v(.*)"  # Optional. Returns specified group text as tag name. Full tag string is returned if regex is not defined.
           tagRegexGroup: 1 # Optional. Default is 1.
 
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Install dependencies
         run: |
@@ -37,7 +37,7 @@ jobs:
           VERSION: '${{ steps.tagName.outputs.tag }}'
 
       - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@81c65b7cd4de9b2570615ce3aad67a41de5b1a13 # v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/*
