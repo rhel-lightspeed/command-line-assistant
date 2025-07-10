@@ -14,19 +14,6 @@ class MockCommand(BaseCLICommand):
         return True
 
 
-def test_initialize_with_no_args(capsys):
-    """Test initialize with no arguments - should print help and return 1"""
-    with (
-        patch("sys.argv", ["c"]),
-        patch("command_line_assistant.client.read_stdin", lambda: None),
-    ):
-        result = main()
-        captured = capsys.readouterr()
-
-        assert result == 64  # os.EX_USAGE
-        assert "usage:" in captured.out
-
-
 @pytest.mark.parametrize(
     ("argv", "stdin"),
     (
@@ -142,7 +129,6 @@ def test_initialize_keyboard_interrupt(capsys):
     [
         (["c"]),  # Default to chat
         (["c", "chat"]),
-        (["c", "history"]),
         (["c", "shell"]),
     ],
 )

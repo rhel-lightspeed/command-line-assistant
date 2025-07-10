@@ -70,22 +70,25 @@ class CommandContext:
             raise ValueError("OS Release file not found.") from e
 
 
-def add_default_command(stdin: Optional[str], argv: list[str]):
+def add_default_command(stdin: Optional[str], argv: list[str]) -> list[str]:
     """Add the default command when none is given
 
     Arguments:
         stdin (str): The input string coming from stdin
         argv (list[str]): List of arguments from CLI
+
+    Returns:
+        list[str]: return list of commands (or default command).
     """
-    args = argv[1:]
+    argv_list = argv[1:]
 
     # Early exit if we don't have any argv or stdin
-    if not args and not stdin:
-        return args
+    if not argv_list and not stdin:
+        return argv_list
 
     global_flags = []
     command_args = []
-    for arg in args:
+    for arg in argv_list:
         if arg in GLOBAL_FLAGS:
             global_flags.append(arg)
         else:
@@ -94,7 +97,8 @@ def add_default_command(stdin: Optional[str], argv: list[str]):
     subcommand = _subcommand_used(argv)
     if not subcommand:
         return global_flags + ["chat"] + command_args
-    return args
+
+    return argv_list
 
 
 def _subcommand_used(args: list[str]) -> Optional[str]:

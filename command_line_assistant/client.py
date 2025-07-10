@@ -56,11 +56,15 @@ def main() -> int:
 
     try:
         stdin = read_stdin()
-        args = add_default_command(stdin, sys.argv)
+        modified_args = add_default_command(stdin, sys.argv)
 
-        # In case that the user only calls `chat`, `history` or anything else,
+        # In case that the user only calls `chat`, or anything else,
         # we just print help and return with os.EX_USAGE.
-        if len(args) <= 1 and not stdin and "feedback" not in args:
+        if (
+            len(modified_args) <= 1
+            and not stdin
+            and all(word not in modified_args for word in ("feedback", "history"))
+        ):
             parser.print_help()
             return os.EX_USAGE
 
@@ -68,23 +72,23 @@ def main() -> int:
         # exists, it will have the value of the stdin redirection, otherwise,
         # it will be None.
         namespace = Namespace(stdin=stdin)
-        args = parser.parse_args(args, namespace=namespace)
-        if not hasattr(args, "func"):
+        parsed_args = parser.parse_args(modified_args, namespace=namespace)
+        if not hasattr(parsed_args, "func"):
             parser.print_help()
             return os.EX_USAGE
 
         error_renderer = create_error_renderer(
-            plain=hasattr(args, "plain") and args.plain
+            plain=hasattr(parsed_args, "plain") and parsed_args.plain
         )
         warning_renderer = create_warning_renderer(
-            plain=hasattr(args, "plain") and args.plain
+            plain=hasattr(parsed_args, "plain") and parsed_args.plain
         )
 
         # In case the uder specify the --debug, we will enable the logging here.
-        if args.debug:
+        if parsed_args.debug:
             setup_client_logging()
 
-        service = args.func(args)
+        service = parsed_args.func(parsed_args)
         return service.run()
     except ValueError as e:
         error_renderer.render(str(e))
