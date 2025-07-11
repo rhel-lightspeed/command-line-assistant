@@ -156,8 +156,8 @@ def human_readable_size(size: float) -> str:
     units = ["B", "KB", "MB", "GB", "TB", "PB"]
     unit_index = 0
 
-    while size >= 1024 and unit_index < len(units) - 1:
-        size /= 1024
+    while size >= 1000 and unit_index < len(units) - 1:
+        size /= 1000
         unit_index += 1
 
     return f"{size:.2f} {units[unit_index]}"
