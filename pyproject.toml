@@ -61,6 +61,10 @@ description = "A simple wrapper to interact with RAG"
 authors = ["RHEL Lightspeed Team <rhel-sst-lightspeed@redhat.com>"]
 package-mode = true
 
+[tool.poetry.extras]
+dev = ["pytest", "pytest-cov", "pytest-randomly", "coverage", "pytest-sugar", "pytest-clarity", "tox", "responses", "PyGObject"]
+docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme", "sphinx-argparse-cli"]
+
 [tool.pytest.init_options]
 testpaths = ["tests"]
 
