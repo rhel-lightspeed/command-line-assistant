@@ -3,9 +3,6 @@
   "extends": [
     "config:best-practices"
   ],
-  "python": {
-    "enabled": false
-  },
   "schedule": [
     "after 5am"
   ],
@@ -14,5 +11,13 @@
     "skip/changelog",
     "tests/skip"
   ],
-  "dependencyDashboard": true
+  "dependencyDashboard": true,
+  "packageRules": [
+    {
+      "matchCategories": [
+        "python"
+      ],
+      "enabled": false
+    }
+  ]
 }
