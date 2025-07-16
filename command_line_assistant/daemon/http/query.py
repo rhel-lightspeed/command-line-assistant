@@ -83,6 +83,14 @@ def submit(payload: dict, config: Config) -> str:
         raise RequestFailedError(
             f"Communication error with the server: {str(exc)}. Please try again in a few minutes."
         ) from exc
+    except OSError as exc:
+        # If the exception string contains the standard RHSM cert path, assume
+        # the system is not registered and raise a very specific error message.
+        if "/etc/pki/consumer/cert.pem" in str(exc):
+            raise RequestFailedError(
+                "The system must be registered to use RHEL Lightspeed. For cloud-based systems, see: https://access.redhat.com/articles/7127962"
+            ) from exc
+        raise exc
 
 
 def _send_request(endpoint: str, payload: dict, config: Config) -> Response:

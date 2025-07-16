@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from unittest.mock import patch
 
 import pytest
 import responses
@@ -215,3 +216,31 @@ def test_handle_error_response_invalid_json(
 
     with pytest.raises(RequestFailedError, match=expected_error_message):
         query.submit(default_payload, config=mock_config)
+
+
+def test_submit_with_rhsm_cert_oserror(mock_config, default_payload):
+    """Test that OSError with RHSM certificate path raises specific error message"""
+    # Mock the session to raise OSError with the specific path
+    with patch("command_line_assistant.daemon.http.query.get_session") as mock_session:
+        mock_session.return_value.__enter__.return_value.post.side_effect = OSError(
+            "Could not read SSL certificate file: /etc/pki/consumer/cert.pem"
+        )
+
+        with pytest.raises(
+            RequestFailedError,
+            match="The system must be registered to use RHEL Lightspeed. For cloud-based systems, see: https://access.redhat.com/articles/7127962",
+        ):
+            query.submit(default_payload, config=mock_config)
+
+
+def test_submit_with_generic_oserror(mock_config, default_payload):
+    """Test that OSError without RHSM certificate path is re-raised as is"""
+    # Mock the session to raise a generic OSError
+    with patch("command_line_assistant.daemon.http.query.get_session") as mock_session:
+        original_error = OSError("Generic OS error")
+        mock_session.return_value.__enter__.return_value.post.side_effect = (
+            original_error
+        )
+
+        with pytest.raises(OSError, match="Generic OS error"):
+            query.submit(default_payload, config=mock_config)
