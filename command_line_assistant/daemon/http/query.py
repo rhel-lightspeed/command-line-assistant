@@ -100,7 +100,7 @@ def _send_request(endpoint: str, payload: dict, config: Config) -> Response:
         return session.post(
             endpoint,
             json=payload,  # Uses json parameter instead of manually serializing
-            timeout=60,
+            timeout=config.backend.timeout,
         )
 
 

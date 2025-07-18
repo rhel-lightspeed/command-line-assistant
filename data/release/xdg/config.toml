@@ -36,6 +36,8 @@ enabled = true
 [backend]
 # The endpoint points to an API server.
 endpoint = "https://cert.console.redhat.com/api/lightspeed/v1"
+# HTTP request timeout in seconds (increase for CPU inference)
+timeout = 30
 # Define https proxy to route the request through it.
 # proxies = { http = "http://example-host:8002", https = "https://example-host:8002" }
 # The proxy also accepts `username:password@localhost:8002` as it's input

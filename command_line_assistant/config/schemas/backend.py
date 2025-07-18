@@ -43,10 +43,12 @@ class BackendSchema:
         endpoint (str): The endpoint to communicate with.
         proxies (dict[str, str]): Dictionary of proxies to route the request
         auth (Union[dict, AuthSchema]): The authentication information
+        timeout (int): HTTP request timeout in seconds
     """
 
     endpoint: str = "https://0.0.0.0:8080"
     auth: AuthSchema = dataclasses.field(default_factory=AuthSchema)
+    timeout: int = 30
 
     proxies: dict[str, str] = dataclasses.field(default_factory=dict)
 
