@@ -24,7 +24,7 @@ urls = { Repository = "https://github.com/rhel-lightspeed/command-line-assistant
 scripts = { c = "command_line_assistant.client:main", clad = "command_line_assistant.daemon.clad:daemonize" }
 
 [build-system]
-# poetry build is not available in rhel baseos repositories
+# uv build is not available in rhel baseos repositories
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
@@ -38,7 +38,7 @@ dev = [
     "pytest-clarity",
     "tox",
     "responses",
-    "PyGObject",
+    "PyGObject==3.40.1",
 ]
 docs = [
     "sphinx",
@@ -68,9 +68,6 @@ lint.select = [
 lint.ignore = [
     "E501", # Ignore line length (similar to flake8's max-line-length)
 ]
-
-[tool.poetry]
-package-mode = true
 
 [tool.pytest.init_options]
 testpaths = ["tests"]
