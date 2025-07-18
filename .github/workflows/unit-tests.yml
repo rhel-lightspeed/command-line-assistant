@@ -23,8 +23,9 @@ jobs:
       - name: Install dependencies
         run: |
           # TODO(r0x0d): Refactor this https://issues.redhat.com/browse/RSPEED-339
+          curl -LsSf https://astral.sh/uv/install.sh | sh
           sudo apt update -y
-          sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
+          sudo apt install libgirepository1.0-dev libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
           make install
 
       - name: Run unit tests
