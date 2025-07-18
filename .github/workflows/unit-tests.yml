@@ -9,23 +9,43 @@ on:
 jobs:
   unit_tests:
     runs-on: ubuntu-latest
+    container:
+      image: quay.io/centos/centos:stream${{ matrix.centos-version }}
     strategy:
       matrix:
-        python-version: ['3.9', '3.12']
+        include:
+          - centos-version: '9'
+            python-version: '3.9'
+          - centos-version: '10'
+            python-version: '3.12'
 
     steps:
+      - name: Install Act dependencies
+        if: ${{ env.ACT }}
+        run: dnf install -y nodejs
+
+      - name: Set up newer Node.js version
+        if: ${{ env.ACT }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc # v6
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: |
-          # TODO(r0x0d): Refactor this https://issues.redhat.com/browse/RSPEED-339
-          sudo apt update -y
-          sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
-          make install
+      - name: Enable CRB repository
+        run: dnf config-manager --set-enabled crb
+
+      - name: Install package dependencies
+        run: dnf install -y make git gcc gpg pkgconfig gobject-introspection-devel cairo-devel cairo-gobject-devel glib2-devel
+
+      - run: uv python install ${{ matrix.python-version }}
+
+      - name: Install Python dependencies
+        run: uv sync --extra dev --extra docs
 
       - name: Run unit tests
         run: |
@@ -33,6 +53,7 @@ jobs:
           make coverage
 
       - name: Upload coverage reports to Codecov
+        if: ${{ !env.ACT }}
         uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
         with:
           env_vars: OS,PYTHON
@@ -43,7 +64,7 @@ jobs:
 
       # https://docs.codecov.com/docs/test-analytics
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && !env.ACT }}
         uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

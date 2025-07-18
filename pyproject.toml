@@ -13,8 +13,11 @@ dependencies = [
     # tomli is only required below 3.11 as it is native after that version.
     'tomli; python_version<"3.11"',
     "requests==2.25.1",
-    "dasbus==1.4",
+    "dasbus==1.5;python_version<='3.9'",
+    "dasbus==1.7;python_version>='3.12'",
     "sqlalchemy==1.4.45",
+    "pygobject==3.40;python_version<='3.9'",
+    "pygobject==3.46;python_version>='3.12'",
 ]
 requires-python = ">=3.9,<4.0" # RHEL 9 and 10
 readme = "README.md"
@@ -24,7 +27,7 @@ urls = { Repository = "https://github.com/rhel-lightspeed/command-line-assistant
 scripts = { c = "command_line_assistant.client:main", clad = "command_line_assistant.daemon.clad:daemonize" }
 
 [build-system]
-# poetry build is not available in rhel baseos repositories
+# uv build is not available in rhel baseos repositories
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
@@ -38,7 +41,6 @@ dev = [
     "pytest-clarity",
     "tox",
     "responses",
-    "PyGObject",
 ]
 docs = [
     "sphinx",
@@ -68,9 +70,6 @@ lint.select = [
 lint.ignore = [
     "E501", # Ignore line length (similar to flake8's max-line-length)
 ]
-
-[tool.poetry]
-package-mode = true
 
 [tool.pytest.init_options]
 testpaths = ["tests"]

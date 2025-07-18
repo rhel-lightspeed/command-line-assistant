@@ -31,8 +31,7 @@ jobs:
 
       - name: Generate distribution tarball
         run: |
-          VENV_PATH=$(poetry env info --path)
-          make distribution-tarball SPHINXBUILD=$VENV_PATH/bin/sphinx-build
+          make distribution-tarball SPHINXBUILD=$(pwd)/.venv/bin/sphinx-build
         env:
           VERSION: '${{ steps.tagName.outputs.tag }}'
 

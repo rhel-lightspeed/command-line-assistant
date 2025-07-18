@@ -54,9 +54,9 @@ requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-reque
 Required packages:
 - Python 3.9 or greater
 
-Before installing the dependencies with `poetry`, install the necessary
-development packages. This is required for running `clad`, and installing the
-rest of the dependencies.
+Before installing the dependencies with `uv`, install the necessary development
+packages. This is required for running `clad`, and installing the rest of the
+dependencies.
 
 ```sh
 sudo dnf install 'pkgconfig(cairo)' 'pkgconfig(cairo-gobject)' 'pkgconfig(gobject-introspection-1.0)' 'pkgconfig(mariadb)' /usr/bin/pg_config
@@ -64,7 +64,7 @@ sudo dnf install 'pkgconfig(cairo)' 'pkgconfig(cairo-gobject)' 'pkgconfig(gobjec
 
 The commands below will create a python3 virtual environment with all the
 necessary dependencies installed. This is done via
-[poetry](https://python-poetry.org/docs/). If you don't have `poetry`
+[uv](https://docs.astral.sh/uv/). If you don't have `uv`
 installed, the command below will take care of it for you.
 
 ```sh

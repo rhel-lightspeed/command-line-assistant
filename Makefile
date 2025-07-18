@@ -34,33 +34,36 @@ SYSTEMD_USER_UNITS := ~/.config/systemd/user
 # Path to local XDG_CONFIG_DIRS to load config file
 XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/xdg)
 
+# Use recursive assignment so UV is evaluated each time it's used
+UV = $(shell command -v uv || echo "$$HOME/.local/bin/uv")
+
 PKGNAME := command-line-assistant
 VERSION := 0.4.1
 
 default: help
 
 install-tools: ## Install required utilities/tools
-	@command -v poetry > /dev/null || { echo >&2 "poetry is not installed. Installing..."; pip install -q poetry; }
-	@poetry --version
+	@command -v uv > /dev/null || { echo >&2 "uv is not installed. Installing..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }
+	@$(UV) --version
 
 install: install-tools ## Sync all required dependencies for Command Line Assistant to work
-	@poetry install -E dev -E docs
+	@$(UV) sync --extra dev --extra docs
 
 unit-test: ## Unit test cla
 	@echo "Running tests..."
-	@poetry run pytest
+	@$(UV) run pytest
 	@echo "Tests completed."
 
 unit-test-coverage: ## Unit test cla with coverage
 	@echo "Running tests..."
-	@poetry run pytest --cov --junitxml=junit.xml -o junit_family=legacy
+	@$(UV) run pytest --cov --junitxml=junit.xml -o junit_family=legacy
 	@echo "Tests completed."
 
 coverage: ## Generate coverage report from unit-tests
-	@poetry run coverage xml
+	@$(UV) run coverage xml
 
 coverage-html: ## Generate coverage report from unit-tests as html
-	@poetry run coverage html
+	@$(UV) run coverage html
 
 help: ## Show available make commands
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
@@ -150,7 +153,6 @@ distribution-tarball: clean ## Generate distribution tarball
 		--exclude=.pre-commit-config.yaml \
 		--exclude=.packit.yaml \
 		--exclude=sonar-project.properties \
-		--exclude=poetry.toml \
 		--exclude=dist \
 		--transform s/^\./$(PKGNAME)-$(VERSION)/ \
 		. && mv /tmp/$(PKGNAME)-$(VERSION).tar.gz dist
