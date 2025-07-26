@@ -18,12 +18,7 @@ FROM base as build
 
 WORKDIR /project
 
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
-
-COPY ./pyproject.toml ./poetry.lock* README.md LICENSE ./
+COPY ./pyproject.toml ./uv.lock* README.md LICENSE ./
 COPY command_line_assistant/ ./command_line_assistant/
 
 RUN dnf install ${DNF_DEFAULT_OPTS} \
@@ -32,9 +27,9 @@ RUN dnf install ${DNF_DEFAULT_OPTS} \
     python3-setuptools \
     python3-wheel
 
-RUN pip3.12 install -U poetry && poetry install
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/usr/local/bin" sh && uv sync
 
-RUN poetry build --clean --format=wheel
+RUN uv build --wheel
 
 FROM base as final
 
