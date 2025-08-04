@@ -204,3 +204,85 @@ def format_datetime(unformatted_date: str) -> str:
     # Convert str to datetime object
     date = datetime.strptime(unformatted_date, "%Y-%m-%d %H:%M:%S.%f")
     return date.strftime("%A, %B %d, %Y at %I:%M:%S %p")
+
+
+class RenderUtils:
+    """Utility class providing common rendering functionality for commands.
+
+    This class can be used to access different pre-defined text rendering
+    methods used across the application. All the rendering methods provided
+    here are used as-is with default settings, with the only customization
+    available being the `plain` rendering, which is set in the class
+    constructor.
+    """
+
+    def __init__(self, plain: bool = False):
+        """Initialize render utilities.
+
+        Args:
+            plain (bool): Whether to use plain text rendering
+        """
+        self.plain = plain
+        self._text_renderer: Optional[TextRenderer] = None
+        self._warning_renderer: Optional[TextRenderer] = None
+        self._error_renderer: Optional[TextRenderer] = None
+
+    @property
+    def text_renderer(self) -> TextRenderer:
+        """Get text renderer instance.
+
+        Returns:
+            TextRenderer: An instance of the TextRenderer class with proper
+            initialization
+        """
+        if self._text_renderer is None:
+            self._text_renderer = create_text_renderer(plain=self.plain)
+        return self._text_renderer
+
+    @property
+    def warning_renderer(self) -> TextRenderer:
+        """Get warning renderer instance.
+
+        Returns:
+            TextRenderer: An instance of the TextRenderer class with proper
+            warning settings initialization
+        """
+        if self._warning_renderer is None:
+            self._warning_renderer = create_warning_renderer(plain=self.plain)
+        return self._warning_renderer
+
+    @property
+    def error_renderer(self) -> TextRenderer:
+        """Get error renderer instance.
+
+        Returns:
+            TextRenderer: An instance of the TextRenderer class with proper
+            error settings initialization
+        """
+        if self._error_renderer is None:
+            self._error_renderer = create_error_renderer(plain=self.plain)
+        return self._error_renderer
+
+    def render_success(self, message: str) -> None:
+        """Render a success message.
+
+        Args:
+            message (str): Success message to render
+        """
+        self.text_renderer.render(message)
+
+    def render_warning(self, message: str) -> None:
+        """Render a warning message.
+
+        Args:
+            message: Warning message to render
+        """
+        self.warning_renderer.render(message)
+
+    def render_error(self, message: str) -> None:
+        """Render an error message.
+
+        Args:
+            message: Error message to render
+        """
+        self.error_renderer.render(message)
