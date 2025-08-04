@@ -1,9 +1,12 @@
+minimum_pre_commit_version: "3.8.0"
+
 ci:
   skip:
     # rpm library is not available in the CI
     - rpmlint
-
-minimum_pre_commit_version: "3.8.0"
+  
+  # run autopdate monthly to reduce PR noise
+  autoupdate_schedule: 'monthly'
 
 repos:
   - repo: https://github.com/rpm-software-management/rpmlint
