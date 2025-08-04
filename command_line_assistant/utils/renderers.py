@@ -207,7 +207,14 @@ def format_datetime(unformatted_date: str) -> str:
 
 
 class RenderUtils:
-    """Utility class providing common rendering functionality for commands."""
+    """Utility class providing common rendering functionality for commands.
+
+    This class can be used to access different pre-defined text rendering
+    methods used across the application. All the rendering methods provided
+    here are used as-is with default settings, with the only customization
+    available being the `plain` rendering, which is set in the class
+    constructor.
+    """
 
     def __init__(self, plain: bool = False):
         """Initialize render utilities.
@@ -222,21 +229,36 @@ class RenderUtils:
 
     @property
     def text_renderer(self) -> TextRenderer:
-        """Get text renderer instance."""
+        """Get text renderer instance.
+
+        Returns:
+            TextRenderer: An instance of the TextRenderer class with proper
+            initialization
+        """
         if self._text_renderer is None:
             self._text_renderer = create_text_renderer(plain=self.plain)
         return self._text_renderer
 
     @property
     def warning_renderer(self) -> TextRenderer:
-        """Get warning renderer instance."""
+        """Get warning renderer instance.
+
+        Returns:
+            TextRenderer: An instance of the TextRenderer class with proper
+            warning settings initialization
+        """
         if self._warning_renderer is None:
             self._warning_renderer = create_warning_renderer(plain=self.plain)
         return self._warning_renderer
 
     @property
     def error_renderer(self) -> TextRenderer:
-        """Get error renderer instance."""
+        """Get error renderer instance.
+
+        Returns:
+            TextRenderer: An instance of the TextRenderer class with proper
+            error settings initialization
+        """
         if self._error_renderer is None:
             self._error_renderer = create_error_renderer(plain=self.plain)
         return self._error_renderer

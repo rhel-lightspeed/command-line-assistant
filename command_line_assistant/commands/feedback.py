@@ -1,13 +1,9 @@
-"""Simplified feedback command implementation."""
+"""Module to handle the feedback command."""
 
 import logging
 from argparse import Namespace
 
-from command_line_assistant.utils.cli import (
-    CommandContext,
-    argument,
-    command,
-)
+from command_line_assistant.utils.cli import CommandContext, argument, command
 from command_line_assistant.utils.renderers import RenderUtils
 
 logger = logging.getLogger(__name__)
