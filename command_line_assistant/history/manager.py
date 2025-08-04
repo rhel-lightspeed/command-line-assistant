@@ -50,7 +50,7 @@ class HistoryManager:
         """Check if the history is enabled in the configuration file.
 
         Returns:
-            bool: Wether or not the history is enabled.
+            bool: `True` if history is enabled, `False` otherwise.
         """
         return self._config.history.enabled
 

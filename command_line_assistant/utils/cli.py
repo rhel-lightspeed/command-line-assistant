@@ -1,6 +1,21 @@
 """
-Utilitary module to interact with the CLI. This olds the basic implementation
+Utilitary module to interact with the CLI. This holds the basic implementation
 that is reused across commands and other interactions.
+
+Example:
+
+    >>> from command_line_assistant.utils.cli import CommandContext, argument, command
+
+    >>> @command("hello", help="A simple command that prints 'Hello, friend')
+    >>> @argument("-n", "--name", nargs="?", help="Your name goes in here.")
+    >>> ...
+    >>> def hello_friend(args: Namespace, context: CommandContext) -> int:
+    >>>     if args.name:
+    >>>         print(f"Hello, {args.name}")
+    >>>     else:
+    >>>         print("Hello, friend")
+```
+
 """
 
 import argparse
@@ -11,8 +26,9 @@ import os
 import select
 import sys
 from argparse import SUPPRESS, ArgumentParser, Namespace, _SubParsersAction
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from command_line_assistant.constants import VERSION
 
@@ -34,11 +50,25 @@ ARGS_WITH_VALUES: list[str] = ["--clear"]
 
 OS_RELEASE_PATH = Path("/etc/os-release")
 
-# Type definitions
+# Define a `CommandFunc` type alias to assist in the type definitions for the
+# sub-commands decorators. The `CommandFunc` type definition accepts two
+# parameters:
+#   * first one being the a namepsace (argparse.Namespace);
+#   * the second one a context (command_line_assistant.utils.cli.CommandContext)
+#  and as a result, returns a integer.
+#
+# The below `Callable` annotation can be translated to the following:
+#   * function(namespace: Namespace, context: CommandContext) -> int
+# Ref: https://docs.python.org/3/library/typing.html#annotating-callables
 CommandFunc = Callable[[Namespace, "CommandContext"], int]
+
+# Define a `ArgumentSpec` type alias to assist in the type definitions for
+# arguments that will be tied to each sub-command decorators. The definition of
+# this type alias consist either of a tuple of strings, or a dictionary mapping
+# key (as strings) and values (as Any values).
 ArgumentSpec = tuple[tuple[str, ...], dict[str, Any]]
 
-# Global storage for registered commands
+# Internal dictionary to hold sub-commands registered to the application.
 _commands: dict[str, "Command"] = {}
 
 logger = logging.getLogger(__name__)
