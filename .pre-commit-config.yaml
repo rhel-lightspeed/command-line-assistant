@@ -4,7 +4,7 @@ ci:
   skip:
     # rpm library is not available in the CI
     - rpmlint
-  
+
   # run autopdate monthly to reduce PR noise
   autoupdate_schedule: 'monthly'
 
