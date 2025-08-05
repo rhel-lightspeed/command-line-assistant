@@ -336,7 +336,7 @@ class BaseChatOperation(BaseOperation):
             readable_size = human_readable_size(len(value))
             max_question_size = human_readable_size(MAX_QUESTION_SIZE)
             self.warning_renderer.render(
-                f"The total size of your input from '{source}' (approximaely {readable_size}) exceeds the limit of {max_question_size}. "
+                f"The total size of your input from '{source}' (approximately {readable_size}) exceeds the limit of {max_question_size}. "
                 "Trimming it down to fit in the expected size, you may lose some context."
             )
             logger.debug(
