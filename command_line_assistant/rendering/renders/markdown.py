@@ -6,6 +6,7 @@ from typing import Optional
 
 from command_line_assistant.rendering.base import BaseRenderer, BaseStream
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
+from command_line_assistant.rendering.markdown import markdown_to_ansi
 from command_line_assistant.rendering.stream import StdoutStream
 
 # Regular expressions for markdown parsing
@@ -236,8 +237,7 @@ class MarkdownRenderer(BaseRenderer):
         Args:
             text (str): Markdown formatted text to render
         """
-        processed_blocks = self._process_blocks(text)
-        final_text = "".join(block for block in processed_blocks if block)
+        final_text = markdown_to_ansi(text)
         if final_text:
             self._stream.execute(final_text)
 
