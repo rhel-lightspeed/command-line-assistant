@@ -12,7 +12,7 @@ maintainers = [
 dependencies = [
     # tomli is only required below 3.11 as it is native after that version.
     'tomli; python_version<"3.11"',
-    "requests==2.25.1",
+    "requests==2.32.4",
     "dasbus==1.5;python_version<='3.9'",
     "dasbus==1.7;python_version>='3.12'",
     "sqlalchemy==1.4.45",
