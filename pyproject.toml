@@ -18,6 +18,7 @@ dependencies = [
     "sqlalchemy==1.4.45",
     "pygobject==3.40;python_version<='3.9'",
     "pygobject==3.46;python_version>='3.12'",
+    "markdown<3.4",
 ]
 requires-python = ">=3.9,<4.0" # RHEL 9 and 10
 readme = "README.md"

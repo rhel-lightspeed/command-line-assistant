@@ -32,6 +32,7 @@ from command_line_assistant.dbus.structures.chat import (
     TerminalInput,
 )
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
+from command_line_assistant.markdown import BRIGHT_YELLOW, RESET, markdown_to_ansi
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
 from command_line_assistant.rendering.renders.markdown import MarkdownRenderer
@@ -251,15 +252,14 @@ class BaseChatOperation(BaseOperation):
             response(str): The message to be displayed
         """
         if _handle_legal_message():
-            self.notice_renderer.render(LEGAL_NOTICE)
+            print(f"{BRIGHT_YELLOW}{LEGAL_NOTICE}{RESET}")
 
-        self.text_renderer.render("─" * 72)
-        print("")
+        print(markdown_to_ansi("---"))
 
-        self.markdown_renderer.render(response)
-        print("")
-        self.text_renderer.render("─" * 72)
-        self.notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
+        print(markdown_to_ansi(response))
+
+        print(markdown_to_ansi("---"))
+        print(f"{BRIGHT_YELLOW}{ALWAYS_LEGAL_MESSAGE}{RESET}")
 
     @timing.timeit
     def _submit_question(
