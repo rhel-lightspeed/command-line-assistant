@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi10/ubi:latest@sha256:ba856f263a37b4b74ebd3c906bb74d275fadbe32ef5d070735367a1b464a2587 AS base
+FROM registry.access.redhat.com/ubi10/ubi:latest@sha256:b51579c045599bc2f2ba407f28fcc26e13b87409e062e227b185ae69d699bf95 AS base
 
 ENV DNF_DEFAULT_OPTS -y --nodocs --setopt=keepcache=0 --setopt=tsflags=nodocs
 
