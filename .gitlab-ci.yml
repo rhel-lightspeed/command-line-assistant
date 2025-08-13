@@ -18,7 +18,7 @@ stages:
 
 unit-tests:
   stage: tests
-  image: docker.io/library/python:3.9@sha256:754dbbaf5fe730bb2460efb3300293c62c222f74fbf8534ed23691c617c9609b
+  image: docker.io/library/python:3.9@sha256:9edfcfbe4d1bc6aabe0dd49a0e9cf625d83524edf574bc8cca7b1214bd9d170e
   script:
     - apt update -y
     - apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
