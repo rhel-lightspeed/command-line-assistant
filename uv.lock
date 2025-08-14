@@ -1,9 +1,10 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.9, <4.0"
 resolution-markers = [
     "python_full_version == '3.12.*'",
-    "python_full_version == '3.11.*' or python_full_version >= '3.13'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.11.*'",
     "python_full_version < '3.11'",
 ]
 
@@ -57,10 +58,10 @@ name = "command-line-assistant"
 version = "0.4.1"
 source = { editable = "." }
 dependencies = [
-    { name = "dasbus", version = "1.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "dasbus", version = "1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
-    { name = "pygobject", version = "3.40.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "pygobject", version = "3.46.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
+    { name = "dasbus", version = "1.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "dasbus", version = "1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "pygobject", version = "3.40.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pygobject", version = "3.46.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "requests" },
     { name = "sqlalchemy" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
@@ -91,12 +92,12 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "coverage", marker = "extra == 'dev'" },
-    { name = "dasbus", marker = "python_full_version == '3.9.*'", specifier = "==1.5" },
-    { name = "dasbus", marker = "python_full_version == '3.12.*'", specifier = "==1.7" },
+    { name = "dasbus", marker = "python_full_version < '3.10'", specifier = "~=1.4" },
+    { name = "dasbus", marker = "python_full_version >= '3.12'", specifier = "~=1.7" },
     { name = "mysqlclient", marker = "extra == 'db'" },
     { name = "psycopg2-binary", marker = "extra == 'db'" },
-    { name = "pygobject", marker = "python_full_version == '3.9.*'", specifier = "==3.40" },
-    { name = "pygobject", marker = "python_full_version == '3.12.*'", specifier = "==3.46" },
+    { name = "pygobject", marker = "python_full_version < '3.10'", specifier = "~=3.40.1" },
+    { name = "pygobject", marker = "python_full_version >= '3.12'", specifier = "~=3.46" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-clarity", marker = "extra == 'dev'" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
@@ -195,14 +196,14 @@ toml = [
 
 [[package]]
 name = "dasbus"
-version = "1.5"
+version = "1.4"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version < '3.11'",
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/35/2b/81c1fc1ec0bc174c415757b5fc6e6c9e3c6b333594890629626825d73734/dasbus-1.5.tar.gz", hash = "sha256:ccb8687a826271e099ab3590e21f2d32016b0e60d4b42e2a04f3d20ffb8d7c87", size = 71714, upload-time = "2021-05-03T14:39:29.847Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/20/1e39755716d2fa23338175a4cc6a492c4e16792a66e0ee2c7e1f8b2a58cd/dasbus-1.4.tar.gz", hash = "sha256:a20c161c7e7f92f1fd97070f63f1639b79ffbf52061235f98a16354baef840ca", size = 70631, upload-time = "2020-07-24T10:05:35.349Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cf/da/cadf1733b24164aff00bd463bcbf19db99e99f213966edb2c2001f5f643d/dasbus-1.5-py3-none-any.whl", hash = "sha256:e2647ddc7c178062af16c2311d389771845cfb87f7e3046e4229e45fa1d68ee8", size = 59453, upload-time = "2021-05-03T14:39:28.197Z" },
+    { url = "https://files.pythonhosted.org/packages/de/bb/be74d9e78ee39188256efa5f05118298747a80e811c967e01f909e6cafdc/dasbus-1.4-py3-none-any.whl", hash = "sha256:a963cb023a64c3babf2ce1253d6d0c707da149b607205e10ffe16a2ccbd54054", size = 58622, upload-time = "2020-07-24T10:05:33.634Z" },
 ]
 
 [[package]]
@@ -211,6 +212,7 @@ version = "1.7"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version == '3.12.*'",
+    "python_full_version >= '3.13'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/37/79/9c5984d723ffbe2e839ee649690f3e1fa6544ab6a17a5150e5ac14a47072/dasbus-1.7.tar.gz", hash = "sha256:a8850d841adfe8ee5f7bb9f82cf449ab9b4950dc0633897071718e0d0036b6f6", size = 78603, upload-time = "2022-11-07T13:20:08.536Z" }
 wheels = [
@@ -619,7 +621,7 @@ wheels = [
 
 [[package]]
 name = "pygobject"
-version = "3.40.0"
+version = "3.40.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version < '3.11'",
@@ -627,7 +629,7 @@ resolution-markers = [
 dependencies = [
     { name = "pycairo", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a0/fa/0cfaa64ad7a4cd94fd74b698fcc8987ed780fce1651fecc6604f86f604cd/PyGObject-3.40.0.tar.gz", hash = "sha256:98d83f71e6313dadc29793450fec23b2eaa5c3f1c4b073d0a4f9c31b5cdb5fca", size = 714708, upload-time = "2021-03-19T13:50:21.71Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/2f/4d5d5afb7000b9151e33952b59163c9389bd867ac6fe85d62f85831fa061/PyGObject-3.40.1.tar.gz", hash = "sha256:6fb599aa59ceb9dd05fafb0d72b3862943e7d5e85c8ef6c74856bc6d4321cbab", size = 714934, upload-time = "2021-03-30T06:50:38.239Z" }
 
 [[package]]
 name = "pygobject"
@@ -635,9 +637,10 @@ version = "3.46.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version == '3.12.*'",
+    "python_full_version >= '3.13'",
 ]
 dependencies = [
-    { name = "pycairo", marker = "python_full_version == '3.12.*'" },
+    { name = "pycairo", marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ac/4a/f24ddf1d20cc4b56affc7921e29928559a06c922eb60077448392792b914/PyGObject-3.46.0.tar.gz", hash = "sha256:481437b05af0a66b7c366ea052710eb3aacbb979d22d30b797f7ec29347ab1e6", size = 723367, upload-time = "2023-09-10T09:56:26.737Z" }
 

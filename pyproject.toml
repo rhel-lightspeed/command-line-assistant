@@ -13,11 +13,11 @@ dependencies = [
     # tomli is only required below 3.11 as it is native after that version.
     'tomli; python_version<"3.11"',
     "requests==2.25.1",
-    "dasbus==1.5;python_version<='3.9'",
-    "dasbus==1.7;python_version>='3.12'",
+    "dasbus~=1.4;python_version<='3.9'",
+    "dasbus~=1.7;python_version>='3.12'",
     "sqlalchemy==1.4.45",
-    "pygobject==3.40;python_version<='3.9'",
-    "pygobject==3.46;python_version>='3.12'",
+    "pygobject~=3.40.1;python_version<='3.9'",
+    "pygobject~=3.46;python_version>='3.12'",
 ]
 requires-python = ">=3.9,<4.0" # RHEL 9 and 10
 readme = "README.md"
