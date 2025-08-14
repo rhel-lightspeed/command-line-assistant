@@ -9,6 +9,7 @@ from enum import auto
 from io import TextIOWrapper
 from typing import ClassVar, Optional
 
+from command_line_assistant.colors import Color, colorize
 from command_line_assistant.commands.base import (
     BaseCLICommand,
     BaseOperation,
@@ -32,6 +33,8 @@ from command_line_assistant.dbus.structures.chat import (
     TerminalInput,
 )
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
+from command_line_assistant.formatting import truncate, wrap
+from command_line_assistant.markdown import markdown_to_ansi
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
 from command_line_assistant.rendering.renders.markdown import MarkdownRenderer
@@ -251,15 +254,14 @@ class BaseChatOperation(BaseOperation):
             response(str): The message to be displayed
         """
         if _handle_legal_message():
-            self.notice_renderer.render(LEGAL_NOTICE)
+            print(colorize(wrap(LEGAL_NOTICE), Color.BRIGHT_YELLOW))
 
-        self.text_renderer.render("─" * 72)
-        print("")
+        print(truncate(markdown_to_ansi("---")))
 
-        self.markdown_renderer.render(response)
-        print("")
-        self.text_renderer.render("─" * 72)
-        self.notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
+        print(markdown_to_ansi(response))
+
+        print(truncate(markdown_to_ansi("---")))
+        print(colorize(wrap(ALWAYS_LEGAL_MESSAGE), Color.BRIGHT_YELLOW))
 
     @timing.timeit
     def _submit_question(

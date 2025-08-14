@@ -30,6 +30,7 @@ BuildRequires:  systemd-units
 BuildRequires:  selinux-policy-devel
 
 Requires:       python3-dasbus
+Requires:       python3-markdown
 Requires:       python3-requests
 Requires:       python3-sqlalchemy
 Requires:       systemd
