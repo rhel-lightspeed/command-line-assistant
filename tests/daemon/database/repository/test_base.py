@@ -2,7 +2,8 @@ import uuid
 from datetime import datetime
 
 import pytest
-from sqlalchemy import Column, Row, Text
+from sqlalchemy import Column, Text
+from sqlalchemy.engine.row import Row
 
 from command_line_assistant.daemon.database.manager import DatabaseManager
 from command_line_assistant.daemon.database.models.base import BaseModel
