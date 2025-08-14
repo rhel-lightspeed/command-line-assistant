@@ -18,8 +18,12 @@ def test_get_user_id(user_interface, tmp_path):
     machine_id = tmp_path / "machine-id"
     machine_id.write_text("09e28913cb074ed995a239c93b07fd8a")
     with patch("command_line_assistant.daemon.session.MACHINE_ID_PATH", machine_id):
-        result = user_interface.GetUserId(1000)
-        assert result == "4d465f1c-0507-5dfa-9ea0-e2de1a9e90a5"
+        # Mock the authorization method to bypass D-Bus calls in tests
+        with patch.object(
+            user_interface, "_get_caller_unix_user_id", return_value=1000
+        ):
+            result = user_interface.GetUserId(1000)
+            assert result == "4d465f1c-0507-5dfa-9ea0-e2de1a9e90a5"
 
 
 def test_get_user_id_returns_same_id_for_same_user(user_interface, tmp_path):
@@ -27,10 +31,29 @@ def test_get_user_id_returns_same_id_for_same_user(user_interface, tmp_path):
     machine_id = tmp_path / "machine-id"
     machine_id.write_text("09e28913cb074ed995a239c93b07fd8a")
     with patch("command_line_assistant.daemon.session.MACHINE_ID_PATH", machine_id):
-        id1 = user_interface.GetUserId(1000)
-        id2 = user_interface.GetUserId(1000)
-        assert id1 == id2
+        # Mock the authorization method to return the requested user ID (simulating authorized access)
+        def mock_get_caller_unix_user_id(sender):
+            # This mock simulates that the caller is authorized for the user ID they're requesting
+            # In the real implementation, this would verify the actual caller's Unix user ID
+            return 1000 if sender else 1000  # Default to 1000 for test
 
-        # Different user should get different ID
-        id3 = user_interface.GetUserId(1001)
-        assert id1 != id3
+        with patch.object(
+            user_interface,
+            "_get_caller_unix_user_id",
+            side_effect=mock_get_caller_unix_user_id,
+        ):
+            id1 = user_interface.GetUserId(1000)
+            id2 = user_interface.GetUserId(1000)
+            assert id1 == id2
+
+            # For testing different user ID, we need to mock a different caller
+            def mock_get_caller_unix_user_id_1001(sender):
+                return 1001
+
+            with patch.object(
+                user_interface,
+                "_get_caller_unix_user_id",
+                side_effect=mock_get_caller_unix_user_id_1001,
+            ):
+                id3 = user_interface.GetUserId(1001)
+                assert id1 != id3

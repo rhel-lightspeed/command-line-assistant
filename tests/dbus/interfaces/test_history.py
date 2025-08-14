@@ -42,8 +42,24 @@ def get_chat_id(mock_config):
     return result[0].id
 
 
+@pytest.fixture
+def mock_authorization(history_interface, universal_user_id):
+    """Mock D-Bus authorization for all history interface tests."""
+    with patch.object(history_interface, "_get_caller_unix_user_id", return_value=1000):
+        with patch.object(
+            history_interface._session_manager,
+            "get_user_id",
+            return_value=universal_user_id,
+        ):
+            yield
+
+
 def test_history_interface_get_history(
-    history_interface, mock_history_entry, universal_user_id, get_chat_id
+    history_interface,
+    mock_history_entry,
+    universal_user_id,
+    get_chat_id,
+    mock_authorization,
 ):
     """Test getting all history through history interface."""
     with patch(
@@ -63,9 +79,11 @@ def test_history_interface_get_history(
         assert reconstructed.histories[0].response == "test response"
 
 
-def test_history_interface_get_history_exception(history_interface):
+def test_history_interface_get_history_exception(
+    history_interface, universal_user_id, mock_authorization
+):
     """Test getting all history through history interface."""
-    uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    uid = universal_user_id
     with pytest.raises(
         HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
@@ -73,7 +91,11 @@ def test_history_interface_get_history_exception(history_interface):
 
 
 def test_history_interface_get_first_conversation(
-    history_interface, mock_history_entry, universal_user_id, get_chat_id
+    history_interface,
+    mock_history_entry,
+    universal_user_id,
+    get_chat_id,
+    mock_authorization,
 ):
     """Test getting first conversation through history interface."""
 
@@ -92,9 +114,9 @@ def test_history_interface_get_first_conversation(
 
 
 def test_history_interface_get_first_conversation_exception(
-    history_interface, _seed_test_database
+    history_interface, _seed_test_database, universal_user_id, mock_authorization
 ):
-    uid = "1710e580-dfce-11ef-a98f-52b437312584"
+    uid = universal_user_id
     with pytest.raises(
         HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
@@ -102,7 +124,11 @@ def test_history_interface_get_first_conversation_exception(
 
 
 def test_history_interface_get_last_conversation(
-    history_interface, mock_history_entry, universal_user_id, get_chat_id
+    history_interface,
+    mock_history_entry,
+    universal_user_id,
+    get_chat_id,
+    mock_authorization,
 ):
     """Test getting first conversation through history interface."""
     with patch(
@@ -119,8 +145,10 @@ def test_history_interface_get_last_conversation(
         assert reconstructed.histories[0].response == "test response3"
 
 
-def test_history_interface_get_last_conversation_exception(history_interface):
-    uid = "1710e580-dfce-11ef-a98f-52b437312584"
+def test_history_interface_get_last_conversation_exception(
+    history_interface, universal_user_id, mock_authorization
+):
+    uid = universal_user_id
     with pytest.raises(
         HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
@@ -128,7 +156,11 @@ def test_history_interface_get_last_conversation_exception(history_interface):
 
 
 def test_history_interface_get_filtered_conversation(
-    history_interface, mock_history_entry, universal_user_id, get_chat_id
+    history_interface,
+    mock_history_entry,
+    universal_user_id,
+    get_chat_id,
+    mock_authorization,
 ):
     """Test getting filtered conversation through history interface."""
     with patch(
@@ -146,8 +178,10 @@ def test_history_interface_get_filtered_conversation(
         assert reconstructed.histories[0].response == "test response"
 
 
-def test_history_interface_get_filtered_conversation_exception(history_interface):
-    uid = "1710e580-dfce-11ef-a98f-52b437312584"
+def test_history_interface_get_filtered_conversation_exception(
+    history_interface, universal_user_id, mock_authorization
+):
+    uid = universal_user_id
     with pytest.raises(
         HistoryNotAvailableError, match="Unfortunately, no history was found."
     ):
@@ -155,7 +189,11 @@ def test_history_interface_get_filtered_conversation_exception(history_interface
 
 
 def test_history_interface_get_filtered_conversation_duplicate_entries_not_matching(
-    history_interface, mock_history_entry, universal_user_id, get_chat_id
+    history_interface,
+    mock_history_entry,
+    universal_user_id,
+    get_chat_id,
+    mock_authorization,
 ):
     """Test getting filtered conversation through duplicated history interface.
 
@@ -177,16 +215,22 @@ def test_history_interface_get_filtered_conversation_duplicate_entries_not_match
         assert reconstructed.histories[0].response == "test response"
 
 
-def test_history_interface_clear_history(history_interface, caplog):
+def test_history_interface_clear_history(
+    history_interface, universal_user_id, mock_authorization, caplog
+):
     """Test clearing history through history interface."""
     with patch("command_line_assistant.dbus.interfaces.history.HistoryManager"):
-        uid = "1710e580-dfce-11ef-a98f-52b437312584"
+        uid = universal_user_id
         history_interface.ClearHistory(uid, from_chat="test")
-        assert "Clearing history entries for user." in caplog.records[0].message
+        assert "Clearing history entries for user." in caplog.records[-2].message
 
 
 def test_history_interface_empty_history(
-    mock_history_entry, history_interface, universal_user_id, get_chat_id
+    mock_history_entry,
+    history_interface,
+    universal_user_id,
+    get_chat_id,
+    mock_authorization,
 ):
     """Test handling empty history in all methods."""
     with patch(
@@ -203,9 +247,11 @@ def test_history_interface_empty_history(
             assert len(reconstructed.histories) == 1
 
 
-def test_write_history(history_interface, caplog):
+def test_write_history(
+    history_interface, universal_user_id, mock_authorization, caplog
+):
     with patch("command_line_assistant.dbus.interfaces.history.HistoryManager"):
-        uid = "1710e580-dfce-11ef-a98f-52b437312584"
+        uid = universal_user_id
         history_interface.WriteHistory(uid, uid, "test", "test")
 
     assert (

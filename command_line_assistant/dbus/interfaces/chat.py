@@ -12,9 +12,12 @@ from command_line_assistant.constants import VERSION
 from command_line_assistant.daemon.database.manager import DatabaseManager
 from command_line_assistant.daemon.database.repository.chat import ChatRepository
 from command_line_assistant.daemon.http.query import submit
+from command_line_assistant.daemon.session import UserSessionManager
 from command_line_assistant.dbus.constants import CHAT_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.dbus.exceptions import ChatNotFoundError
+from command_line_assistant.dbus.interfaces.authorization import DBusAuthorizationMixin
+from command_line_assistant.dbus.sender_context import get_current_sender
 from command_line_assistant.dbus.structures.chat import (
     ChatEntry,
     ChatList,
@@ -58,7 +61,7 @@ class InferencePayload:
 
 
 @dbus_interface(CHAT_IDENTIFIER.interface_name)
-class ChatInterface(InterfaceTemplate):
+class ChatInterface(InterfaceTemplate, DBusAuthorizationMixin):
     """The DBus interface of a query."""
 
     def __init__(self, implementation: DaemonContext):
@@ -71,6 +74,21 @@ class ChatInterface(InterfaceTemplate):
 
         self._db_manager = DatabaseManager(implementation.config)
         self._chat_repository = ChatRepository(self._db_manager)
+        self._session_manager = UserSessionManager()
+
+    def _verify_caller_authorization(self, sender: str, requested_user_id: str) -> None:
+        """Verify that the caller is authorized to access the requested user's data.
+
+        Arguments:
+            sender: The D-Bus sender.
+            requested_user_id (str): The user ID being requested in the method call.
+
+        Raises:
+            PermissionError: If the caller's user ID doesn't match the requested user ID.
+        """
+        self._verify_internal_user_authorization(
+            sender, requested_user_id, self._session_manager
+        )
 
     def GetAllChatFromUser(self, user_id: Str) -> Structure:
         """Get all the chat session for a given user.
@@ -81,6 +99,9 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Structure: The list of chat sessions.
         """
+        # Verify caller authorization
+        sender = get_current_sender()
+        self._verify_caller_authorization(sender, user_id)
         result = self._chat_repository.select_all_by_user_id(user_id)
 
         chat_entries = []
@@ -107,6 +128,9 @@ class ChatInterface(InterfaceTemplate):
         Raises:
             ChatNotFoundError: In case no chat was found for the current user.
         """
+        # Verify caller authorization
+        sender = get_current_sender()
+        self._verify_caller_authorization(sender, user_id)
         all_chats = self._chat_repository.select_all_by_user_id(user_id)
 
         if not all_chats:
@@ -129,6 +153,9 @@ class ChatInterface(InterfaceTemplate):
         Raises:
             ChatNotFoundError: In case no chat was found with the given name for the current user.
         """
+        # Verify caller authorization
+        sender = get_current_sender()
+        self._verify_caller_authorization(sender, user_id)
         logger.info(
             "Looking for chat associated with the user.",
             extra={"audit": True, "chat_name": name, "user_id": user_id},
@@ -160,6 +187,9 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Str: The identifier of the chat session.
         """
+        # Verify caller authorization
+        sender = get_current_sender()
+        self._verify_caller_authorization(sender, user_id)
         result = self._chat_repository.select_latest_chat(user_id)
         return str(result.id)
 
@@ -173,6 +203,9 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             bool: True if the chat session is available, False otherwise.
         """
+        # Verify caller authorization
+        sender = get_current_sender()
+        self._verify_caller_authorization(sender, user_id)
         result = self._chat_repository.select_by_name(user_id, name)
 
         if not result:
@@ -203,6 +236,9 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Str: The identifier of the chat session.
         """
+        # Verify caller authorization
+        sender = get_current_sender()
+        self._verify_caller_authorization(sender, user_id)
 
         result = self._chat_repository.select_by_name(user_id, name)
 
@@ -230,6 +266,9 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Str: The identifier of the chat session.
         """
+        # Verify caller authorization
+        sender = get_current_sender()
+        self._verify_caller_authorization(sender, user_id)
         identifier = self._chat_repository.insert(
             {"user_id": user_id, "name": name, "description": description}
         )
@@ -249,6 +288,9 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Structure: The message output in format of a d-bus structure.
         """
+        # Verify caller authorization
+        sender = get_current_sender()
+        self._verify_caller_authorization(sender, user_id)
         # Submit query to backend
         content = Question.from_structure(message_input)
         payload = InferencePayload(content)
