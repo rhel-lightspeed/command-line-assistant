@@ -2,6 +2,7 @@
 
 import logging
 
+from dasbus.connection import SystemMessageBus
 from dasbus.server.interface import dbus_interface
 from dasbus.server.template import InterfaceTemplate
 from dasbus.typing import Str, Structure
@@ -13,10 +14,7 @@ from command_line_assistant.daemon.database.models.history import (
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
-from command_line_assistant.dbus.structures.history import (
-    HistoryEntry,
-    HistoryList,
-)
+from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
 
