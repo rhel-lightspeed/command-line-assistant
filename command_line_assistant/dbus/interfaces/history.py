@@ -2,7 +2,6 @@
 
 import logging
 
-from dasbus.connection import SystemMessageBus
 from dasbus.server.interface import dbus_interface
 from dasbus.server.template import InterfaceTemplate
 from dasbus.typing import Str, Structure
@@ -11,9 +10,14 @@ from command_line_assistant.daemon.database.models.history import (
     HistoryModel,
     InteractionModel,
 )
+from command_line_assistant.daemon.session import UserSessionManager
 from command_line_assistant.dbus.constants import HISTORY_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.dbus.exceptions import HistoryNotAvailableError
+from command_line_assistant.dbus.interfaces.authorization import (
+    DBusAuthorizationMixin,
+    require_user_authorization,
+)
 from command_line_assistant.dbus.structures.history import HistoryEntry, HistoryList
 from command_line_assistant.history.manager import HistoryManager
 from command_line_assistant.history.plugins.local import LocalHistory
@@ -26,7 +30,7 @@ HISTORY_CHAT_NOT_AVAILABLE = "Unfortunately, no history was found."
 
 
 @dbus_interface(HISTORY_IDENTIFIER.interface_name)
-class HistoryInterface(InterfaceTemplate):
+class HistoryInterface(InterfaceTemplate, DBusAuthorizationMixin):
     """The DBus interface of a history"""
 
     def __init__(self, implementation: DaemonContext) -> None:
@@ -38,7 +42,9 @@ class HistoryInterface(InterfaceTemplate):
         super().__init__(implementation)
 
         self._history_manager = HistoryManager(implementation.config, LocalHistory)
+        self._session_manager = UserSessionManager()
 
+    @require_user_authorization()
     def GetHistory(self, user_id: Str) -> Structure:
         """Get all conversations from history.
 
@@ -49,6 +55,7 @@ class HistoryInterface(InterfaceTemplate):
             Structure: The history entries in a dbus structure format.
         """
         logger.info("Getting all history data from user '%s'", user_id)
+
         history_entries = self._history_manager.read(user_id)
 
         if not history_entries:
@@ -57,7 +64,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entry = _parse_interactions(history_entries)
         return history_entry.structure()
 
-    # Add new methods with parameters
+    @require_user_authorization()
     def GetFirstConversation(self, user_id: Str, from_chat: Str) -> Structure:
         """Get first conversation from history.
 
@@ -73,6 +80,7 @@ class HistoryInterface(InterfaceTemplate):
             user_id,
             from_chat,
         )
+
         history_entries = self._history_manager.read_from_chat(user_id, from_chat)
 
         if not history_entries:
@@ -82,6 +90,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entry = _parse_interactions([history_entries])  # type: ignore
         return history_entry.structure()
 
+    @require_user_authorization()
     def GetLastConversation(self, user_id: Str, from_chat: Str) -> Structure:
         """Get last conversation from history.
 
@@ -95,6 +104,7 @@ class HistoryInterface(InterfaceTemplate):
         logger.info(
             "Get the most recent history for user '%s' in chat '%s'", user_id, from_chat
         )
+
         history_entries = self._history_manager.read_from_chat(user_id, from_chat)
 
         if not history_entries:
@@ -104,6 +114,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entry = _parse_interactions([history_entries])  # type: ignore
         return history_entry.structure()
 
+    @require_user_authorization()
     def GetFilteredConversation(
         self, user_id: Str, filter: Str, from_chat: Str
     ) -> Structure:
@@ -133,6 +144,7 @@ class HistoryInterface(InterfaceTemplate):
         history_entry = _parse_interactions([history_entries])  # type: ignore
         return history_entry.structure()
 
+    @require_user_authorization()
     def ClearAllHistory(self, user_id: Str) -> None:
         """Clear the user history.
 
@@ -145,6 +157,7 @@ class HistoryInterface(InterfaceTemplate):
         )
         self._history_manager.clear(user_id)
 
+    @require_user_authorization()
     def ClearHistory(self, user_id: Str, from_chat: Str) -> None:
         """Clear the user history.
 
@@ -157,6 +170,7 @@ class HistoryInterface(InterfaceTemplate):
         )
         self._history_manager.clear_from_chat(user_id, from_chat)
 
+    @require_user_authorization()
     def WriteHistory(
         self, chat_id: Str, user_id: Str, question: Str, response: Str
     ) -> None:
