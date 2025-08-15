@@ -9,9 +9,14 @@ from dasbus.typing import Str, Structure
 from command_line_assistant.daemon.database.manager import DatabaseManager
 from command_line_assistant.daemon.database.repository.chat import ChatRepository
 from command_line_assistant.daemon.http.query import submit
+from command_line_assistant.daemon.session import UserSessionManager
 from command_line_assistant.dbus.constants import CHAT_IDENTIFIER
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.dbus.exceptions import ChatNotFoundError
+from command_line_assistant.dbus.interfaces.authorization import (
+    DBusAuthorizationMixin,
+    require_user_authorization,
+)
 from command_line_assistant.dbus.structures.chat import (
     ChatEntry,
     ChatList,
@@ -23,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 @dbus_interface(CHAT_IDENTIFIER.interface_name)
-class ChatInterface(InterfaceTemplate):
+class ChatInterface(InterfaceTemplate, DBusAuthorizationMixin):
     """The DBus interface of a query."""
 
     def __init__(self, implementation: DaemonContext):
@@ -36,7 +41,9 @@ class ChatInterface(InterfaceTemplate):
 
         self._db_manager = DatabaseManager(implementation.config)
         self._chat_repository = ChatRepository(self._db_manager)
+        self._session_manager = UserSessionManager()
 
+    @require_user_authorization()
     def GetAllChatFromUser(self, user_id: Str) -> Structure:
         """Get all the chat session for a given user.
 
@@ -63,6 +70,7 @@ class ChatInterface(InterfaceTemplate):
 
         return ChatList(chat_entries).structure()
 
+    @require_user_authorization()
     def DeleteAllChatForUser(self, user_id: Str) -> None:
         """Delete all chats from the user.
 
@@ -84,6 +92,7 @@ class ChatInterface(InterfaceTemplate):
             )
             self._chat_repository.delete(chat.id)
 
+    @require_user_authorization()
     def DeleteChatForUser(self, user_id: Str, name: Str) -> None:
         """Delete a specific chat for a user.
 
@@ -116,6 +125,7 @@ class ChatInterface(InterfaceTemplate):
         )
         self._chat_repository.delete(chat[0].id)
 
+    @require_user_authorization()
     def GetLatestChatFromUser(self, user_id: Str) -> Str:
         """Get the latest chat session for a given user.
 
@@ -128,6 +138,7 @@ class ChatInterface(InterfaceTemplate):
         result = self._chat_repository.select_latest_chat(user_id)
         return str(result.id)
 
+    @require_user_authorization()
     def GetChatId(self, user_id: Str, name: Str) -> Str:
         """Get the chat id for a given user and chat name.
 
@@ -157,6 +168,7 @@ class ChatInterface(InterfaceTemplate):
         )
         return str(result[0].id)
 
+    @require_user_authorization()
     def CreateChat(self, user_id: Str, name: Str, description: Str) -> Str:
         """Create a new chat session for a given conversation.
 
@@ -177,6 +189,7 @@ class ChatInterface(InterfaceTemplate):
         )
         return str(identifier[0])
 
+    @require_user_authorization()
     def AskQuestion(self, user_id: Str, message_input: Structure) -> Structure:
         """This method is mainly called by the client to retrieve it's answer.
 
@@ -187,6 +200,7 @@ class ChatInterface(InterfaceTemplate):
         Returns:
             Structure: The message output in format of a d-bus structure.
         """
+
         content = Question.from_structure(message_input)
         # Submit query to backend
         data = {

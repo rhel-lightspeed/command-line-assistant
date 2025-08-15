@@ -126,3 +126,16 @@ def mock_context(mock_config):
 @pytest.fixture
 def universal_user_id():
     return "ca427c50-ff49-11ef-9209-52b437312584"
+
+
+@pytest.fixture(autouse=True)
+def mock_dbus_authorization():
+    """Mock D-Bus authorization methods to bypass connection requirements in tests."""
+    # Mock the authorization methods to always pass in tests
+    with patch(
+        "command_line_assistant.dbus.interfaces.authorization.DBusAuthorizationMixin._verify_internal_user_authorization"
+    ):
+        with patch(
+            "command_line_assistant.dbus.interfaces.authorization.DBusAuthorizationMixin._verify_unix_user_authorization"
+        ):
+            yield
