@@ -10,7 +10,7 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.4.1
+Version:        0.4.2
 Release:        1%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
@@ -167,6 +167,11 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Mon Aug 18 2025 Link Dupont <link@redhat.com> - 0.4.2
+- Migrate from poetry to uv
+- Fix typo in warning message for total input size
+- Catch OSError being thrown by submit method (RHEL-102629)
+
 * Thu Jul 10 2025 Link Dupont <link@redhat.com> - 0.4.1
 - Add horizontal lines back
 - Limit permission for history database to own user

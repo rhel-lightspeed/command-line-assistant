@@ -12,7 +12,7 @@ import sys
 project = "Command Line Assistant"
 copyright = "2025, RHEL Lightspeed Team"
 author = "RHEL Lightspeed Team"
-release = version = "0.4.1"
+release = version = "0.4.2"
 
 # Add the project root to Python path
 sys.path.insert(0, os.path.abspath("../.."))
