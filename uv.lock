@@ -1,9 +1,10 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.9, <4.0"
 resolution-markers = [
     "python_full_version == '3.12.*'",
-    "python_full_version == '3.11.*' or python_full_version >= '3.13'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.11.*'",
     "python_full_version < '3.11'",
 ]
 
@@ -58,9 +59,10 @@ version = "0.4.1"
 source = { editable = "." }
 dependencies = [
     { name = "dasbus", version = "1.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "dasbus", version = "1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
-    { name = "pygobject", version = "3.40.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "pygobject", version = "3.46.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
+    { name = "dasbus", version = "1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "markdown" },
+    { name = "pygobject", version = "3.40.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pygobject", version = "3.46.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "requests" },
     { name = "sqlalchemy" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
@@ -80,6 +82,7 @@ dev = [
     { name = "pytest-sugar" },
     { name = "responses" },
     { name = "tox" },
+    { name = "types-markdown" },
 ]
 docs = [
     { name = "sphinx" },
@@ -91,12 +94,13 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "coverage", marker = "extra == 'dev'" },
-    { name = "dasbus", marker = "python_full_version == '3.9.*'", specifier = "==1.5" },
-    { name = "dasbus", marker = "python_full_version == '3.12.*'", specifier = "==1.7" },
+    { name = "dasbus", marker = "python_full_version < '3.10'", specifier = "==1.5" },
+    { name = "dasbus", marker = "python_full_version >= '3.12'", specifier = "==1.7" },
+    { name = "markdown", specifier = "<3.4" },
     { name = "mysqlclient", marker = "extra == 'db'" },
     { name = "psycopg2-binary", marker = "extra == 'db'" },
-    { name = "pygobject", marker = "python_full_version == '3.9.*'", specifier = "==3.40" },
-    { name = "pygobject", marker = "python_full_version == '3.12.*'", specifier = "==3.46" },
+    { name = "pygobject", marker = "python_full_version < '3.10'", specifier = "~=3.40" },
+    { name = "pygobject", marker = "python_full_version >= '3.12'", specifier = "~=3.46" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-clarity", marker = "extra == 'dev'" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
@@ -111,6 +115,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = "==1.4.45" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "tox", marker = "extra == 'dev'" },
+    { name = "types-markdown", marker = "extra == 'dev'", specifier = "<3.4" },
 ]
 provides-extras = ["dev", "docs", "db"]
 
@@ -211,6 +216,7 @@ version = "1.7"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version == '3.12.*'",
+    "python_full_version >= '3.13'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/37/79/9c5984d723ffbe2e839ee649690f3e1fa6544ab6a17a5150e5ac14a47072/dasbus-1.7.tar.gz", hash = "sha256:a8850d841adfe8ee5f7bb9f82cf449ab9b4950dc0633897071718e0d0036b6f6", size = 78603, upload-time = "2022-11-07T13:20:08.536Z" }
 wheels = [
@@ -366,6 +372,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/df/bf/f7da0350254c0ed7c72f3e33cef02e048281fec7ecec5f032d4aac52226b/jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d", size = 245115, upload-time = "2025-03-05T20:05:02.478Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67", size = 134899, upload-time = "2025-03-05T20:05:00.369Z" },
+]
+
+[[package]]
+name = "markdown"
+version = "3.3.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "importlib-metadata", marker = "python_full_version < '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d6/58/79df20de6e67a83f0d0bbfe6c19bb82adf68cdf362885257eb01099f930a/Markdown-3.3.7.tar.gz", hash = "sha256:cbb516f16218e643d8e0a95b309f77eb118cb138d39a4f27851e6a63581db874", size = 324130, upload-time = "2022-05-05T19:08:39.707Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f3/df/ca72f352e15b6f8ce32b74af029f1189abffb906f7c137501ffe69c98a65/Markdown-3.3.7-py3-none-any.whl", hash = "sha256:f5da449a6e1c989a4cea2631aa8ee67caa5a2ef855d551c88f9e309f4634c621", size = 97778, upload-time = "2022-05-05T19:08:38.155Z" },
 ]
 
 [[package]]
@@ -619,7 +637,7 @@ wheels = [
 
 [[package]]
 name = "pygobject"
-version = "3.40.0"
+version = "3.40.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version < '3.11'",
@@ -627,7 +645,7 @@ resolution-markers = [
 dependencies = [
     { name = "pycairo", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a0/fa/0cfaa64ad7a4cd94fd74b698fcc8987ed780fce1651fecc6604f86f604cd/PyGObject-3.40.0.tar.gz", hash = "sha256:98d83f71e6313dadc29793450fec23b2eaa5c3f1c4b073d0a4f9c31b5cdb5fca", size = 714708, upload-time = "2021-03-19T13:50:21.71Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/2f/4d5d5afb7000b9151e33952b59163c9389bd867ac6fe85d62f85831fa061/PyGObject-3.40.1.tar.gz", hash = "sha256:6fb599aa59ceb9dd05fafb0d72b3862943e7d5e85c8ef6c74856bc6d4321cbab", size = 714934, upload-time = "2021-03-30T06:50:38.239Z" }
 
 [[package]]
 name = "pygobject"
@@ -635,9 +653,10 @@ version = "3.46.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version == '3.12.*'",
+    "python_full_version >= '3.13'",
 ]
 dependencies = [
-    { name = "pycairo", marker = "python_full_version == '3.12.*'" },
+    { name = "pycairo", marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ac/4a/f24ddf1d20cc4b56affc7921e29928559a06c922eb60077448392792b914/PyGObject-3.46.0.tar.gz", hash = "sha256:481437b05af0a66b7c366ea052710eb3aacbb979d22d30b797f7ec29347ab1e6", size = 723367, upload-time = "2023-09-10T09:56:26.737Z" }
 
@@ -1052,6 +1071,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/03/39/7890784b9d6b3be12b88d3139ddbaccfd21167dcdcc6ddbf0182952b4c23/tox-3.28.0.tar.gz", hash = "sha256:d0d28f3fe6d6d7195c27f8b054c3e99d5451952b54abdae673b71609a581f640", size = 320038, upload-time = "2022-12-17T19:31:44.733Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/31/c7/69ec9b8bbb4fe649b4bc960a53b837b4dace889137be5f23b4236a3e9f7c/tox-3.28.0-py2.py3-none-any.whl", hash = "sha256:57b5ab7e8bb3074edc3c0c0b4b192a4f3799d3723b2c5b76f1fa9f2d40316eea", size = 86766, upload-time = "2022-12-17T19:31:43.086Z" },
+]
+
+[[package]]
+name = "types-markdown"
+version = "3.3.31"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/77/4b0468aaf1bad8080b7c23717c5f91157443b015f9617605e00926fa235b/types-Markdown-3.3.31.tar.gz", hash = "sha256:6c5cd453c341500779e7b57580c2c1af5727917cb4eba90c41ba02717d9df647", size = 10494, upload-time = "2022-07-16T01:53:06.744Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/eb/f5/200e526da9f5fda6aa4f3ce280d97445869644a5df738c2ed7b8dfc69af8/types_Markdown-3.3.31-py3-none-any.whl", hash = "sha256:c9c67f1aecbcd710ead2057a197064bf790c7493e9b15d490673ef60c4522bf7", size = 16590, upload-time = "2022-07-16T01:53:05.48Z" },
 ]
 
 [[package]]

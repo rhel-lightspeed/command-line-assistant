@@ -1,6 +1,7 @@
 """Base module to hold classes and definitions for commands"""
 
 import logging
+import sys
 from abc import ABC, abstractmethod
 from argparse import Namespace
 from enum import Enum
@@ -15,13 +16,10 @@ from command_line_assistant.dbus.constants import (
 from command_line_assistant.dbus.interfaces.chat import ChatInterface
 from command_line_assistant.dbus.interfaces.history import HistoryInterface
 from command_line_assistant.dbus.interfaces.user import UserInterface
-from command_line_assistant.rendering.renders.text import TextRenderer
+from command_line_assistant.rendering.colors import Color, colorize
+from command_line_assistant.rendering.formatting import wrap
+from command_line_assistant.rendering.streaming import MarkdownStreamer
 from command_line_assistant.utils.cli import CommandContext
-from command_line_assistant.utils.renderers import (
-    create_error_renderer,
-    create_text_renderer,
-    create_warning_renderer,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +31,22 @@ class BaseCLICommand(ABC):
         """Constructor for the base class."""
         self._args = args
         self._context: CommandContext = CommandContext()
+        self._stdout_stream = MarkdownStreamer(stream=sys.stdout)
+        self._stderr_stream = MarkdownStreamer(stream=sys.stderr)
 
         super().__init__()
 
     @abstractmethod
     def run(self) -> int:
         """Entrypoint method for all CLI commands."""
+
+    def write_error_line(self, text: str) -> None:
+        """
+        Write error text to the terminal.
+        """
+        self._stderr_stream.add_line_chunk(
+            wrap(colorize(f"⛔️ {text}", Color.BRIGHT_RED))
+        )
 
 
 class CommandOperation(Protocol):
@@ -60,10 +68,6 @@ class BaseOperation:
         can use, even though, some of them might not need the attributes here.
 
     Attributes:
-        text_renderer (TextRenderer): Instance that represents a text renderer
-        warning_renerer (TextRenderer): Instance that represents a warning renderer
-        error_renderer (TextRenderer): Instance that represents a error renderer
-
         args (Namespace): The arguments parsed from argparse
         context (CommandContext): Contextual data read before arguments are parsed.
 
@@ -74,9 +78,6 @@ class BaseOperation:
 
     def __init__(
         self,
-        text_renderer: TextRenderer,
-        warning_renderer: TextRenderer,
-        error_renderer: TextRenderer,
         args: Namespace,
         context: CommandContext,
         chat_proxy: ChatInterface,
@@ -86,23 +87,61 @@ class BaseOperation:
         """Constructor of the class.
 
         Arguments:
-            text_renderer (TextRenderer): Instance of text renderer class
-            warning_renderer (TextRenderer): Instance of text renderer class
-            error_renderer (TextRenderer): Instance of text renderer class
             args (Namespace): The arguments from CLI
             context (CommandContext): Context for the commands
             chat_proxy (ChatInterface): The proxy object for dbus chat
             history_proxy (HistoryInterface): The proxy object for dbus history
             user_proxy (HistoryInterface): The proxy object for dbus user
         """
-        self.text_renderer = text_renderer
-        self.warning_renderer = warning_renderer
-        self.error_renderer = error_renderer
         self.args = args
         self.context = context
         self.chat_proxy = chat_proxy
         self.history_proxy = history_proxy
         self.user_proxy = user_proxy
+        self._stdout_stream = MarkdownStreamer(stream=sys.stdout)
+        self._stderr_stream = MarkdownStreamer(stream=sys.stderr)
+
+    def write_info_line(self, text: str) -> None:
+        """
+        Write info text to the terminal.
+
+        Arguments:
+            text (str): The text to write.
+        """
+        self._stdout_stream.add_line_chunk(
+            wrap(colorize(f"ℹ️ {text}", Color.BRIGHT_YELLOW))
+        )
+
+    def write_warning_line(self, text: str) -> None:
+        """
+        Write warning text to the terminal.
+        """
+        self._stdout_stream.add_line_chunk(
+            wrap(colorize(f"⚠️ {text}", Color.BRIGHT_YELLOW))
+        )
+
+    def write_error_line(self, text: str) -> None:
+        """
+        Write error text to the terminal.
+        """
+        self._stderr_stream.add_line_chunk(
+            wrap(colorize(f"⛔️ {text}", Color.BRIGHT_RED))
+        )
+
+    def write_line(self, text: str) -> None:
+        """
+        Write text to the terminal.
+
+        Arguments:
+            text (str): The text to write.
+        """
+        self._stdout_stream.add_line_chunk(text)
+
+    def write_line_raw(self, text: str) -> None:
+        """
+        Write text to the terminal without any formatting.
+        """
+        self._stdout_stream.write_raw(text)
 
 
 class CommandOperationFactory:
@@ -171,18 +210,12 @@ class CommandOperationFactory:
         self,
         args: Namespace,
         context: CommandContext,
-        text_renderer: Optional[TextRenderer] = None,
-        warning_renderer: Optional[TextRenderer] = None,
-        error_renderer: Optional[TextRenderer] = None,
     ) -> Optional[CommandOperation]:
         """Create an operation instance based on command line arguments
 
         Arguments:
             args (Namespace): The arguments parsed from the cli
             context (CommandContext): The contextual data read before we parse arguments
-            text_renderer (Optional[TextRenderer], optional): Instance of a text renderer for common text.
-            warning_renderer (Optional[TextRenderer], optional): Instance of a text renderer for warning text.
-            error_renderer (Optional[TextRenderer], optional): Instance of a text renderer for error text.
 
         Returns:
             Optional[CommandOperation]: The operation created.
@@ -204,21 +237,8 @@ class CommandOperationFactory:
             logger.warning("No operation registered for type %s", operation_type)
             return None
 
-        text_renderer = text_renderer or create_text_renderer(
-            plain=hasattr(args, "plain") and args.plain
-        )
-        warning_renderer = warning_renderer or create_warning_renderer(
-            plain=hasattr(args, "plain") and args.plain
-        )
-        error_renderer = error_renderer or create_error_renderer(
-            plain=hasattr(args, "plain") and args.plain
-        )
-
         # Type Ignoring the parameters as they do exist in the baes class.
         return operation_class(
-            text_renderer=text_renderer,  # type: ignore
-            warning_renderer=warning_renderer,  # type: ignore
-            error_renderer=error_renderer,  # type: ignore
             args=args,  # type: ignore
             context=context,  # type: ignore
             chat_proxy=CHAT_IDENTIFIER.get_proxy(),  # type: ignore

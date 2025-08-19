@@ -13,9 +13,7 @@ from command_line_assistant.commands.base import (
     CommandOperationType,
 )
 from command_line_assistant.exceptions import FeedbackCommandException
-from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.utils.cli import SubParsersAction, create_subparser
-from command_line_assistant.utils.renderers import create_error_renderer
 
 WARNING_MESSAGE = "Do not include any personal information or other sensitive information in your feedback. Feedback may be used to improve Red Hat's products or services."
 
@@ -47,10 +45,10 @@ class DefaultFeedbackOperation(BaseFeedbackOperation):
 
     def execute(self) -> None:
         """Default method to execute the operation"""
-        self.warning_renderer.render(WARNING_MESSAGE)
+        self.write_warning_line(WARNING_MESSAGE)
 
-        feedback_message = "To submit feedback, use the following email address: <cla-feedback@redhat.com>."
-        self.text_renderer.render(feedback_message)
+        feedback_message = "To submit feedback, use the following email address: <cla-feedback@redhat.com>.\n"
+        self.write_line_raw(feedback_message)
 
 
 class FeedbackCommand(BaseCLICommand):
@@ -62,22 +60,17 @@ class FeedbackCommand(BaseCLICommand):
         Returns:
             int: Return the status code for the operation
         """
-        error_renderer: TextRenderer = create_error_renderer(
-            plain=hasattr(self._args, "plain") and self._args.plain
-        )
         operation_factory = FeedbackOperationFactory()
         try:
             # Get and execute the appropriate operation
-            operation = operation_factory.create_operation(
-                self._args, self._context, error_renderer=error_renderer
-            )
+            operation = operation_factory.create_operation(self._args, self._context)
             if operation:
                 operation.execute()
 
             return 0
         except FeedbackCommandException as e:
             logger.info("Failed to execute feedback command: %s", str(e))
-            error_renderer.render(str(e))
+            self.write_error_line(str(e))
             return e.code
 
 

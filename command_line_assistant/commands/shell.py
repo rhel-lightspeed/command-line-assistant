@@ -16,7 +16,6 @@ from command_line_assistant.exceptions import ShellCommandException
 from command_line_assistant.integrations import (
     BASH_INTERACTIVE,
 )
-from command_line_assistant.rendering.renders.text import TextRenderer
 from command_line_assistant.terminal.reader import (
     TERMINAL_CAPTURE_FILE,
     start_capturing,
@@ -26,9 +25,6 @@ from command_line_assistant.utils.cli import (
     create_subparser,
 )
 from command_line_assistant.utils.files import NamedFileLock, create_folder, write_file
-from command_line_assistant.utils.renderers import (
-    create_error_renderer,
-)
 
 #: The path to bashrc.d folder
 BASH_RC_D_PATH: Path = Path("~/.bashrc.d").expanduser()
@@ -85,7 +81,7 @@ class BaseShellOperation(BaseOperation):
         self._initialize_bash_folder()
         if file.exists():
             logger.info("File already exists at %s.", file)
-            self.warning_renderer.render(
+            self.write_warning_line(
                 f"The integration is already present and enabled at {file}! "
                 "Restart your terminal or source ~/.bashrc in case it's not working."
             )
@@ -107,12 +103,12 @@ class BaseShellOperation(BaseOperation):
                 continue
 
         if not has_snippet:
-            self.warning_renderer.render(
+            self.write_warning_line(
                 "In order to use shell integration, ensure your ~/.bashrc file loads files from ~/.bashrc.d. See /etc/skel/.bashrc for an example."
             )
 
         write_file(contents, file)
-        self.text_renderer.render(
+        self.write_line(
             f"Integration successfully added at {file}. "
             "In order to use it, please restart your terminal or source ~/.bashrc"
         )
@@ -125,14 +121,14 @@ class BaseShellOperation(BaseOperation):
         """
         if not file.exists():
             logger.debug("Couldn't find integration file at '%s'", str(file))
-            self.warning_renderer.render(
+            self.write_warning_line(
                 "It seems that the integration is not enabled. Skipping operation."
             )
             return
 
         try:
             file.unlink()
-            self.text_renderer.render("Integration disabled successfully.")
+            self.write_line("Integration disabled successfully.")
         except (FileExistsError, FileNotFoundError) as e:
             logger.warning(
                 "Got an exception '%s'. Either file is missing or something removed just before this operation",
@@ -174,10 +170,10 @@ class EnableTerminalCapture(BaseShellOperation):
             )
 
         with file_lock:
-            self.text_renderer.render(
+            self.write_line(
                 "Starting terminal reader. Press Ctrl + D to stop the capturing."
             )
-            self.text_renderer.render(
+            self.write_line(
                 f"Terminal capture log is being written to {TERMINAL_CAPTURE_FILE}"
             )
             self._initialize_bash_folder()
@@ -193,20 +189,17 @@ class ShellCommand(BaseCLICommand):
         Returns:
             int: Return the status code for the operation
         """
-        error_renderer: TextRenderer = create_error_renderer()
         operation_factory = ShellOperationFactory()
         try:
             # Get and execute the appropriate operation
-            operation = operation_factory.create_operation(
-                self._args, self._context, error_renderer=error_renderer
-            )
+            operation = operation_factory.create_operation(self._args, self._context)
             if operation:
                 operation.execute()
 
             return 0
         except ShellCommandException as e:
             logger.info("Failed to execute shell command: %s", str(e))
-            error_renderer.render(str(e))
+            self.write_error_line(str(e))
             return e.code
 
 

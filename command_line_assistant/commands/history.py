@@ -21,17 +21,15 @@ from command_line_assistant.dbus.interfaces.user import UserInterface
 from command_line_assistant.dbus.structures.chat import ChatList
 from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.exceptions import HistoryCommandException
-from command_line_assistant.rendering.decorators.colors import ColorDecorator
-from command_line_assistant.rendering.renders.text import TextRenderer
+from command_line_assistant.rendering.colors import Color, colorize
+from command_line_assistant.rendering.formatting import wrap
+from command_line_assistant.rendering.markdown import markdown_to_ansi
 from command_line_assistant.utils.cli import (
     CommandContext,
     SubParsersAction,
     create_subparser,
 )
 from command_line_assistant.utils.renderers import (
-    create_error_renderer,
-    create_markdown_renderer,
-    create_text_renderer,
     format_datetime,
 )
 
@@ -83,17 +81,10 @@ class BaseHistoryOperation(BaseOperation):
         It maps to internal dasbus ObjectProxy, but to avoid pyright syntax
         errors, we type then as their respective interfaces. The objective of
         the `ObjectProxy` is to serve as a proxy for the real interfaces.
-
-    Attributes:
-        q_renderer (TextRenderer): Instance of a text renderer to render questions
-        a_renderer (TextRenderer): Instance of a text renderer to render answers
     """
 
     def __init__(
         self,
-        text_renderer: TextRenderer,
-        warning_renderer: TextRenderer,
-        error_renderer: TextRenderer,
         args: Namespace,
         context: CommandContext,
         chat_proxy: ChatInterface,
@@ -103,9 +94,6 @@ class BaseHistoryOperation(BaseOperation):
         """Constructor of the class.
 
         Arguments:
-            text_renderer (TextRenderer): Instance of text renderer class
-            warning_renderer (TextRenderer): Instance of text renderer class
-            error_renderer (TextRenderer): Instance of text renderer class
             args (Namespace): The arguments from CLI
             context (CommandContext): Context for the commands
             chat_proxy (ChatInterface): The proxy object for dbus chat
@@ -113,18 +101,11 @@ class BaseHistoryOperation(BaseOperation):
             user_proxy (HistoryInterface): The proxy object for dbus user
         """
         super().__init__(
-            text_renderer,
-            warning_renderer,
-            error_renderer,
             args,
             context,
             chat_proxy,
             history_proxy,
             user_proxy,
-        )
-        # Add markdown renderer as a standard renderer
-        self.markdown_renderer = create_markdown_renderer(
-            plain=hasattr(args, "plain") and args.plain
         )
 
     def _show_history(self, entries: HistoryList) -> None:
@@ -134,53 +115,41 @@ class BaseHistoryOperation(BaseOperation):
             entries (HistoryItem): The list of entries in the history
         """
         if not entries.histories:
-            self.text_renderer.render("No history entries found")
+            self.write_line("No history entries found")
             return
-
-        # Create specialized renderers for different parts
-        question_renderer = create_markdown_renderer(
-            decorators=[
-                ColorDecorator(foreground="cyan"),
-            ],
-            plain=hasattr(self.args, "plain") and self.args.plain,
-        )
-
-        answer_renderer = create_markdown_renderer(
-            decorators=[
-                ColorDecorator(foreground="green"),
-            ],
-            plain=hasattr(self.args, "plain") and self.args.plain,
-        )
-
-        metadata_renderer = create_text_renderer(
-            decorators=[
-                ColorDecorator(foreground="yellow"),
-            ],
-            plain=hasattr(self.args, "plain") and self.args.plain,
-        )
 
         for entry in entries.histories:
             # Render question block
             question_text = f"## 🤔 Question\n{entry.question}"
-            question_renderer.render(question_text)
+            self.write_question_line(question_text)
 
             # Add a small spacing
-            self.text_renderer.render("")
+            self.write_line("")
 
             # Render answer block
             answer_text = f"## 🤖 Answer\n{entry.response}"
-            answer_renderer.render(answer_text)
+            self.write_answer_line(answer_text)
 
             from_chat_message = f"\n*From chat: {entry.chat_name}*"
-            metadata_renderer.render(from_chat_message)
+            self.write_metadata_line(from_chat_message)
 
             created_at_message = f"*Created at: {format_datetime(entry.created_at)}*"
-            metadata_renderer.render(created_at_message)
+            self.write_metadata_line(created_at_message)
             # Add separator between entries if needed
             if len(entries.histories) > 1:
-                self.text_renderer.render(
-                    "\n" + "═" * (len(created_at_message) - 1) + "\n"
-                )
+                self.write_line("\n" + "═" * (len(created_at_message) - 1) + "\n")
+
+    def write_question_line(self, question: str) -> None:
+        """Write the question line to the stream."""
+        self._stdout_stream.add_line_chunk(wrap(colorize(question, Color.CYAN)))
+
+    def write_answer_line(self, answer: str) -> None:
+        """Write the answer line to the stream."""
+        self._stdout_stream.add_line_chunk(wrap(markdown_to_ansi(answer)))
+
+    def write_metadata_line(self, metadata: str) -> None:
+        """Write the metadata line to the stream."""
+        self._stdout_stream.add_line_chunk(wrap(colorize(metadata, Color.YELLOW)))
 
 
 @HistoryOperationFactory.register(HistoryOperationType.CLEAR)
@@ -202,7 +171,7 @@ class ClearHistoryOperation(BaseHistoryOperation):
                 )
 
             self.history_proxy.ClearHistory(user_id, self.args.from_chat)
-            self.text_renderer.render("Cleaning the history.")
+            self.write_line("Cleaning the history.")
         except HistoryNotAvailableError as e:
             logger.debug("Failed to clear the history: %s", str(e))
             raise HistoryCommandException(HISTORY_NOT_AVAILABLE_MESSAGE) from e
@@ -229,7 +198,7 @@ class ClearAllHistoryOperation(BaseHistoryOperation):
                 )
 
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            self.text_renderer.render("Cleaning the history.")
+            self.write_line("Cleaning the history.")
             self.history_proxy.ClearAllHistory(user_id)
         except HistoryNotAvailableError as e:
             logger.debug("Failed to clear the history: %s", str(e))
@@ -247,7 +216,7 @@ class FirstHistoryOperation(BaseHistoryOperation):
         """Default method to execute the operation"""
         try:
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
-            self.text_renderer.render("Getting first conversation from history.")
+            self.write_line("Getting first conversation from history.")
             response = self.history_proxy.GetFirstConversation(
                 user_id, self.args.from_chat
             )
@@ -270,7 +239,7 @@ class LastHistoryOperation(BaseHistoryOperation):
     def execute(self) -> None:
         """Default method to execute the operation"""
         try:
-            self.text_renderer.render("Getting last conversation from history.")
+            self.write_line("Getting last conversation from history.")
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             response = self.history_proxy.GetLastConversation(
                 user_id, self.args.from_chat
@@ -294,7 +263,7 @@ class FilteredHistoryOperation(BaseHistoryOperation):
     def execute(self) -> None:
         """Default method to execute the operation"""
         try:
-            self.text_renderer.render("Filtering conversation history.")
+            self.write_line("Filtering conversation history.")
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             response = self.history_proxy.GetFilteredConversation(
                 user_id, self.args.filter, self.args.from_chat
@@ -324,7 +293,7 @@ class AllHistoryOperation(BaseHistoryOperation):
     def execute(self) -> None:
         """Default method to execute the operation"""
         try:
-            self.text_renderer.render("Getting all conversations from history.")
+            self.write_line("Getting all conversations from history.")
             user_id = self.user_proxy.GetUserId(self.context.effective_user_id)
             response = self.history_proxy.GetHistory(user_id)
             history = HistoryList.from_structure(response)
@@ -348,21 +317,16 @@ class HistoryCommand(BaseCLICommand):
         Returns:
             int: Status code of the execution.
         """
-        error_renderer: TextRenderer = create_error_renderer(
-            plain=hasattr(self._args, "plain") and self._args.plain
-        )
         operation_factory = HistoryOperationFactory()
         try:
-            operation = operation_factory.create_operation(
-                self._args, self._context, error_renderer=error_renderer
-            )
+            operation = operation_factory.create_operation(self._args, self._context)
 
             if operation:
                 operation.execute()
             return 0
         except HistoryCommandException as e:
             logger.info("Failed to execute history command: %s", str(e))
-            error_renderer.render(str(e))
+            self.write_error_line(str(e))
             return e.code
 
 
