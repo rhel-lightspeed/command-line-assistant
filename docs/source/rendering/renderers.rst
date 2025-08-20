@@ -1,7 +1,7 @@
 Renderers
 =========
 
-.. automodule:: command_line_assistant.utils.renderers
+.. automodule:: command_line_assistant.rendering.renderers
    :members:
    :undoc-members:
    :private-members:

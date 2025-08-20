@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from command_line_assistant.utils import renderers
+from command_line_assistant.rendering import renderers
 
 
 def test_create_error_renderer(capsys: pytest.CaptureFixture[str]):

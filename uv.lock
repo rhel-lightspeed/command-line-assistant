@@ -1,9 +1,10 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.9, <4.0"
 resolution-markers = [
     "python_full_version == '3.12.*'",
-    "python_full_version == '3.11.*' or python_full_version >= '3.13'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.11.*'",
     "python_full_version < '3.11'",
 ]
 
@@ -54,13 +55,13 @@ wheels = [
 
 [[package]]
 name = "command-line-assistant"
-version = "0.4.1"
+version = "0.4.2"
 source = { editable = "." }
 dependencies = [
     { name = "dasbus", version = "1.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "dasbus", version = "1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
+    { name = "dasbus", version = "1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pygobject", version = "3.40.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "pygobject", version = "3.46.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
+    { name = "pygobject", version = "3.46.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "requests" },
     { name = "sqlalchemy" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
@@ -91,12 +92,12 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "coverage", marker = "extra == 'dev'" },
-    { name = "dasbus", marker = "python_full_version == '3.9.*'", specifier = "==1.5" },
-    { name = "dasbus", marker = "python_full_version == '3.12.*'", specifier = "==1.7" },
+    { name = "dasbus", marker = "python_full_version < '3.10'", specifier = "==1.5" },
+    { name = "dasbus", marker = "python_full_version >= '3.12'", specifier = "==1.7" },
     { name = "mysqlclient", marker = "extra == 'db'" },
     { name = "psycopg2-binary", marker = "extra == 'db'" },
-    { name = "pygobject", marker = "python_full_version == '3.9.*'", specifier = "==3.40" },
-    { name = "pygobject", marker = "python_full_version == '3.12.*'", specifier = "==3.46" },
+    { name = "pygobject", marker = "python_full_version < '3.10'", specifier = "==3.40" },
+    { name = "pygobject", marker = "python_full_version >= '3.12'", specifier = "==3.46" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-clarity", marker = "extra == 'dev'" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
@@ -211,6 +212,7 @@ version = "1.7"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version == '3.12.*'",
+    "python_full_version >= '3.13'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/37/79/9c5984d723ffbe2e839ee649690f3e1fa6544ab6a17a5150e5ac14a47072/dasbus-1.7.tar.gz", hash = "sha256:a8850d841adfe8ee5f7bb9f82cf449ab9b4950dc0633897071718e0d0036b6f6", size = 78603, upload-time = "2022-11-07T13:20:08.536Z" }
 wheels = [
@@ -635,9 +637,10 @@ version = "3.46.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version == '3.12.*'",
+    "python_full_version >= '3.13'",
 ]
 dependencies = [
-    { name = "pycairo", marker = "python_full_version == '3.12.*'" },
+    { name = "pycairo", marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ac/4a/f24ddf1d20cc4b56affc7921e29928559a06c922eb60077448392792b914/PyGObject-3.46.0.tar.gz", hash = "sha256:481437b05af0a66b7c366ea052710eb3aacbb979d22d30b797f7ec29347ab1e6", size = 723367, upload-time = "2023-09-10T09:56:26.737Z" }
 

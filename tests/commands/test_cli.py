@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from command_line_assistant.utils import cli
+from command_line_assistant.commands import cli
 
 MOCK_OS_RELEASE = """
 NAME="Red Hat Enterprise Linux"
@@ -41,7 +41,7 @@ def test_command_context_initialization():
 def test_command_context_os_release_not_found(tmp_path):
     os_release = tmp_path / "not_found"
 
-    with patch("command_line_assistant.utils.cli.OS_RELEASE_PATH", os_release):
+    with patch("command_line_assistant.commands.cli.OS_RELEASE_PATH", os_release):
         with pytest.raises(ValueError, match="OS Release file not found"):
             cli.CommandContext()
 
@@ -49,7 +49,7 @@ def test_command_context_os_release_not_found(tmp_path):
 def test_command_context_parse_os_release(tmp_path):
     os_release_file = tmp_path / "os-release"
     os_release_file.write_text(MOCK_OS_RELEASE)
-    with patch("command_line_assistant.utils.cli.OS_RELEASE_PATH", os_release_file):
+    with patch("command_line_assistant.commands.cli.OS_RELEASE_PATH", os_release_file):
         context = cli.CommandContext()
         assert isinstance(context.os_release, dict)
         assert "name" in context.os_release

@@ -6,5 +6,6 @@ Rendering
 
    base
    stream
+   renderers
    renders/index
    decorators/index

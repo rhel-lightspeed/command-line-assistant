@@ -7,14 +7,18 @@ from argparse import ArgumentParser, Namespace
 
 from dasbus.error import DBusError
 
-from command_line_assistant.commands import chat, feedback, history, shell
-from command_line_assistant.logger import setup_client_logging
-from command_line_assistant.utils.cli import (
+from command_line_assistant.commands.chat import chat_command
+from command_line_assistant.commands.cli import (
     add_default_command,
     create_argument_parser,
     read_stdin,
+    register_all_commands,
 )
-from command_line_assistant.utils.renderers import (
+from command_line_assistant.commands.feedback import feedback_command
+from command_line_assistant.commands.history import history_command
+from command_line_assistant.commands.shell import shell_command
+from command_line_assistant.logger import setup_client_logging
+from command_line_assistant.rendering.renderers import (
     create_error_renderer,
     create_warning_renderer,
 )
@@ -28,10 +32,11 @@ def register_subcommands() -> ArgumentParser:
     """
     parser, commands_parser = create_argument_parser()
 
-    chat.register_subcommand(commands_parser)  # type: ignore
-    feedback.register_subcommand(commands_parser)  # type: ignore
-    history.register_subcommand(commands_parser)  # type: ignore
-    shell.register_subcommand(commands_parser)  # type: ignore
+    # Register all decorator-based commands (includes chat, feedback, history, shell, example)
+    register_all_commands(
+        commands_parser,
+        [chat_command, feedback_command, history_command, shell_command],
+    )
 
     return parser
 
@@ -77,19 +82,12 @@ def main() -> int:
             parser.print_help()
             return os.EX_USAGE
 
-        error_renderer = create_error_renderer(
-            plain=hasattr(parsed_args, "plain") and parsed_args.plain
-        )
-        warning_renderer = create_warning_renderer(
-            plain=hasattr(parsed_args, "plain") and parsed_args.plain
-        )
-
         # In case the uder specify the --debug, we will enable the logging here.
         if parsed_args.debug:
             setup_client_logging()
 
-        service = parsed_args.func(parsed_args)
-        return service.run()
+        return parsed_args.func(parsed_args)
+
     except ValueError as e:
         error_renderer.render(str(e))
         return os.EX_DATAERR

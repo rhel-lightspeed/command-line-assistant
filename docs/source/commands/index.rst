@@ -9,3 +9,4 @@ Commands
    shell
    history
    feedback
+   cli

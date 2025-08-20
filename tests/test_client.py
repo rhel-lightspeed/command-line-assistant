@@ -1,17 +1,23 @@
-from argparse import Namespace
 from unittest.mock import Mock, patch
 
 import pytest
 from dasbus.error import DBusError
 
 from command_line_assistant.client import main
-from command_line_assistant.commands.base import BaseCLICommand
 from command_line_assistant.constants import VERSION
 
 
-class MockCommand(BaseCLICommand):
-    def run(self):  # type: ignore
-        return True
+def test_initialize_with_no_args(capsys):
+    """Test initialize with no arguments - should print help and return 1"""
+    with (
+        patch("sys.argv", ["c"]),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
+    ):
+        result = main()
+        captured = capsys.readouterr()
+
+        assert result == 64  # os.EX_USAGE
+        assert "usage:" in captured.out
 
 
 @pytest.mark.parametrize(
@@ -27,56 +33,52 @@ class MockCommand(BaseCLICommand):
 )
 def test_initialize_with_query_command(argv, stdin):
     """Test initialize with query command"""
-    mock_command = Mock(return_value=MockCommand(Namespace()))
+    mock_command = Mock(return_value=0)
 
     with (
         patch("sys.argv", argv),
-        patch("command_line_assistant.commands.chat.register_subcommand"),
-        patch("command_line_assistant.commands.history.register_subcommand"),
+        patch("command_line_assistant.commands.cli.register_all_commands"),
         patch("command_line_assistant.client.read_stdin", lambda: stdin),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
         result = main()
 
-        assert result == 1
+        assert result == 0
         mock_command.assert_called_once()
 
 
 def test_initialize_with_history_command():
     """Test initialize with history command"""
-    mock_command = Mock(return_value=MockCommand(Namespace()))
+    mock_command = Mock(return_value=0)
 
     with (
         patch("sys.argv", ["c", "history", "--clear"]),
-        patch("command_line_assistant.commands.chat.register_subcommand"),
-        patch("command_line_assistant.commands.history.register_subcommand"),
+        patch("command_line_assistant.commands.cli.register_all_commands"),
         patch("command_line_assistant.client.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
         result = main()
 
-        assert result == 1
+        assert result == 0
         mock_command.assert_called_once()
 
 
 def test_initialize_with_shell_command():
     """Test initialize with shell command"""
-    mock_command = Mock(return_value=MockCommand(Namespace()))
+    mock_command = Mock(return_value=0)
 
     with (
-        patch("sys.argv", ["c", "shell", "--enable-integration"]),
-        patch("command_line_assistant.commands.chat.register_subcommand"),
-        patch("command_line_assistant.commands.history.register_subcommand"),
-        patch("command_line_assistant.commands.shell.register_subcommand"),
+        patch("sys.argv", ["c", "shell", "--enable-interactive"]),
+        patch("command_line_assistant.commands.cli.register_all_commands"),
         patch("command_line_assistant.client.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
         mock_parse.return_value.func = mock_command
         result = main()
 
-        assert result == 1
+        assert result == 0
         mock_command.assert_called_once()
 
 
@@ -160,3 +162,31 @@ def test_exception_initialization_error(exception, expected, capsys):
 
     captured = capsys.readouterr()
     assert expected in captured.err
+
+
+def test_command_registry_integration():
+    """Test that the command registry is properly integrated"""
+    with (
+        patch("sys.argv", ["c", "--help"]),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
+    ):
+        with pytest.raises(SystemExit):
+            main()
+
+
+def test_command_exception_handling():
+    """Test that command exceptions are handled properly"""
+    mock_command = Mock(side_effect=ValueError("Test error"))
+
+    with (
+        patch("sys.argv", ["c", "chat", "test"]),
+        patch("command_line_assistant.commands.cli.register_all_commands"),
+        patch("command_line_assistant.client.read_stdin", lambda: None),
+        patch("argparse.ArgumentParser.parse_args") as mock_parse,
+    ):
+        mock_parse.return_value.func = mock_command
+        mock_parse.return_value.plain = False
+        result = main()
+
+        assert result == 65  # os.EX_DATAERR
+        mock_command.assert_called_once()
