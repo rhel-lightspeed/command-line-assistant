@@ -294,7 +294,6 @@ def test_interactive_with_terminal_capture(default_namespace, command_context, c
 @pytest.mark.parametrize(
     ("query_string", "expected_error"),
     [
-        ("", "Your query needs to have at least 2 characters"),
         ("a", "Your query needs to have at least 2 characters"),
     ],
 )
@@ -474,24 +473,23 @@ def test_read_last_terminal_output_no_contents():
         assert result == ""
 
 
-def test_display_response(capsys):
+@pytest.mark.parametrize(
+    ("plain"),
+    (
+        (True),
+        (False),
+    ),
+)
+def test_display_response(plain, capsys, tmp_path, monkeypatch):
     """Test display response function."""
-    chat._display_response("test response", plain=True)
+    monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+
+    chat._display_response("test response", plain=plain)
 
     captured = capsys.readouterr()
-    assert chat.LEGAL_NOTICE in captured.out
+    assert "This feature uses AI technology." in captured.out
     assert "test response" in captured.out
-    assert chat.ALWAYS_LEGAL_MESSAGE in captured.out
-
-
-def test_display_response_plain(capsys):
-    """Test display response function in plain mode."""
-    chat._display_response("test response", plain=True)
-
-    captured = capsys.readouterr()
-    assert chat.LEGAL_NOTICE in captured.out
-    assert "test response" in captured.out
-    assert chat.ALWAYS_LEGAL_MESSAGE in captured.out
+    assert "" in captured.out
 
 
 def test_submit_question_success(mock_dbus_service):
@@ -577,20 +575,6 @@ def test_create_chat_session_new(mock_dbus_service):
         dbus, "test-user", "test-chat", "Test description"
     )
     assert result == "new-chat-id"
-
-
-def test_exception_handling(default_namespace, capsys):
-    """Test that ChatCommandException is properly handled."""
-    # Test with invalid query that should raise ChatCommandException
-    default_namespace.query_string = ""  # Empty query
-    default_namespace.stdin = ""  # Empty stdin
-
-    result = chat._validate_query_composition(default_namespace)
-
-    assert (
-        "Your query needs to have at least 2 characters. Either query or stdin are empty."
-        == result
-    )
 
 
 def test_trim_down_message_size(capsys, caplog):

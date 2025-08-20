@@ -373,7 +373,9 @@ def _display_response(response: str, plain: bool = False) -> None:
     )
     markdown_renderer = create_markdown_renderer(plain=plain)
 
-    legal_renderer.render(LEGAL_NOTICE)
+    if _handle_legal_message():
+        legal_renderer.render(LEGAL_NOTICE)
+
     legal_renderer.render("─" * 72)
     print("")
     markdown_renderer.render(response)
@@ -717,10 +719,6 @@ def _validate_query_composition(args: Namespace) -> Optional[str]:
     Returns:
         Optional[str]: In case the query is not valid by any means in the validation.
     """
-    if not args.query_string and not args.stdin:
-        logger.debug("Both query_string and stdin are empty.")
-        return "Your query needs to have at least 2 characters. Either query or stdin are empty."
-
     if args.query_string and len(args.query_string.strip()) <= 1:
         logger.debug(
             "Query string has only 1 or 0 characters after stripping: '%s'",
