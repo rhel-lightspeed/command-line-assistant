@@ -37,7 +37,7 @@ def test_initialize_with_query_command(argv, stdin):
 
     with (
         patch("sys.argv", argv),
-        patch("command_line_assistant.utils.cli.register_all_commands"),
+        patch("command_line_assistant.commands.cli.register_all_commands"),
         patch("command_line_assistant.client.read_stdin", lambda: stdin),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
@@ -54,7 +54,7 @@ def test_initialize_with_history_command():
 
     with (
         patch("sys.argv", ["c", "history", "--clear"]),
-        patch("command_line_assistant.utils.cli.register_all_commands"),
+        patch("command_line_assistant.commands.cli.register_all_commands"),
         patch("command_line_assistant.client.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
@@ -71,7 +71,7 @@ def test_initialize_with_shell_command():
 
     with (
         patch("sys.argv", ["c", "shell", "--enable-interactive"]),
-        patch("command_line_assistant.utils.cli.register_all_commands"),
+        patch("command_line_assistant.commands.cli.register_all_commands"),
         patch("command_line_assistant.client.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):
@@ -180,7 +180,7 @@ def test_command_exception_handling():
 
     with (
         patch("sys.argv", ["c", "chat", "test"]),
-        patch("command_line_assistant.utils.cli.register_all_commands"),
+        patch("command_line_assistant.commands.cli.register_all_commands"),
         patch("command_line_assistant.client.read_stdin", lambda: None),
         patch("argparse.ArgumentParser.parse_args") as mock_parse,
     ):

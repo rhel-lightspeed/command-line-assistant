@@ -7,6 +7,7 @@ D-Bus
    constants
    context
    exceptions
+   client
    interfaces/index
    server
    structures/index

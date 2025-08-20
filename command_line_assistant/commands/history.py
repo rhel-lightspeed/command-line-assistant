@@ -3,6 +3,12 @@
 import logging
 from argparse import Namespace
 
+from command_line_assistant.commands.cli import (
+    CommandContext,
+    argument,
+    command,
+)
+from command_line_assistant.dbus.client import DbusClient
 from command_line_assistant.dbus.exceptions import (
     HistoryNotAvailableError,
     HistoryNotEnabledError,
@@ -11,14 +17,8 @@ from command_line_assistant.dbus.structures.chat import ChatList
 from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.exceptions import HistoryCommandException
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
-from command_line_assistant.utils.cli import (
-    CommandContext,
-    argument,
-    command,
-)
-from command_line_assistant.utils.dbus import DbusUtils
-from command_line_assistant.utils.renderers import (
-    RenderUtils,
+from command_line_assistant.rendering.renderers import (
+    Renderer,
     create_markdown_renderer,
     create_text_renderer,
     format_datetime,
@@ -114,8 +114,8 @@ def history_command(args: Namespace, context: CommandContext) -> int:
     Returns:
         int: Exit code.
     """
-    dbus = DbusUtils()
-    render = RenderUtils(args.plain)
+    dbus = DbusClient()
+    render = Renderer(args.plain)
 
     user_id = dbus.user_proxy.GetUserId(context.effective_user_id)
 
@@ -145,12 +145,12 @@ def history_command(args: Namespace, context: CommandContext) -> int:
             return _all_history(render, dbus, user_id, args.plain)
     except HistoryCommandException as e:
         logger.info("Failed to execute history command: %s", str(e))
-        render.render_error(str(e))
+        render.error(str(e))
         return e.code
 
 
 def _clear_history(
-    render: RenderUtils, dbus: DbusUtils, user_id: str, from_chat: str
+    render: Renderer, dbus: DbusClient, user_id: str, from_chat: str
 ) -> int:
     """Clear history for a specific chat.
 
@@ -165,14 +165,14 @@ def _clear_history(
     """
     try:
         dbus.history_proxy.ClearHistory(user_id, from_chat)
-        render.render_success("History cleaned successfully.")
+        render.success("History cleaned successfully.")
         return 0
     except (HistoryNotAvailableError, HistoryNotEnabledError) as e:
         logger.debug("Failed to clear the history: %s", str(e))
         raise HistoryCommandException(str(e)) from e
 
 
-def _clear_all_history(render: RenderUtils, dbus: DbusUtils, user_id: str) -> int:
+def _clear_all_history(render: Renderer, dbus: DbusClient, user_id: str) -> int:
     """Clear all history.
 
     Args:
@@ -194,7 +194,7 @@ def _clear_all_history(render: RenderUtils, dbus: DbusUtils, user_id: str) -> in
             )
 
         dbus.history_proxy.ClearAllHistory(user_id)
-        render.render_success("All histories cleared successfully.")
+        render.success("All histories cleared successfully.")
         return 0
     except (HistoryNotAvailableError, HistoryNotEnabledError) as e:
         logger.debug(
@@ -204,7 +204,7 @@ def _clear_all_history(render: RenderUtils, dbus: DbusUtils, user_id: str) -> in
 
 
 def _first_history(
-    render: RenderUtils, dbus: DbusUtils, user_id: str, from_chat: str, plain: bool
+    render: Renderer, dbus: DbusClient, user_id: str, from_chat: str, plain: bool
 ) -> int:
     """Get first conversation from history.
 
@@ -219,7 +219,7 @@ def _first_history(
         int: The exit code.
     """
     try:
-        render.render_success("Getting first conversation from history.")
+        render.success("Getting first conversation from history.")
         response = dbus.history_proxy.GetFirstConversation(user_id, from_chat)
         history = HistoryList.from_structure(response)
         _show_history(history, plain)
@@ -230,7 +230,7 @@ def _first_history(
 
 
 def _last_history(
-    render: RenderUtils, dbus: DbusUtils, user_id: str, from_chat: str, plain: bool
+    render: Renderer, dbus: DbusClient, user_id: str, from_chat: str, plain: bool
 ) -> int:
     """Get last conversation from history.
 
@@ -245,7 +245,7 @@ def _last_history(
         int: The exit code.
     """
     try:
-        render.render_success("Getting last conversation from history.")
+        render.success("Getting last conversation from history.")
         response = dbus.history_proxy.GetLastConversation(user_id, from_chat)
         history = HistoryList.from_structure(response)
         _show_history(history, plain)
@@ -256,8 +256,8 @@ def _last_history(
 
 
 def _filter_history(
-    render: RenderUtils,
-    dbus: DbusUtils,
+    render: Renderer,
+    dbus: DbusClient,
     user_id: str,
     filter_text: str,
     from_chat: str,
@@ -277,7 +277,7 @@ def _filter_history(
         int: The exit code.
     """
     try:
-        render.render_success("Filtering conversation history.")
+        render.success("Filtering conversation history.")
         response = dbus.history_proxy.GetFilteredConversation(
             user_id, filter_text, from_chat
         )
@@ -293,9 +293,7 @@ def _filter_history(
         raise HistoryCommandException(str(e)) from e
 
 
-def _all_history(
-    render: RenderUtils, dbus: DbusUtils, user_id: str, plain: bool
-) -> int:
+def _all_history(render: Renderer, dbus: DbusClient, user_id: str, plain: bool) -> int:
     """Get all conversation history.
 
     Args:
@@ -308,7 +306,7 @@ def _all_history(
         int: The exit code.
     """
     try:
-        render.render_success("Getting all conversations from history.")
+        render.success("Getting all conversations from history.")
         response = dbus.history_proxy.GetHistory(user_id)
         history = HistoryList.from_structure(response)
         _show_history(history, plain)

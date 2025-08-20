@@ -10,6 +10,8 @@ from command_line_assistant.commands import chat
 from command_line_assistant.commands.chat import (
     _handle_legal_message,
 )
+from command_line_assistant.commands.cli import CommandContext
+from command_line_assistant.dbus.client import DbusClient
 from command_line_assistant.dbus.exceptions import (
     ChatNotFoundError,
     HistoryNotEnabledError,
@@ -21,10 +23,8 @@ from command_line_assistant.dbus.structures.chat import (
     Response,
 )
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
-from command_line_assistant.utils.cli import CommandContext
-from command_line_assistant.utils.dbus import DbusUtils
+from command_line_assistant.rendering.renderers import Renderer
 from command_line_assistant.utils.files import NamedFileLock
-from command_line_assistant.utils.renderers import RenderUtils
 
 
 @pytest.fixture
@@ -74,8 +74,8 @@ def test_chat_command_run_minimum_characters(
 
     with pytest.raises(ChatCommandException, match=expected):
         chat._single_question(
-            RenderUtils(plain=True),
-            DbusUtils(),
+            Renderer(plain=True),
+            DbusClient(),
             command_context,
             default_namespace,
             "test-user",
@@ -90,8 +90,8 @@ def test_single_question_invalid_query(default_namespace, command_context):
         ChatCommandException, match="Your query needs to have at least 2 characters."
     ):
         chat._single_question(
-            RenderUtils(plain=True),
-            DbusUtils(),
+            Renderer(plain=True),
+            DbusClient(),
             command_context,
             default_namespace,
             "test-user",
@@ -109,8 +109,8 @@ def test_single_question_value_error(default_namespace, command_context, monkeyp
         ChatCommandException, match="Failed to get a response from LLM.*"
     ):
         chat._single_question(
-            RenderUtils(plain=True),
-            DbusUtils(),
+            Renderer(plain=True),
+            DbusClient(),
             command_context,
             default_namespace,
             "test-user",
@@ -132,7 +132,7 @@ def test_list_chats(mock_dbus_service, capsys):
         ]
     ).structure()
 
-    result = chat._list_chats(RenderUtils(plain=True), DbusUtils(), user_id="test")
+    result = chat._list_chats(Renderer(plain=True), DbusClient(), user_id="test")
 
     captured = capsys.readouterr()
     assert result == 0
@@ -146,7 +146,7 @@ def test_list_no_chats(mock_dbus_service, default_namespace, command_context, ca
     mock_dbus_service.GetAllChatFromUser.return_value = ChatList([]).structure()
 
     default_namespace.list = True
-    result = chat._list_chats(RenderUtils(True), DbusUtils(), "test-user")
+    result = chat._list_chats(Renderer(True), DbusClient(), "test-user")
 
     captured = capsys.readouterr()
     assert result == 0
@@ -158,7 +158,7 @@ def test_delete_chat(mock_dbus_service, capsys):
     mock_dbus_service.GetUserId.return_value = "test-user"
     mock_dbus_service.DeleteChatForUser.return_value = None
 
-    result = chat._delete_chat(RenderUtils(True), DbusUtils(), "test", "test-chat")
+    result = chat._delete_chat(Renderer(True), DbusClient(), "test", "test-chat")
 
     captured = capsys.readouterr()
     assert result == 0
@@ -172,7 +172,7 @@ def test_delete_chat_not_found(mock_dbus_service):
         "Chat not found"
     )
     with pytest.raises(ChatCommandException, match="Failed to delete requested chat"):
-        chat._delete_chat(RenderUtils(True), DbusUtils(), "test", "test")
+        chat._delete_chat(Renderer(True), DbusClient(), "test", "test")
 
 
 def test_delete_all_chats(mock_dbus_service, capsys):
@@ -180,7 +180,7 @@ def test_delete_all_chats(mock_dbus_service, capsys):
     mock_dbus_service.GetUserId.return_value = "test-user"
     mock_dbus_service.DeleteAllChatForUser.return_value = None
 
-    result = chat._delete_all_chats(RenderUtils(True), DbusUtils(), "test-user")
+    result = chat._delete_all_chats(Renderer(True), DbusClient(), "test-user")
 
     captured = capsys.readouterr()
     assert result == 0
@@ -197,7 +197,7 @@ def test_delete_all_chats_exception(mock_dbus_service, capsys):
         ChatCommandException,
         match="Failed to delete all requested chats chat not found",
     ):
-        chat._delete_all_chats(RenderUtils(True), DbusUtils(), "test-user")
+        chat._delete_all_chats(Renderer(True), DbusClient(), "test-user")
 
 
 def test_interactive_mode(mock_dbus_service, default_namespace, command_context):
@@ -216,8 +216,8 @@ def test_interactive_mode(mock_dbus_service, default_namespace, command_context)
         mock_renderer.return_value.output = "test question"
 
         result = chat._interactive_chat(
-            RenderUtils(True),
-            DbusUtils(),
+            Renderer(True),
+            DbusClient(),
             command_context,
             default_namespace,
             "test-user",
@@ -236,8 +236,8 @@ def test_interactive_mode_empty_question(default_namespace, command_context, cap
         mock_renderer.return_value.output = ""
 
         chat._interactive_chat(
-            RenderUtils(True),
-            DbusUtils(),
+            Renderer(True),
+            DbusClient(),
             command_context,
             default_namespace,
             "test-user",
@@ -261,8 +261,8 @@ def test_interactive_mode_keyboard_interrupt(default_namespace, command_context)
             match="Detected keyboard interrupt. Stopping interactive mode.",
         ):
             chat._interactive_chat(
-                RenderUtils(True),
-                DbusUtils(),
+                Renderer(True),
+                DbusClient(),
                 command_context,
                 default_namespace,
                 "test-user",
@@ -281,8 +281,8 @@ def test_interactive_with_terminal_capture(default_namespace, command_context, c
             match="Detected a terminal capture session running with pid.*",
         ):
             chat._interactive_chat(
-                RenderUtils(True),
-                DbusUtils(),
+                Renderer(True),
+                DbusClient(),
                 command_context,
                 default_namespace,
                 "test-user",
@@ -498,7 +498,7 @@ def test_submit_question_success(mock_dbus_service):
     mock_dbus_service.AskQuestion.return_value = Response("test response").structure()
     mock_dbus_service.WriteHistory.return_value = None
 
-    dbus = DbusUtils()
+    dbus = DbusClient()
 
     # Create a proper Question object
     message_input = Question(
@@ -528,7 +528,7 @@ def test_submit_question_history_disabled(mock_dbus_service, caplog):
         "History disabled"
     )
 
-    dbus = DbusUtils()
+    dbus = DbusClient()
 
     message_input = Question(
         message="test question",
@@ -555,7 +555,7 @@ def test_create_chat_session_existing(mock_dbus_service):
 
     mock_dbus_service.GetChatId.return_value = "existing-chat-id"
 
-    dbus = DbusUtils()
+    dbus = DbusClient()
 
     result = chat._create_chat_session(
         dbus, "test-user", "test-chat", "Test description"
@@ -569,7 +569,7 @@ def test_create_chat_session_new(mock_dbus_service):
     mock_dbus_service.GetChatId.side_effect = ChatNotFoundError("No chat found")
     mock_dbus_service.CreateChat.return_value = "new-chat-id"
 
-    dbus = DbusUtils()
+    dbus = DbusClient()
 
     result = chat._create_chat_session(
         dbus, "test-user", "test-chat", "Test description"
@@ -578,7 +578,7 @@ def test_create_chat_session_new(mock_dbus_service):
 
 
 def test_trim_down_message_size(capsys, caplog):
-    render = RenderUtils(plain=True)
+    render = Renderer(plain=True)
 
     chat._trim_message_size(render, "test " * 6500)
     captured = capsys.readouterr()

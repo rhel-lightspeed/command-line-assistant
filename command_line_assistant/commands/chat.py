@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from io import TextIOWrapper
 from typing import Optional
 
+from command_line_assistant.commands.cli import CommandContext, argument, command
+from command_line_assistant.dbus.client import DbusClient
 from command_line_assistant.dbus.exceptions import (
     ChatNotFoundError,
     HistoryNotEnabledError,
@@ -24,29 +26,27 @@ from command_line_assistant.dbus.structures.chat import (
 )
 from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
-from command_line_assistant.terminal.parser import (
-    find_output_by_index,
-    parse_terminal_output,
-)
-from command_line_assistant.terminal.reader import TERMINAL_CAPTURE_FILE
-from command_line_assistant.utils.benchmark import TimingLogger
-from command_line_assistant.utils.cli import CommandContext, argument, command
-from command_line_assistant.utils.dbus import DbusUtils
-from command_line_assistant.utils.environment import get_xdg_state_path
-from command_line_assistant.utils.files import (
-    NamedFileLock,
-    create_folder,
-    guess_mimetype,
-    write_file,
-)
-from command_line_assistant.utils.renderers import (
-    RenderUtils,
+from command_line_assistant.rendering.renderers import (
+    Renderer,
     create_interactive_renderer,
     create_markdown_renderer,
     create_spinner_renderer,
     create_text_renderer,
     format_datetime,
     human_readable_size,
+)
+from command_line_assistant.terminal.parser import (
+    find_output_by_index,
+    parse_terminal_output,
+)
+from command_line_assistant.terminal.reader import TERMINAL_CAPTURE_FILE
+from command_line_assistant.utils.benchmark import TimingLogger
+from command_line_assistant.utils.environment import get_xdg_state_path
+from command_line_assistant.utils.files import (
+    NamedFileLock,
+    create_folder,
+    guess_mimetype,
+    write_file,
 )
 
 logger = logging.getLogger(__name__)
@@ -61,15 +61,20 @@ timing = TimingLogger(
     ]
 )
 
-# Constants
+#: Max input size we want to allow to be submitted to the backend. This
+#: corresponds to 32KB (32000 bytes)
 MAX_QUESTION_SIZE: int = 32_000
+#: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
     "This feature uses AI technology. Do not include any personal information or "
     "other sensitive information in your input. Interactions may be used to "
     "improve Red Hat's products or services."
 )
+#: Always good to have legal message.
 ALWAYS_LEGAL_MESSAGE = "Always review AI-generated content prior to use."
+#: Default chat description when none is given
 DEFAULT_CHAT_DESCRIPTION = "Default Command Line Assistant Chat."
+#: Default chat name when none is given
 DEFAULT_CHAT_NAME = "default"
 
 
@@ -207,8 +212,8 @@ def chat_command(args: Namespace, context: CommandContext) -> int:
     Returns:
         int: The exit code.
     """
-    render = RenderUtils(args.plain)
-    dbus = DbusUtils()
+    render = Renderer(args.plain)
+    dbus = DbusClient()
 
     user_id = dbus.user_proxy.GetUserId(context.effective_user_id)
 
@@ -226,13 +231,13 @@ def chat_command(args: Namespace, context: CommandContext) -> int:
         description = args.description or DEFAULT_CHAT_DESCRIPTION
 
         if not args.description and args.name:
-            render.render_warning(
+            render.warning(
                 "Chat description not provided. Using the default description: "
                 f"'{DEFAULT_CHAT_DESCRIPTION}'. You can specify a custom description using the '--description' option."
             )
 
         if not args.name and args.description:
-            render.render_warning(
+            render.warning(
                 "Chat name not provided. Using the default name: "
                 f"'{DEFAULT_CHAT_NAME}'. You can specify a custom name using the '--name' option."
             )
@@ -256,7 +261,7 @@ def chat_command(args: Namespace, context: CommandContext) -> int:
             )
     except ChatCommandException as e:
         logger.info("Failed to execute chat command: %s", str(e))
-        render.render_error(str(e))
+        render.error(str(e))
         return e.code
 
 
@@ -326,7 +331,7 @@ def _handle_legal_message() -> bool:
 
 
 def _create_chat_session(
-    dbus: DbusUtils, user_id: str, name: str, description: str
+    dbus: DbusClient, user_id: str, name: str, description: str
 ) -> str:
     """Create a new chat session for a given conversation.
 
@@ -386,7 +391,7 @@ def _display_response(response: str, plain: bool = False) -> None:
 
 @timing.timeit
 def _submit_question(
-    dbus: DbusUtils,
+    dbus: DbusClient,
     user_id: str,
     chat_id: str,
     message_input: Question,
@@ -423,7 +428,7 @@ def _submit_question(
     return response
 
 
-def _trim_message_size(render: RenderUtils, question: str) -> str:
+def _trim_message_size(render: Renderer, question: str) -> str:
     """Trim the message size to fit within the maximum allowed size.
 
     Args:
@@ -438,7 +443,7 @@ def _trim_message_size(render: RenderUtils, question: str) -> str:
     if question_length >= MAX_QUESTION_SIZE:
         readable_size = human_readable_size(question_length)
         max_question_size = human_readable_size(MAX_QUESTION_SIZE)
-        render.render_warning(
+        render.warning(
             f"The total size of your question and context ({readable_size}) exceeds the limit of {max_question_size}. Trimming it down to fit in the expected size, you may lose some context."
         )
         logger.debug(
@@ -453,7 +458,7 @@ def _trim_message_size(render: RenderUtils, question: str) -> str:
 
 
 def _compose_message_input(
-    render: RenderUtils, context: CommandContext, input_source: InputSource
+    render: Renderer, context: CommandContext, input_source: InputSource
 ) -> Question:
     """Compose the final message that will be sent to the API.
 
@@ -511,7 +516,7 @@ def _gather_input_sources(args: Namespace) -> InputSource:
 
 @timing.timeit
 def _get_response(
-    dbus: DbusUtils,
+    dbus: DbusClient,
     message_input: Question,
     user_id: str,
 ) -> str:
@@ -529,7 +534,7 @@ def _get_response(
     return Response.from_structure(response).message
 
 
-def _list_chats(render: RenderUtils, dbus: DbusUtils, user_id: str) -> int:
+def _list_chats(render: Renderer, dbus: DbusClient, user_id: str) -> int:
     """List all chats operation.
 
     Args:
@@ -543,20 +548,20 @@ def _list_chats(render: RenderUtils, dbus: DbusUtils, user_id: str) -> int:
     all_chats = ChatList.from_structure(dbus.chat_proxy.GetAllChatFromUser(user_id))
 
     if not all_chats.chats:
-        render.render_success("No chats available.")
+        render.success("No chats available.")
         return 0
 
-    render.render_success(f"Found a total of {len(all_chats.chats)} chats:")
+    render.success(f"Found a total of {len(all_chats.chats)} chats:")
     for index, chat in enumerate(all_chats.chats):
         created_at = format_datetime(chat.created_at)
-        render.render_success(
+        render.success(
             f"{index}. Chat: {chat.name} - {chat.description} (created at: {created_at})"
         )
     return 0
 
 
 def _delete_chat(
-    render: RenderUtils, dbus: DbusUtils, user_id: str, chat_name: str
+    render: Renderer, dbus: DbusClient, user_id: str, chat_name: str
 ) -> int:
     """Delete a specific chat operation.
 
@@ -571,13 +576,13 @@ def _delete_chat(
     """
     try:
         dbus.chat_proxy.DeleteChatForUser(user_id, chat_name)
-        render.render_success(f"Chat {chat_name} deleted successfully.")
+        render.success(f"Chat {chat_name} deleted successfully.")
         return 0
     except ChatNotFoundError as e:
         raise ChatCommandException(f"Failed to delete requested chat {str(e)}") from e
 
 
-def _delete_all_chats(render: RenderUtils, dbus: DbusUtils, user_id: str) -> int:
+def _delete_all_chats(render: Renderer, dbus: DbusClient, user_id: str) -> int:
     """Delete all chats operation.
 
     Args:
@@ -590,7 +595,7 @@ def _delete_all_chats(render: RenderUtils, dbus: DbusUtils, user_id: str) -> int
     """
     try:
         dbus.chat_proxy.DeleteAllChatForUser(user_id)
-        render.render_success("Deleted all chats successfully.")
+        render.success("Deleted all chats successfully.")
         return 0
     except ChatNotFoundError as e:
         raise ChatCommandException(
@@ -599,8 +604,8 @@ def _delete_all_chats(render: RenderUtils, dbus: DbusUtils, user_id: str) -> int
 
 
 def _interactive_chat(
-    render: RenderUtils,
-    dbus: DbusUtils,
+    render: Renderer,
+    dbus: DbusClient,
     context: CommandContext,
     args: Namespace,
     user_id: str,
@@ -638,7 +643,7 @@ def _interactive_chat(
             interactive_renderer.render(">>> ")
             question = interactive_renderer.output
             if not question:
-                render.render_error("Your question can't be empty. Please, try again.")
+                render.error("Your question can't be empty. Please, try again.")
                 continue
 
             input_source.question = question
@@ -660,8 +665,8 @@ def _interactive_chat(
 
 
 def _single_question(
-    render: RenderUtils,
-    dbus: DbusUtils,
+    render: Renderer,
+    dbus: DbusClient,
     context: CommandContext,
     args: Namespace,
     user_id: str,

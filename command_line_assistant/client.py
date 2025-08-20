@@ -8,17 +8,17 @@ from argparse import ArgumentParser, Namespace
 from dasbus.error import DBusError
 
 from command_line_assistant.commands.chat import chat_command
-from command_line_assistant.commands.feedback import feedback_command
-from command_line_assistant.commands.history import history_command
-from command_line_assistant.commands.shell import shell_command
-from command_line_assistant.logger import setup_client_logging
-from command_line_assistant.utils.cli import (
+from command_line_assistant.commands.cli import (
     add_default_command,
     create_argument_parser,
     read_stdin,
     register_all_commands,
 )
-from command_line_assistant.utils.renderers import (
+from command_line_assistant.commands.feedback import feedback_command
+from command_line_assistant.commands.history import history_command
+from command_line_assistant.commands.shell import shell_command
+from command_line_assistant.logger import setup_client_logging
+from command_line_assistant.rendering.renderers import (
     create_error_renderer,
     create_warning_renderer,
 )

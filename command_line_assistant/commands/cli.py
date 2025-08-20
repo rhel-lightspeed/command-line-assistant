@@ -4,7 +4,7 @@ that is reused across commands and other interactions.
 
 Example:
 
-    >>> from command_line_assistant.utils.cli import CommandContext, argument, command
+    >>> from command_line_assistant.commands.cli import CommandContext, argument, command
 
     >>> @command("hello", help="A simple command that prints 'Hello, friend')
     >>> @argument("-n", "--name", nargs="?", help="Your name goes in here.")
@@ -54,7 +54,7 @@ OS_RELEASE_PATH = Path("/etc/os-release")
 # sub-commands decorators. The `CommandFunc` type definition accepts two
 # parameters:
 #   * first one being the a namepsace (argparse.Namespace);
-#   * the second one a context (command_line_assistant.utils.cli.CommandContext)
+#   * the second one a context (command_line_assistant.commands.cli.CommandContext)
 #  and as a result, returns a integer.
 #
 # The below `Callable` annotation can be translated to the following:

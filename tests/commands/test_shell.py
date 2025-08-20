@@ -4,8 +4,8 @@ from unittest import mock
 import pytest
 
 from command_line_assistant.commands import shell
+from command_line_assistant.commands.cli import CommandContext
 from command_line_assistant.exceptions import ShellCommandException
-from command_line_assistant.utils.cli import CommandContext
 from command_line_assistant.utils.files import NamedFileLock
 
 

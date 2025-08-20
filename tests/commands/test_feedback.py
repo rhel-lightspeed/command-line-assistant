@@ -3,7 +3,7 @@ from argparse import Namespace
 import pytest
 
 from command_line_assistant.commands import feedback
-from command_line_assistant.utils.cli import CommandContext
+from command_line_assistant.commands.cli import CommandContext
 
 
 @pytest.fixture

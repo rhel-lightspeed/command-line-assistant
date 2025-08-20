@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from command_line_assistant import config, logger
+from command_line_assistant.commands.cli import CommandContext
 from command_line_assistant.config.schemas.backend import AuthSchema, BackendSchema
 from command_line_assistant.config.schemas.database import DatabaseSchema
 from command_line_assistant.config.schemas.history import HistorySchema
@@ -14,13 +15,12 @@ from command_line_assistant.config.schemas.logging import LoggingSchema
 from command_line_assistant.dbus import constants as dbus_constants
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
-from command_line_assistant.utils import files
-from command_line_assistant.utils.cli import CommandContext
-from command_line_assistant.utils.renderers import (
+from command_line_assistant.rendering.renderers import (
     create_error_renderer,
     create_text_renderer,
     create_warning_renderer,
 )
+from command_line_assistant.utils import files
 from tests.helpers import MockStream
 
 

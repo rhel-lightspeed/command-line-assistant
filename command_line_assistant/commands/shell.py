@@ -5,19 +5,19 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Union
 
-from command_line_assistant.exceptions import ShellCommandException
-from command_line_assistant.integrations import BASH_INTERACTIVE
-from command_line_assistant.terminal.reader import (
-    TERMINAL_CAPTURE_FILE,
-    start_capturing,
-)
-from command_line_assistant.utils.cli import (
+from command_line_assistant.commands.cli import (
     CommandContext,
     argument,
     command,
 )
+from command_line_assistant.exceptions import ShellCommandException
+from command_line_assistant.integrations import BASH_INTERACTIVE
+from command_line_assistant.rendering.renderers import Renderer
+from command_line_assistant.terminal.reader import (
+    TERMINAL_CAPTURE_FILE,
+    start_capturing,
+)
 from command_line_assistant.utils.files import NamedFileLock, create_folder, write_file
-from command_line_assistant.utils.renderers import RenderUtils
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def shell_command(args: Namespace, context: CommandContext) -> int:
     Returns:
         int: Exit code
     """
-    render = RenderUtils(args.plain)
+    render = Renderer(args.plain)
 
     try:
         # Handle different operations
@@ -74,19 +74,19 @@ def shell_command(args: Namespace, context: CommandContext) -> int:
             return _enable_capture(render)
         else:
             # If no specific operation is provided, show help-like message
-            render.render_warning(
+            render.warning(
                 "No operation specified. Use --help to see available options."
             )
             return 1
 
     except ShellCommandException as e:
         logger.info("Failed to execute shell command: %s", str(e))
-        render.render_error(str(e))
+        render.error(str(e))
         return e.code
 
 
 def _write_bash_functions(
-    render: RenderUtils, file: Path, contents: Union[bytes, str]
+    render: Renderer, file: Path, contents: Union[bytes, str]
 ) -> int:
     """Write bash functions to the desired location.
 
@@ -101,7 +101,7 @@ def _write_bash_functions(
     create_folder(BASH_RC_D_PATH)
     if file.exists():
         logger.info("File already exists at %s.", file)
-        render.render_warning(
+        render.warning(
             f"The integration is already present and enabled at {file}! "
             "Restart your terminal or source ~/.bashrc in case it's not working."
         )
@@ -122,19 +122,19 @@ def _write_bash_functions(
             continue
 
     if not has_snippet:
-        render.render_warning(
+        render.warning(
             "In order to use shell integration, ensure your ~/.bashrc file loads files from ~/.bashrc.d. See /etc/skel/.bashrc for an example."
         )
 
     write_file(contents, file)
-    render.render_success(
+    render.success(
         f"Integration successfully added at {file}. "
         "In order to use it, please restart your terminal or source ~/.bashrc"
     )
     return 0
 
 
-def _remove_bash_functions(render: RenderUtils, file: Path) -> int:
+def _remove_bash_functions(render: Renderer, file: Path) -> int:
     """Remove a bash integration.
 
     Args:
@@ -146,14 +146,14 @@ def _remove_bash_functions(render: RenderUtils, file: Path) -> int:
     """
     if not file.exists():
         logger.debug("Couldn't find integration file at '%s'", str(file))
-        render.render_warning(
+        render.warning(
             "It seems that the integration is not enabled. Skipping operation."
         )
         return 2
 
     try:
         file.unlink()
-        render.render_success("Integration disabled successfully.")
+        render.success("Integration disabled successfully.")
     except (FileExistsError, FileNotFoundError) as e:
         logger.warning(
             "Got an exception '%s'. Either file is missing or something removed just before this operation",
@@ -163,7 +163,7 @@ def _remove_bash_functions(render: RenderUtils, file: Path) -> int:
     return 0
 
 
-def _enable_capture(render: RenderUtils) -> int:
+def _enable_capture(render: Renderer) -> int:
     """Enable terminal capture operation.
 
     Args:
@@ -181,10 +181,10 @@ def _enable_capture(render: RenderUtils) -> int:
         )
 
     with file_lock:
-        render.render_success(
+        render.success(
             "Starting terminal reader. Press Ctrl + D to stop the capturing."
         )
-        render.render_success(
+        render.success(
             f"Terminal capture log is being written to {TERMINAL_CAPTURE_FILE}"
         )
         create_folder(BASH_RC_D_PATH)

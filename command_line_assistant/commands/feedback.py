@@ -3,16 +3,10 @@
 import logging
 from argparse import Namespace
 
-from command_line_assistant.utils.cli import CommandContext, argument, command
-from command_line_assistant.utils.renderers import RenderUtils
+from command_line_assistant.commands.cli import CommandContext, argument, command
+from command_line_assistant.rendering.renderers import Renderer
 
 logger = logging.getLogger(__name__)
-
-WARNING_MESSAGE = (
-    "Do not include any personal information or other sensitive information in"
-    " your feedback. Feedback may be used to improve Red Hat's "
-    "products or services."
-)
 
 
 @command(
@@ -27,11 +21,15 @@ WARNING_MESSAGE = (
 )
 def feedback_command(args: Namespace, context: CommandContext) -> int:
     """Feedback command implementation."""
-    render = RenderUtils(args.plain)
+    render = Renderer(args.plain)
 
-    render.render_warning(WARNING_MESSAGE)
+    render.warning(
+        "Do not include any personal information or other"
+        " sensitive information in your feedback. Feedback may"
+        " be used to improve Red Hat's products or services."
+    )
 
     feedback_message = "To submit feedback, use the following email address: <cla-feedback@redhat.com>."
-    render.render_success(feedback_message)
+    render.success(feedback_message)
 
     return 0

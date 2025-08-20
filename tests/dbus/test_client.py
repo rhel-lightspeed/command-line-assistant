@@ -1,10 +1,10 @@
 import pytest
 
-from command_line_assistant.utils.dbus import DbusUtils
+from command_line_assistant.dbus.client import DbusClient
 
 
 def test_initialize_dbus_utils(mock_dbus_service):
-    dbus = DbusUtils()
+    dbus = DbusClient()
 
     try:
         assert dbus.chat_proxy

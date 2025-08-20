@@ -12,7 +12,7 @@ from command_line_assistant.dbus.interfaces.history import HistoryInterface
 from command_line_assistant.dbus.interfaces.user import UserInterface
 
 
-class DbusUtils:
+class DbusClient:
     """Utility class providing initialization and access to various bus channels.
 
 
