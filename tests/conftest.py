@@ -15,13 +15,7 @@ from command_line_assistant.config.schemas.logging import LoggingSchema
 from command_line_assistant.dbus import constants as dbus_constants
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
-from command_line_assistant.rendering.renderers import (
-    create_error_renderer,
-    create_text_renderer,
-    create_warning_renderer,
-)
 from command_line_assistant.utils import files
-from tests.helpers import MockStream
 
 
 @pytest.fixture(autouse=True)
@@ -33,9 +27,6 @@ def mock_xdg_path(tmp_path, monkeypatch):
 @pytest.fixture
 def default_kwargs(mock_dbus_service, command_context):
     return {
-        "text_renderer": create_text_renderer(),
-        "warning_renderer": create_warning_renderer(),
-        "error_renderer": create_error_renderer(),
         "args": Namespace(),
         "context": command_context,
         "user_proxy": mock_dbus_service,
@@ -116,11 +107,6 @@ def mock_config(tmp_path):
 def mock_dbus_session():
     """Create a mock DBus session."""
     return MagicMock()
-
-
-@pytest.fixture
-def mock_stream():
-    return MockStream()
 
 
 @pytest.fixture

@@ -1,38 +1,10 @@
 """Module to hold the stream classes."""
 
 import sys
-from typing import TextIO
+from typing import Optional, TextIO
 
-from command_line_assistant.rendering.base import (
-    BaseStream,
-)
 from command_line_assistant.rendering.markdown import markdown_to_ansi
-
-
-class StderrStream(BaseStream):
-    """Decorator for outputting text to stderr"""
-
-    def __init__(self, end: str = "\n") -> None:
-        """Constructor of class.
-
-        Arguments:
-            end (str): The string to append after the text. Defaults to newline.
-        """
-
-        super().__init__(stream=sys.stderr, end=end)
-
-
-class StdoutStream(BaseStream):
-    """Decorator for outputting text to stdout"""
-
-    def __init__(self, end: str = "\n") -> None:
-        """Constructor of class.
-
-        Arguments:
-            end (str): The string to append after the text. Defaults to newline.
-        """
-
-        super().__init__(stream=sys.stdout, end=end)
+from command_line_assistant.rendering.theme import Theme
 
 
 class StreamWriter:
@@ -43,7 +15,12 @@ class StreamWriter:
     and prepended to the next chunk.
     """
 
-    def __init__(self, stream: TextIO = sys.stdout, flush_on_write: bool = True):
+    def __init__(
+        self,
+        stream: TextIO = sys.stdout,
+        flush_on_write: bool = True,
+        theme: Optional[Theme] = None,
+    ):
         """
         Initialize the StreamWriter.
 
@@ -55,6 +32,7 @@ class StreamWriter:
         self._stream = stream
         self._buffer = ""
         self._flush_on_write = flush_on_write
+        self._theme = theme or Theme()
 
     def write_chunk(self, chunk: str) -> None:
         """Write a chunk of unformatted text to the stream."""
@@ -86,7 +64,7 @@ class StreamWriter:
 
         try:
             # Try to render the combined content as markdown
-            formatted_content = markdown_to_ansi(content_to_render)
+            formatted_content = markdown_to_ansi(content_to_render, theme=self._theme)
 
             # If successful, write to stream and clear buffer
             self._stream.write(formatted_content)
@@ -109,7 +87,7 @@ class StreamWriter:
         if self._buffer:
             try:
                 # Try to render buffered content one final time
-                formatted_content = markdown_to_ansi(self._buffer)
+                formatted_content = markdown_to_ansi(self._buffer, theme=self._theme)
                 self._stream.write(formatted_content)
             except Exception:
                 # If rendering still fails, write raw content

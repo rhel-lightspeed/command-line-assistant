@@ -1,0 +1,38 @@
+# Color configuration for the command-line-assistant. The default colors are
+# commented out. To revert to the default colors, remove or delete a line.
+#
+# Color values must be one of the following:
+# - "normal"
+# - "black"
+# - "red"
+# - "green"
+# - "yellow"
+# - "blue"
+# - "magenta"
+# - "cyan"
+# - "white"
+# - "bright_black"
+# - "bright_red"
+# - "bright_green"
+# - "bright_yellow"
+# - "bright_blue"
+# - "bright_magenta"
+# - "bright_cyan"
+# - "bright_white"
+
+# Colors for general output.
+[colors]
+info = "bright_blue"
+notice = "bright_yellow"
+warning = "yellow"
+error = "red"
+
+# Colors for formatting the markdown text.
+[markdown]
+inline_code = "cyan"
+code_block_line = "cyan"
+code_block_border = "bright_red"
+header = "green"
+link = "bright_blue"
+image = "bright_blue"
+horizontal_rule = "bright_black"

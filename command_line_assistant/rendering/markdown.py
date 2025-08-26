@@ -15,14 +15,21 @@ from markdown.blockprocessors import BlockProcessor
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
-from command_line_assistant.rendering.colors import Color, Style, colorize, stylize
+from command_line_assistant.rendering.colors import Style, colorize, stylize
 from command_line_assistant.rendering.formatting import wrap
+from command_line_assistant.rendering.theme import Theme
 
 
 class ANSIRenderer:
     """Base ANSI renderer that provides common formatting utilities."""
 
-    pass  # No initialization needed
+    def __init__(self, theme: Optional[Theme] = None):
+        """Initialize the ANSI renderer with a theme.
+
+        Args:
+            theme: Theme instance to use for colors. If None, uses default theme.
+        """
+        self.theme = theme or Theme()
 
     def bold(self, text: str) -> str:
         """Format text as bold."""
@@ -42,33 +49,38 @@ class ANSIRenderer:
 
     def code_inline(self, text: str) -> str:
         """Format inline code."""
-        return colorize(text, Color.CYAN)
+        return colorize(text, self.theme.inline_code)
 
     def code_block(self, text: str, language: str = "") -> str:
         """Format code block."""
         lang_text = f" {language} snippet " if language else ""
-        lines = [colorize(line, Color.CYAN) for line in text.rstrip().split("\n")]
+        lines = [
+            colorize(line, self.theme.code_block_line)
+            for line in text.rstrip().split("\n")
+        ]
         longest_line_length = max(len(line) for line in text.rstrip().split("\n"))
         padding = longest_line_length - len(lang_text) + 6
-        header = colorize(f"──{lang_text}{'─' * padding}", Color.BRIGHT_RED)
-        footer = colorize(f"{'─' * (padding + len(lang_text) + 2)}", Color.BRIGHT_RED)
+        header = colorize(f"──{lang_text}{'─' * padding}", self.theme.code_block_border)
+        footer = colorize(
+            f"{'─' * (padding + len(lang_text) + 2)}", self.theme.code_block_border
+        )
         return f"\n{header}\n" + "\n".join(lines) + f"\n{footer}\n"
 
     def header(self, text: str, level: int) -> str:
         """Format header."""
         prefix = "#" * level
-        return f"\n{colorize(f'{prefix} {text}', Color.GREEN)}\n"
+        return f"\n{colorize(f'{prefix} {text}', self.theme.header)}\n"
 
     def link(self, text: str, url: str, title: str = "") -> str:
         """Format link."""
-        link_text = colorize(text, Color.BRIGHT_BLUE)
+        link_text = colorize(text, self.theme.link)
         if title:
-            return f"{link_text} ({colorize(url, Color.BRIGHT_BLUE)}, {title})"
-        return f"{link_text} ({colorize(url, Color.BRIGHT_BLUE)})"
+            return f"{link_text} ({colorize(url, self.theme.link)}, {title})"
+        return f"{link_text} ({colorize(url, self.theme.link)})"
 
     def image(self, alt_text: str, url: str, title: str = "") -> str:
         """Format image (as text representation)."""
-        return f"[Image: {alt_text}] ({colorize(url, Color.BRIGHT_BLUE)})"
+        return f"[Image: {alt_text}] ({colorize(url, self.theme.image)})"
 
     def blockquote(self, text: str) -> str:
         """Format blockquote."""
@@ -86,7 +98,7 @@ class ANSIRenderer:
 
     def horizontal_rule(self) -> str:
         """Format horizontal rule."""
-        return f"\n{colorize('─' * 60, Color.BRIGHT_BLACK)}\n"
+        return f"\n{colorize('─' * 60, self.theme.horizontal_rule)}\n"
 
     def format_table(self, rows: List[List[str]], header_row: bool = True) -> str:
         """Format a complete table with proper column alignment."""
@@ -131,7 +143,7 @@ class ANSIRenderer:
 
                     if row_idx == 0 and header_row:
                         # Header cell
-                        formatted_cell = f"{' ' * left_pad}{colorize(cell, Color.GREEN)}{' ' * right_pad}"
+                        formatted_cell = f"{' ' * left_pad}{colorize(cell, self.theme.header)}{' ' * right_pad}"
                     else:
                         # Regular cell
                         formatted_cell = f"{' ' * left_pad}{cell}{' ' * right_pad}"
@@ -480,9 +492,9 @@ class ANSITreeProcessor(Treeprocessor):
 class ANSIExtension(Extension):
     """Main Python-Markdown extension that provides ANSI terminal output."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, theme: Optional[Theme] = None, **kwargs):
         self.config = {
-            "renderer": [ANSIRenderer(), "ANSI renderer instance"],
+            "renderer": [ANSIRenderer(theme), "ANSI renderer instance"],
         }
         super().__init__(**kwargs)
 
@@ -500,18 +512,19 @@ class ANSIExtension(Extension):
 
 
 # Convenience functions
-def markdown_to_ansi(text: str, **kwargs) -> str:
+def markdown_to_ansi(text: str, theme: Optional[Theme] = None, **kwargs) -> str:
     """Convert markdown text to ANSI formatted text.
 
     Args:
         text: Markdown text to convert
+        theme: Theme instance to use for colors. If None, uses default theme.
         **kwargs: Additional arguments passed to markdown.markdown()
 
     Returns:
         ANSI formatted text suitable for terminal display
     """
 
-    md = ANSIMarkdown(**kwargs)
+    md = ANSIMarkdown(theme=theme, **kwargs)
     return md.convert(text)
 
 
@@ -521,5 +534,5 @@ class ANSIMarkdown(markdown.Markdown):
     instance to render markdown to ANSI formatted text suitable for terminal
     display."""
 
-    def __init__(self, **kwargs):
-        super().__init__(extensions=[ANSIExtension(), "tables"], **kwargs)
+    def __init__(self, theme: Optional[Theme] = None, **kwargs):
+        super().__init__(extensions=[ANSIExtension(theme), "tables"], **kwargs)

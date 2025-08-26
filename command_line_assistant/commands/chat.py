@@ -24,17 +24,14 @@ from command_line_assistant.dbus.structures.chat import (
     SystemInfo,
     TerminalInput,
 )
-from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
-from command_line_assistant.rendering.decorators.colors import ColorDecorator
+from command_line_assistant.exceptions import ChatCommandException
+from command_line_assistant.rendering.animation import Spinner
 from command_line_assistant.rendering.renderers import (
     Renderer,
-    create_interactive_renderer,
-    create_markdown_renderer,
-    create_spinner_renderer,
-    create_text_renderer,
     format_datetime,
     human_readable_size,
 )
+from command_line_assistant.rendering.theme import load_theme
 from command_line_assistant.terminal.parser import (
     find_output_by_index,
     parse_terminal_output,
@@ -212,7 +209,7 @@ def chat_command(args: Namespace, context: CommandContext) -> int:
     Returns:
         int: The exit code.
     """
-    render = Renderer(args.plain)
+    render = Renderer(args.plain, theme=load_theme())
     dbus = DbusClient()
 
     user_id = dbus.user_proxy.GetUserId(context.effective_user_id)
@@ -360,33 +357,23 @@ def _create_chat_session(
     return dbus.chat_proxy.CreateChat(user_id, name, description)
 
 
-def _display_response(response: str, plain: bool = False) -> None:
+def _display_response(renderer: Renderer, response: str) -> None:
     """Display message to the terminal.
 
     Args:
+        renderer (Renderer): The renderer to use.
         response (str): The response to display.
-        plain (bool, optional): Whether to display in plain text. Defaults to False.
     """
-    legal_renderer = create_text_renderer(
-        decorators=[
-            ColorDecorator(foreground="lightyellow"),
-        ],
-        plain=plain,
-    )
-    notice_renderer = create_text_renderer(
-        decorators=[ColorDecorator(foreground="lightyellow")], plain=plain
-    )
-    markdown_renderer = create_markdown_renderer(plain=plain)
 
     if _handle_legal_message():
-        legal_renderer.render(LEGAL_NOTICE)
+        renderer.notice(LEGAL_NOTICE)
 
-    legal_renderer.render("─" * 72)
+    renderer.notice("─" * 72)
     print("")
-    markdown_renderer.render(response)
+    renderer.markdown(response)
     print("")
-    legal_renderer.render("─" * 72)
-    notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
+    renderer.notice("─" * 72)
+    renderer.notice(ALWAYS_LEGAL_MESSAGE)
 
 
 @timing.timeit
@@ -409,11 +396,8 @@ def _submit_question(
     Returns:
         str: The response.
     """
-    spinner_renderer = create_spinner_renderer(
-        message="Asking RHEL Lightspeed",
-        plain=plain,
-    )
-    with spinner_renderer:
+    spinner = Spinner(message="Asking RHEL Lightspeed", plain=plain)
+    with spinner:
         response = _get_response(dbus, message_input, user_id)
 
     try:
@@ -548,13 +532,13 @@ def _list_chats(render: Renderer, dbus: DbusClient, user_id: str) -> int:
     all_chats = ChatList.from_structure(dbus.chat_proxy.GetAllChatFromUser(user_id))
 
     if not all_chats.chats:
-        render.success("No chats available.")
+        render.normal("No chats available.")
         return 0
 
-    render.success(f"Found a total of {len(all_chats.chats)} chats:")
+    render.normal(f"Found a total of {len(all_chats.chats)} chats:")
     for index, chat in enumerate(all_chats.chats):
         created_at = format_datetime(chat.created_at)
-        render.success(
+        render.normal(
             f"{index}. Chat: {chat.name} - {chat.description} (created at: {created_at})"
         )
     return 0
@@ -576,7 +560,7 @@ def _delete_chat(
     """
     try:
         dbus.chat_proxy.DeleteChatForUser(user_id, chat_name)
-        render.success(f"Chat {chat_name} deleted successfully.")
+        render.normal(f"Chat {chat_name} deleted successfully.")
         return 0
     except ChatNotFoundError as e:
         raise ChatCommandException(f"Failed to delete requested chat {str(e)}") from e
@@ -595,7 +579,7 @@ def _delete_all_chats(render: Renderer, dbus: DbusClient, user_id: str) -> int:
     """
     try:
         dbus.chat_proxy.DeleteAllChatForUser(user_id)
-        render.success("Deleted all chats successfully.")
+        render.normal("Deleted all chats successfully.")
         return 0
     except ChatNotFoundError as e:
         raise ChatCommandException(
@@ -634,14 +618,26 @@ def _interactive_chat(
             " Interactive chat mode is not available while terminal capture is active, you must stop the previous one."
         )
 
-    interactive_renderer = create_interactive_renderer()
     input_source = _gather_input_sources(args)
     chat_id = _create_chat_session(dbus, user_id, name, description)
 
+    # Display banner message
+    render.normal(
+        "Welcome to the interactive mode for command line assistant! To exit, press Ctrl + C or type '.exit'.\nThe current session does not include running context."
+    )
+
     try:
         while True:
-            interactive_renderer.render(">>> ")
-            question = interactive_renderer.output
+            try:
+                question = input(">>> ").strip()
+            except EOFError:
+                # Handle Ctrl+D
+                break
+
+            # Handle exit command
+            if question == ".exit":
+                break
+
             if not question:
                 render.error("Your question can't be empty. Please, try again.")
                 continue
@@ -655,13 +651,13 @@ def _interactive_chat(
                 message_input=message_input,
                 plain=args.plain,
             )
-            _display_response(response, args.plain)
-    except (KeyboardInterrupt, EOFError) as e:
+            _display_response(render, response)
+    except KeyboardInterrupt:
         raise ChatCommandException(
             "Detected keyboard interrupt. Stopping interactive mode."
-        ) from e
-    except StopInteractiveMode:
-        return 0
+        ) from None
+
+    return 0
 
 
 def _single_question(
@@ -708,7 +704,7 @@ def _single_question(
             plain=args.plain,
         )
 
-        _display_response(response, args.plain)
+        _display_response(render, response)
         return 0
     except ValueError as e:
         message = f"Failed to get a response from LLM. {str(e)}"

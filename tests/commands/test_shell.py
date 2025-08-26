@@ -24,6 +24,24 @@ def command_context():
     return CommandContext()
 
 
+@pytest.fixture
+def disable_stream_flush(monkeypatch):
+    """Fixture to make StreamWriter use current sys.stdout and disable flushing."""
+    import sys
+
+    from command_line_assistant.rendering.stream import StreamWriter
+
+    # Patch StreamWriter to use current sys.stdout and disable flushing
+    original_init = StreamWriter.__init__
+
+    def patched_init(self, stream=None, flush_on_write=True, theme=None):
+        # Always use current sys.stdout and disable flushing
+        original_init(self, stream=sys.stdout, flush_on_write=False, theme=theme)
+
+    monkeypatch.setattr(StreamWriter, "__init__", patched_init)
+    yield
+
+
 @pytest.fixture(autouse=True)
 def mock_bash_rc(monkeypatch, tmp_path):
     """Mock bash RC directory and files."""
@@ -39,7 +57,9 @@ def mock_bash_rc(monkeypatch, tmp_path):
     )
 
 
-def test_shell_command_enable_interactive(default_namespace, command_context, capsys):
+def test_shell_command_enable_interactive(
+    default_namespace, command_context, capsys, disable_stream_flush
+):
     """Test enabling interactive mode."""
     default_namespace.enable_interactive = True
     result = shell.shell_command.func(default_namespace, command_context)
@@ -50,7 +70,7 @@ def test_shell_command_enable_interactive(default_namespace, command_context, ca
 
 
 def test_shell_command_enable_interactive_already_exists(
-    default_namespace, command_context, capsys, tmp_path
+    default_namespace, command_context, capsys, tmp_path, disable_stream_flush
 ):
     """Test enabling interactive mode when integration already exists."""
     # Create the integration file first
@@ -64,11 +84,11 @@ def test_shell_command_enable_interactive_already_exists(
 
     captured = capsys.readouterr()
     assert result == 2
-    assert "The integration is already present and enabled" in captured.err
+    assert "The integration is already present and enabled" in captured.out
 
 
 def test_shell_command_disable_interactive(
-    default_namespace, command_context, capsys, tmp_path
+    default_namespace, command_context, capsys, tmp_path, disable_stream_flush
 ):
     """Test disabling interactive mode."""
     # Create the integration file first
@@ -87,7 +107,7 @@ def test_shell_command_disable_interactive(
 
 
 def test_shell_command_disable_interactive_not_exists(
-    default_namespace, command_context, capsys
+    default_namespace, command_context, capsys, disable_stream_flush
 ):
     """Test disabling interactive mode when integration doesn't exist."""
     default_namespace.disable_interactive = True
@@ -95,11 +115,11 @@ def test_shell_command_disable_interactive_not_exists(
 
     captured = capsys.readouterr()
     assert result == 2
-    assert "It seems that the integration is not enabled" in captured.err
+    assert "It seems that the integration is not enabled" in captured.out
 
 
 def test_shell_command_enable_capture(
-    default_namespace, command_context, capsys, monkeypatch
+    default_namespace, command_context, capsys, monkeypatch, disable_stream_flush
 ):
     """Test enabling terminal capture."""
     # Mock the start_capturing function
@@ -120,7 +140,7 @@ def test_shell_command_enable_capture(
 
 
 def test_shell_command_enable_capture_already_running(
-    default_namespace, command_context, capsys
+    default_namespace, command_context, capsys, disable_stream_flush
 ):
     """Test enabling terminal capture when already running."""
     default_namespace.enable_capture = True
@@ -131,19 +151,21 @@ def test_shell_command_enable_capture_already_running(
 
         captured = capsys.readouterr()
         assert result == 81  # ShellCommandException code
-        assert "Detected a terminal capture session running" in captured.err
+        assert "Detected a terminal capture session running" in captured.out
 
 
-def test_shell_command_no_operation(default_namespace, command_context, capsys):
+def test_shell_command_no_operation(
+    default_namespace, command_context, capsys, disable_stream_flush
+):
     """Test shell command with no specific operation."""
     result = shell.shell_command.func(default_namespace, command_context)
 
     captured = capsys.readouterr()
     assert result == 1
-    assert "No operation specified" in captured.err
+    assert "No operation specified" in captured.out
 
 
-def test_shell_command_plain_mode(command_context, capsys):
+def test_shell_command_plain_mode(command_context, capsys, disable_stream_flush):
     """Test shell command in plain mode."""
     args = Namespace(
         enable_interactive=True,
@@ -159,7 +181,7 @@ def test_shell_command_plain_mode(command_context, capsys):
 
 
 def test_shell_command_exception_handling(
-    default_namespace, command_context, capsys, monkeypatch
+    default_namespace, command_context, capsys, monkeypatch, disable_stream_flush
 ):
     """Test shell command exception handling."""
 
@@ -177,11 +199,16 @@ def test_shell_command_exception_handling(
 
     captured = capsys.readouterr()
     assert result == 81  # ShellCommandException code
-    assert "Test error" in captured.err
+    assert "Test error" in captured.out
 
 
 def test_shell_command_missing_bashrc_warning(
-    default_namespace, command_context, capsys, monkeypatch, tmp_path
+    default_namespace,
+    command_context,
+    capsys,
+    monkeypatch,
+    tmp_path,
+    disable_stream_flush,
 ):
     """Test warning when .bashrc.d is not configured."""
     # Set up a test home directory without proper .bashrc configuration
@@ -201,8 +228,8 @@ def test_shell_command_missing_bashrc_warning(
     captured = capsys.readouterr()
     assert result == 0
     assert "Integration successfully added" in captured.out
-    # In plain=False mode, warnings go to stderr
-    assert "In order to use shell integration" in captured.err
+    # In plain=False mode, warnings go to stdout when using disable_stream_flush
+    assert "In order to use shell integration" in captured.out
 
 
 def test_shell_command_with_bashrc_d_configured(
