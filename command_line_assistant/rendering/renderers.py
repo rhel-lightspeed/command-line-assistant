@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 
 from command_line_assistant.rendering.base import BaseDecorator, BaseStream
+from command_line_assistant.rendering.colors import colorize
 from command_line_assistant.rendering.decorators.colors import ColorDecorator
 from command_line_assistant.rendering.decorators.text import (
     EmojiDecorator,
@@ -22,7 +23,11 @@ from command_line_assistant.rendering.renders.text import (
     PlainTextRenderer,
     TextRenderer,
 )
-from command_line_assistant.rendering.stream import StderrStream, StdoutStream
+from command_line_assistant.rendering.stream import (
+    StderrStream,
+    StdoutStream,
+    StreamWriter,
+)
 
 
 def create_error_renderer(plain: bool = False) -> TextRenderer:
@@ -207,13 +212,8 @@ def format_datetime(unformatted_date: str) -> str:
 
 
 class Renderer:
-    """Utility class providing common rendering functionality for commands.
-
-    This class can be used to access different pre-defined text rendering
-    methods used across the application. All the rendering methods provided
-    here are used as-is with default settings, with the only customization
-    available being the `plain` rendering, which is set in the class
-    constructor.
+    """Renderer provides methods for rendering text using different, predefined
+    colors and styles.
     """
 
     def __init__(self, plain: bool = False):
@@ -222,30 +222,71 @@ class Renderer:
         Args:
             plain (bool): Whether to use plain text rendering
         """
-        self._text_renderer: TextRenderer = create_text_renderer(plain=plain)
-        self._warning_renderer: TextRenderer = create_warning_renderer(plain=plain)
-        self._error_renderer: TextRenderer = create_error_renderer(plain=plain)
+        self._plain = plain
+        self._stream_writer: StreamWriter = StreamWriter()
 
     def success(self, message: str) -> None:
-        """Render a success message.
+        """Render a message with a green color.
 
         Args:
-            message (str): Success message to render
+            message (str): Text to render
         """
-        self._text_renderer.render(message)
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line(colorize(message, "green"))
 
     def warning(self, message: str) -> None:
-        """Render a warning message.
+        """Render a message with a yellow color.
 
         Args:
-            message: Warning message to render
+            message: Text to render
         """
-        self._warning_renderer.render(message)
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line("🤔 " + colorize(message, "yellow"))
+
+    def notice(self, message: str) -> None:
+        """Render a message with a bright yellow color.
+
+        Args:
+            message: Text to render
+        """
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line(colorize(message, "bright_yellow"))
+
+    def info(self, message: str) -> None:
+        """Render a message with a bright blue color.
+
+        Args:
+            message: Text to render
+        """
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line(colorize(message, "bright_blue"))
 
     def error(self, message: str) -> None:
-        """Render an error message.
+        """Render a message with a red color.
 
         Args:
-            message: Error message to render
+            message: Text to render
         """
-        self._error_renderer.render(message)
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line("🙁 " + colorize(message, "red"))
+
+    def markdown(self, message: str) -> None:
+        """Render markdown formatted text.
+
+        Args:
+            message: Text to render
+        """
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_markdown_chunk(message)
