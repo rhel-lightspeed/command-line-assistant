@@ -1,249 +1,469 @@
+import io
 import sys
+from unittest.mock import Mock, patch
 
 import pytest
 
-from command_line_assistant.rendering.stream import StderrStream, StdoutStream
+from command_line_assistant.rendering.stream import StreamWriter
 
 
-class TestStdoutStream:
-    def test_initialization_default(self):
-        """Test StdoutStream initialization with default end character"""
-        stream = StdoutStream()
-        assert stream._stream == sys.stdout
-        assert stream._end == "\n"
+@pytest.fixture
+def disable_stream_flush(monkeypatch):
+    """Fixture to make StreamWriter use current sys.stdout and disable flushing."""
+    import sys
 
-    def test_initialization_custom_end(self):
-        """Test StdoutStream initialization with custom end character"""
-        stream = StdoutStream(end=">>>")
-        assert stream._stream == sys.stdout
-        assert stream._end == ">>>"
+    from command_line_assistant.rendering.stream import StreamWriter
 
-    def test_write(self, capsys):
-        """Test writing to stdout"""
-        stream = StdoutStream()
-        test_message = "Hello, World!"
-        stream.write(test_message)
+    # Patch StreamWriter to use current sys.stdout and disable flushing
+    original_init = StreamWriter.__init__
 
-        captured = capsys.readouterr()
-        assert captured.out == f"{test_message}\n"
+    def patched_init(self, stream=None, flush_on_write=True, theme=None):
+        # Always use current sys.stdout and disable flushing
+        original_init(self, stream=sys.stdout, flush_on_write=False, theme=theme)
 
-    def test_write_custom_end(self, capsys):
-        """Test writing to stdout with custom end character"""
-        stream = StdoutStream(end=">>>")
-        test_message = "Hello, World!"
-        stream.write(test_message)
+    monkeypatch.setattr(StreamWriter, "__init__", patched_init)
+    yield
 
-        captured = capsys.readouterr()
-        assert captured.out == f"{test_message}>>>"
 
-    def test_write_empty_string(self, capsys):
-        """Test writing empty string to stdout"""
-        stream = StdoutStream()
-        stream.write("")
+class TestStreamWriter:
+    def test_write_chunk(self, capsys, disable_stream_flush):
+        stream = StreamWriter()
+        stream.write_chunk("Hello, world!")
+        assert capsys.readouterr().out == "Hello, world!"
 
-        captured = capsys.readouterr()
-        assert captured.out == "\n"
+    def test_init_default_parameters(self):
+        """Test StreamWriter initialization with default parameters."""
+        stream = StreamWriter()
+        assert stream._stream is sys.stdout
+        assert stream._flush_on_write is True
+        assert stream._buffer == ""
 
-    def test_write_multiple_lines(self, capsys):
-        """Test writing multiple lines to stdout"""
-        stream = StdoutStream()
-        messages = ["Line 1", "Line 2", "Line 3"]
+    def test_init_all_custom_parameters(self):
+        """Test StreamWriter initialization with all custom parameters."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream, flush_on_write=False)
+        assert stream._stream is custom_stream
+        assert stream._flush_on_write is False
+        assert stream._buffer == ""
 
-        for message in messages:
-            stream.write(message)
+    def test_write_line_basic(self):
+        """Test write_line method with basic string."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
 
-        captured = capsys.readouterr()
-        expected = "".join(f"{msg}\n" for msg in messages)
-        assert captured.out == expected
+        stream.write_line("Hello, world!")
 
-    def test_flush(self, capsys):
-        """Test flushing stdout"""
-        stream = StdoutStream()
-        stream.write("Test message")
+        assert custom_stream.getvalue() == "Hello, world!\n"
+
+    def test_write_line_empty_string(self):
+        """Test write_line method with empty string."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_line("")
+
+        assert custom_stream.getvalue() == "\n"
+
+    def test_write_line_multiline_input(self):
+        """Test write_line method with multiline input."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_line("Line 1\nLine 2")
+
+        assert custom_stream.getvalue() == "Line 1\nLine 2\n"
+
+    def test_write_line_with_flush_disabled(self):
+        """Test write_line method with flush disabled."""
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream, flush_on_write=False)
+
+        stream.write_line("Test line")
+
+        mock_stream.write.assert_called_once_with("Test line\n")
+        mock_stream.flush.assert_not_called()
+
+    def test_write_line_with_flush_enabled(self):
+        """Test write_line method with flush enabled."""
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream, flush_on_write=True)
+
+        stream.write_line("Test line")
+
+        mock_stream.write.assert_called_once_with("Test line\n")
+        mock_stream.flush.assert_called_once()
+
+    def test_write_chunk_with_flush_disabled(self):
+        """Test write_chunk method with flush disabled."""
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream, flush_on_write=False)
+
+        stream.write_chunk("Test chunk")
+
+        mock_stream.write.assert_called_once_with("Test chunk")
+        mock_stream.flush.assert_not_called()
+
+    def test_write_chunk_with_flush_enabled(self):
+        """Test write_chunk method with flush enabled."""
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream, flush_on_write=True)
+
+        stream.write_chunk("Test chunk")
+
+        mock_stream.write.assert_called_once_with("Test chunk")
+        mock_stream.flush.assert_called_once()
+
+    def test_write_chunk_empty_string(self):
+        """Test write_chunk method with empty string."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_chunk("")
+
+        assert custom_stream.getvalue() == ""
+
+    def test_write_markdown_chunk_empty_string(self):
+        """Test write_markdown_chunk method with empty string."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_markdown_chunk("")
+
+        assert custom_stream.getvalue() == ""
+        assert stream._buffer == ""
+
+    def test_write_markdown_chunk_valid_markdown(self):
+        """Test write_markdown_chunk method with valid markdown."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_markdown_chunk("**Bold text**")
+
+        # Should render and write to stream
+        output = custom_stream.getvalue()
+        assert output != ""  # Should contain ANSI formatted text
+        assert stream._buffer == ""  # Buffer should be cleared after successful render
+
+    def test_write_markdown_chunk_simple_text(self):
+        """Test write_markdown_chunk method with simple text."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_markdown_chunk("Simple text")
+
+        # Should render and write to stream
+        output = custom_stream.getvalue()
+        assert "Simple text" in output
+        assert stream._buffer == ""  # Buffer should be cleared after successful render
+
+    @patch("command_line_assistant.rendering.stream.markdown_to_ansi")
+    def test_write_markdown_chunk_rendering_exception(self, mock_markdown_to_ansi):
+        """Test write_markdown_chunk when markdown rendering raises an exception."""
+        mock_markdown_to_ansi.side_effect = Exception("Rendering failed")
+
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_markdown_chunk("Some markdown")
+
+        # Should buffer the content when rendering fails
+        assert stream._buffer == "Some markdown"
+        assert custom_stream.getvalue() == ""  # Nothing written to stream
+        mock_markdown_to_ansi.assert_called_once()
+        args, kwargs = mock_markdown_to_ansi.call_args
+        assert args[0] == "Some markdown"
+        assert "theme" in kwargs
+
+    @patch("command_line_assistant.rendering.stream.markdown_to_ansi")
+    def test_write_markdown_chunk_buffering_accumulation(self, mock_markdown_to_ansi):
+        """Test write_markdown_chunk accumulates content in buffer on repeated failures."""
+        mock_markdown_to_ansi.side_effect = Exception("Rendering failed")
+
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_markdown_chunk("First chunk")
+        stream.write_markdown_chunk(" Second chunk")
+
+        # Should accumulate content in buffer
+        assert stream._buffer == "First chunk Second chunk"
+        assert custom_stream.getvalue() == ""
+        assert mock_markdown_to_ansi.call_count == 2
+
+    @patch("command_line_assistant.rendering.stream.markdown_to_ansi")
+    def test_write_markdown_chunk_buffer_recovery(self, mock_markdown_to_ansi):
+        """Test write_markdown_chunk recovers from buffer when rendering succeeds."""
+        # First call fails, second succeeds
+        mock_markdown_to_ansi.side_effect = [
+            Exception("Rendering failed"),
+            "Formatted content",
+        ]
+
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        # First chunk fails and gets buffered
+        stream.write_markdown_chunk("First chunk")
+        assert stream._buffer == "First chunk"
+
+        # Second chunk succeeds with buffered content
+        stream.write_markdown_chunk(" Second chunk")
+
+        # Should write formatted content and clear buffer
+        assert custom_stream.getvalue() == "Formatted content"
+        assert stream._buffer == ""
+
+        # Should have called with combined content on second attempt
+        assert mock_markdown_to_ansi.call_count == 2
+        first_call_args = mock_markdown_to_ansi.call_args_list[0]
+        second_call_args = mock_markdown_to_ansi.call_args_list[1]
+        assert first_call_args[0][0] == "First chunk"
+        assert second_call_args[0][0] == "First chunk Second chunk"
+        assert "theme" in first_call_args[1]
+        assert "theme" in second_call_args[1]
+
+    def test_write_markdown_chunk_with_flush_disabled(self):
+        """Test write_markdown_chunk with flush disabled."""
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream, flush_on_write=False)
+
+        stream.write_markdown_chunk("Simple text")
+
+        # Should write but not flush
+        mock_stream.write.assert_called_once()
+        mock_stream.flush.assert_not_called()
+
+    def test_write_markdown_chunk_with_flush_enabled(self):
+        """Test write_markdown_chunk with flush enabled."""
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream, flush_on_write=True)
+
+        stream.write_markdown_chunk("Simple text")
+
+        # Should write and flush
+        mock_stream.write.assert_called_once()
+        mock_stream.flush.assert_called_once()
+
+    def test_flush_empty_buffer(self):
+        """Test flush method with empty buffer."""
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream)
+
         stream.flush()
 
-        captured = capsys.readouterr()
-        assert captured.out == "Test message\n"
+        # Should only flush the stream, no writes
+        mock_stream.write.assert_not_called()
+        mock_stream.flush.assert_called_once()
 
-    def test_execute(self, capsys):
-        """Test execute method with stdout"""
-        stream = StdoutStream()
-        test_message = "Execute test"
-        stream.execute(test_message)
+    @patch("command_line_assistant.rendering.stream.markdown_to_ansi")
+    def test_flush_with_buffered_content_success(self, mock_markdown_to_ansi):
+        """Test flush method with buffered content that renders successfully."""
+        mock_markdown_to_ansi.return_value = "Formatted content"
 
-        captured = capsys.readouterr()
-        assert captured.out == f"{test_message}\n"
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream)
+        stream._buffer = "Buffered markdown"
 
-    def test_execute_empty_string(self, capsys):
-        """Test execute method with empty string"""
-        stream = StdoutStream()
-        stream.execute("")
-
-        captured = capsys.readouterr()
-        assert captured.out == ""
-
-
-class TestStderrStream:
-    def test_initialization_default(self):
-        """Test StderrStream initialization with default end character"""
-        stream = StderrStream()
-        assert stream._stream == sys.stderr
-        assert stream._end == "\n"
-
-    def test_initialization_custom_end(self):
-        """Test StderrStream initialization with custom end character"""
-        stream = StderrStream(end="!!!")
-        assert stream._stream == sys.stderr
-        assert stream._end == "!!!"
-
-    def test_write(self, capsys):
-        """Test writing to stderr"""
-        stream = StderrStream()
-        test_message = "Error message"
-        stream.write(test_message)
-
-        captured = capsys.readouterr()
-        assert captured.err == f"{test_message}\n"
-
-    def test_write_custom_end(self, capsys):
-        """Test writing to stderr with custom end character"""
-        stream = StderrStream(end="!!!")
-        test_message = "Error message"
-        stream.write(test_message)
-
-        captured = capsys.readouterr()
-        assert captured.err == f"{test_message}!!!"
-
-    def test_write_empty_string(self, capsys):
-        """Test writing empty string to stderr"""
-        stream = StderrStream()
-        stream.write("")
-
-        captured = capsys.readouterr()
-        assert captured.err == "\n"
-
-    def test_write_multiple_lines(self, capsys):
-        """Test writing multiple lines to stderr"""
-        stream = StderrStream()
-        messages = ["Error 1", "Error 2", "Error 3"]
-
-        for message in messages:
-            stream.write(message)
-
-        captured = capsys.readouterr()
-        expected = "".join(f"{msg}\n" for msg in messages)
-        assert captured.err == expected
-
-    def test_flush(self, capsys):
-        """Test flushing stderr"""
-        stream = StderrStream()
-        stream.write("Error message")
         stream.flush()
 
-        captured = capsys.readouterr()
-        assert captured.err == "Error message\n"
+        # Should render and write buffered content
+        mock_markdown_to_ansi.assert_called_once()
+        args, kwargs = mock_markdown_to_ansi.call_args
+        assert args[0] == "Buffered markdown"
+        assert "theme" in kwargs
+        mock_stream.write.assert_called_once_with("Formatted content")
+        mock_stream.flush.assert_called_once()
+        assert stream._buffer == ""
 
-    def test_execute(self, capsys):
-        """Test execute method with stderr"""
-        stream = StderrStream()
-        test_message = "Execute error test"
-        stream.execute(test_message)
+    @patch("command_line_assistant.rendering.stream.markdown_to_ansi")
+    def test_flush_with_buffered_content_failure(self, mock_markdown_to_ansi):
+        """Test flush method with buffered content that fails to render."""
+        mock_markdown_to_ansi.side_effect = Exception("Rendering failed")
 
-        captured = capsys.readouterr()
-        assert captured.err == f"{test_message}\n"
+        mock_stream = Mock()
+        stream = StreamWriter(stream=mock_stream)
+        stream._buffer = "Buffered markdown"
 
-    def test_execute_empty_string(self, capsys):
-        """Test execute method with empty string"""
-        stream = StderrStream()
-        stream.execute("")
+        stream.flush()
 
-        captured = capsys.readouterr()
-        assert captured.err == ""
+        # Should write raw content when rendering fails
+        mock_markdown_to_ansi.assert_called_once()
+        args, kwargs = mock_markdown_to_ansi.call_args
+        assert args[0] == "Buffered markdown"
+        assert "theme" in kwargs
+        mock_stream.write.assert_called_once_with("Buffered markdown")
+        mock_stream.flush.assert_called_once()
+        assert stream._buffer == ""
 
+    def test_flush_clears_buffer_regardless_of_outcome(self):
+        """Test that flush always clears the buffer."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+        stream._buffer = "Some content"
 
-@pytest.mark.parametrize(
-    "StreamClass,expected_stream",
-    [
-        (StdoutStream, sys.stdout),
-        (StderrStream, sys.stderr),
-    ],
-)
-def test_stream_initialization(StreamClass, expected_stream):
-    """Test initialization of both stream classes"""
-    stream = StreamClass()
-    assert stream._stream == expected_stream
+        stream.flush()
 
+        # Buffer should be cleared even if content was written as raw
+        assert stream._buffer == ""
+        assert custom_stream.getvalue() == "Some content"
 
-@pytest.mark.parametrize("StreamClass", [StdoutStream, StderrStream])
-def test_stream_unicode(StreamClass, capsys):
-    """Test handling of Unicode characters in both streams"""
-    stream = StreamClass()
+    def test_close_calls_flush(self):
+        """Test that close method calls flush."""
+        mock_stream = Mock()
+        mock_stream.close = Mock()  # Add close method to mock
 
-    unicode_messages = [
-        "Hello, 世界!",  # Japanese
-        "¡Hola, món!",  # Catalan with Spanish punctuation
-        "🌟 Stars ✨",  # Emojis
-        "θ, π, φ",  # Greek letters
-    ]
+        stream = StreamWriter(stream=mock_stream)
+        stream._buffer = "Some content"
 
-    for message in unicode_messages:
-        stream.write(message)
-        captured = capsys.readouterr()
-        output = captured.out if isinstance(stream, StdoutStream) else captured.err
-        assert message in output
+        stream.close()
 
+        # Should flush content and close stream
+        mock_stream.write.assert_called_once_with("Some content")
+        mock_stream.flush.assert_called_once()
+        mock_stream.close.assert_called_once()
+        assert stream._buffer == ""
 
-@pytest.mark.parametrize("StreamClass", [StdoutStream, StderrStream])
-def test_stream_long_messages(StreamClass, capsys):
-    """Test handling of long messages in both streams"""
-    stream = StreamClass()
+    def test_close_with_stream_without_close_method(self):
+        """Test close method with a stream that doesn't have close method."""
+        # Create a mock without close method
+        mock_stream = Mock(spec=["write", "flush"])
 
-    long_message = "x" * 10000  # 10K characters
-    stream.write(long_message)
+        stream = StreamWriter(stream=mock_stream)
+        stream._buffer = "Some content"
 
-    captured = capsys.readouterr()
-    output = captured.out if isinstance(stream, StdoutStream) else captured.err
-    assert output.strip() == long_message
+        # Should not raise an error even if stream has no close method
+        stream.close()
 
+        # Should still flush content
+        mock_stream.write.assert_called_once_with("Some content")
+        mock_stream.flush.assert_called_once()
+        assert stream._buffer == ""
 
-@pytest.mark.parametrize("StreamClass", [StdoutStream, StderrStream])
-def test_stream_special_characters(StreamClass, capsys):
-    """Test handling of special characters in both streams"""
-    stream = StreamClass()
+    def test_close_with_empty_buffer(self):
+        """Test close method with empty buffer."""
+        mock_stream = Mock()
+        mock_stream.close = Mock()
 
-    special_messages = [
-        "Tab\there",
-        "New\nline",
-        "Return\rchar",
-        "Back\\slash",
-        '"Quotes"',
-    ]
+        stream = StreamWriter(stream=mock_stream)
 
-    for message in special_messages:
-        stream.write(message)
-        captured = capsys.readouterr()
-        output = captured.out if isinstance(stream, StdoutStream) else captured.err
-        assert message in output
+        stream.close()
 
+        # Should only flush and close, no writes
+        mock_stream.write.assert_not_called()
+        mock_stream.flush.assert_called_once()
+        mock_stream.close.assert_called_once()
 
-@pytest.mark.parametrize("end_char", ["\n", "", "\r", ">>>"])
-def test_stream_with_different_end_characters(end_char, capsys):
-    """Test streams with different end characters"""
-    # Create streams with the test end character
-    stdout_stream = StdoutStream(end=end_char)
-    stderr_stream = StderrStream(end=end_char)
+    def test_close_with_stringio(self):
+        """Test close method with StringIO stream."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+        stream._buffer = "Buffered content"
 
-    # Verify end character is set correctly
-    assert stdout_stream._end == end_char
-    assert stderr_stream._end == end_char
+        stream.close()
 
-    # Test writing using real stdout/stderr (captured by capsys)
-    stdout_stream.write("test-stdout")
-    stderr_stream.write("test-stderr")
+        # Should flush content and close stream
+        # Note: We check the buffer is cleared and stream is closed
+        # We can't read from custom_stream.getvalue() after close() as the stream is closed
+        assert stream._buffer == ""
+        assert custom_stream.closed
 
-    # Capture the output
-    captured = capsys.readouterr()
+    def test_multiple_write_operations_sequence(self):
+        """Test a sequence of different write operations."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
 
-    # Check that the output includes the text and the custom end character
-    assert f"test-stdout{end_char}" in captured.out
-    assert f"test-stderr{end_char}" in captured.err
+        # Mix of different write methods
+        stream.write_chunk("Chunk 1 ")
+        stream.write_line("Line 1")
+        stream.write_markdown_chunk("**Bold text** ")
+        stream.write_chunk("Final chunk")
+
+        output = custom_stream.getvalue()
+        assert "Chunk 1 " in output
+        assert "Line 1\n" in output
+        assert "Final chunk" in output
+        # Bold text should be rendered with ANSI codes
+        assert output != "Chunk 1 Line 1\n**Bold text** Final chunk"
+
+    def test_write_markdown_chunk_with_newlines(self):
+        """Test write_markdown_chunk with content containing newlines."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_markdown_chunk("Line 1\n**Bold Line 2**\nLine 3")
+
+        output = custom_stream.getvalue()
+        assert "Line 1" in output
+        assert "Line 3" in output
+        assert stream._buffer == ""
+
+    def test_write_chunk_with_special_characters(self):
+        """Test write_chunk with special characters and unicode."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        special_text = "Special chars: !@#$%^&*() Unicode: 🚀 ñoño"
+        stream.write_chunk(special_text)
+
+        assert custom_stream.getvalue() == special_text
+
+    def test_buffer_state_isolation(self):
+        """Test that buffer state is isolated between instances."""
+        stream1 = StreamWriter(stream=io.StringIO())
+        stream2 = StreamWriter(stream=io.StringIO())
+
+        stream1._buffer = "Buffer 1"
+        stream2._buffer = "Buffer 2"
+
+        assert stream1._buffer == "Buffer 1"
+        assert stream2._buffer == "Buffer 2"
+
+    @patch("command_line_assistant.rendering.stream.markdown_to_ansi")
+    def test_write_markdown_chunk_with_none_input(self, mock_markdown_to_ansi):
+        """Test write_markdown_chunk behavior with None input (edge case)."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        # This would normally cause a TypeError, but let's test graceful handling
+        try:
+            stream.write_markdown_chunk(None)  # type: ignore
+        except (TypeError, AttributeError):
+            # Expected behavior - the method should handle string operations
+            pass
+
+        # Ensure no calls were made to markdown processing if None was passed
+        mock_markdown_to_ansi.assert_not_called()
+
+    def test_large_content_handling(self):
+        """Test handling of large content chunks."""
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        # Create a large chunk of content
+        large_content = "A" * 10000
+        stream.write_chunk(large_content)
+
+        assert custom_stream.getvalue() == large_content
+        assert len(custom_stream.getvalue()) == 10000
+
+    @patch("command_line_assistant.rendering.stream.markdown_to_ansi")
+    def test_consecutive_markdown_failures_and_success(self, mock_markdown_to_ansi):
+        """Test multiple consecutive markdown failures followed by success."""
+        # Fail twice, then succeed
+        mock_markdown_to_ansi.side_effect = [
+            Exception("Fail 1"),
+            Exception("Fail 2"),
+            "Success!",
+        ]
+
+        custom_stream = io.StringIO()
+        stream = StreamWriter(stream=custom_stream)
+
+        stream.write_markdown_chunk("chunk1")
+        stream.write_markdown_chunk("chunk2")
+        stream.write_markdown_chunk("chunk3")
+
+        # Should have accumulated all chunks and then rendered successfully
+        assert custom_stream.getvalue() == "Success!"
+        assert stream._buffer == ""
+        assert mock_markdown_to_ansi.call_count == 3
