@@ -23,13 +23,13 @@ def feedback_command(args: Namespace, context: CommandContext) -> int:
     """Feedback command implementation."""
     render = Renderer(args.plain)
 
-    render.warning(
+    render.notice(
         "Do not include any personal information or other"
         " sensitive information in your feedback. Feedback may"
         " be used to improve Red Hat's products or services."
     )
 
     feedback_message = "To submit feedback, use the following email address: <cla-feedback@redhat.com>."
-    render.success(feedback_message)
+    render.normal(feedback_message)
 
     return 0
