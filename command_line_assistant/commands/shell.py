@@ -13,6 +13,7 @@ from command_line_assistant.commands.cli import (
 from command_line_assistant.exceptions import ShellCommandException
 from command_line_assistant.integrations import BASH_INTERACTIVE
 from command_line_assistant.rendering.renderers import Renderer
+from command_line_assistant.rendering.theme import load_theme
 from command_line_assistant.terminal.reader import (
     TERMINAL_CAPTURE_FILE,
     start_capturing,
@@ -60,7 +61,7 @@ def shell_command(args: Namespace, context: CommandContext) -> int:
     Returns:
         int: Exit code
     """
-    render = Renderer(args.plain)
+    render = Renderer(args.plain, theme=load_theme())
 
     try:
         # Handle different operations
@@ -127,7 +128,7 @@ def _write_bash_functions(
         )
 
     write_file(contents, file)
-    render.success(
+    render.normal(
         f"Integration successfully added at {file}. "
         "In order to use it, please restart your terminal or source ~/.bashrc"
     )
@@ -153,7 +154,7 @@ def _remove_bash_functions(render: Renderer, file: Path) -> int:
 
     try:
         file.unlink()
-        render.success("Integration disabled successfully.")
+        render.normal("Integration disabled successfully.")
     except (FileExistsError, FileNotFoundError) as e:
         logger.warning(
             "Got an exception '%s'. Either file is missing or something removed just before this operation",
@@ -181,10 +182,8 @@ def _enable_capture(render: Renderer) -> int:
         )
 
     with file_lock:
-        render.success(
-            "Starting terminal reader. Press Ctrl + D to stop the capturing."
-        )
-        render.success(
+        render.normal("Starting terminal reader. Press Ctrl + D to stop the capturing.")
+        render.normal(
             f"Terminal capture log is being written to {TERMINAL_CAPTURE_FILE}"
         )
         create_folder(BASH_RC_D_PATH)

@@ -36,6 +36,24 @@ def command_context():
 
 
 @pytest.fixture
+def disable_stream_flush(monkeypatch):
+    """Fixture to make StreamWriter use current sys.stdout and disable flushing."""
+    import sys
+
+    from command_line_assistant.rendering.stream import StreamWriter
+
+    # Patch StreamWriter to use current sys.stdout and disable flushing
+    original_init = StreamWriter.__init__
+
+    def patched_init(self, stream=None, flush_on_write=True, theme=None):
+        # Always use current sys.stdout and disable flushing
+        original_init(self, stream=sys.stdout, flush_on_write=False, theme=theme)
+
+    monkeypatch.setattr(StreamWriter, "__init__", patched_init)
+    yield
+
+
+@pytest.fixture
 def mock_user_chat_list():
     return ChatList(
         [ChatEntry(name="test", description="test", created_at=str(datetime.now()))]
@@ -53,12 +71,14 @@ def sample_history_entry():
     return history_entry
 
 
-def test_history_command_all_success(mock_dbus_service, sample_history_entry, capsys):
+def test_history_command_all_success(
+    mock_dbus_service, sample_history_entry, capsys, disable_stream_flush
+):
     """Test retrieving all conversations successfully."""
     mock_dbus_service.GetUserId.return_value = "test-user"
     mock_dbus_service.GetHistory.return_value = sample_history_entry.structure()
 
-    result = history._all_history(Renderer(True), DbusClient(), "test-user", True)
+    result = history._all_history(Renderer(plain=True), DbusClient(), "test-user", True)
 
     captured = capsys.readouterr()
     assert result == 0
@@ -95,7 +115,11 @@ def test_history_command_all_not_enabled(mock_dbus_service):
 
 
 def test_history_command_first_success(
-    mock_dbus_service, sample_history_entry, default_namespace, capsys
+    mock_dbus_service,
+    sample_history_entry,
+    default_namespace,
+    capsys,
+    disable_stream_flush,
 ):
     """Test retrieving first conversation successfully."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -105,7 +129,7 @@ def test_history_command_first_success(
 
     default_namespace.first = True
     result = history._first_history(
-        Renderer(True), DbusClient(), "test-user", "test", True
+        Renderer(plain=True), DbusClient(), "test-user", "test", True
     )
 
     captured = capsys.readouterr()
@@ -115,7 +139,11 @@ def test_history_command_first_success(
 
 
 def test_history_command_last_success(
-    mock_dbus_service, sample_history_entry, default_namespace, capsys
+    mock_dbus_service,
+    sample_history_entry,
+    default_namespace,
+    capsys,
+    disable_stream_flush,
 ):
     """Test retrieving last conversation successfully."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -125,7 +153,7 @@ def test_history_command_last_success(
 
     default_namespace.last = True
     result = history._last_history(
-        Renderer(True), DbusClient(), "test-user", "test", True
+        Renderer(plain=True), DbusClient(), "test-user", "test", True
     )
 
     captured = capsys.readouterr()
@@ -135,7 +163,11 @@ def test_history_command_last_success(
 
 
 def test_history_command_filter_success(
-    mock_dbus_service, sample_history_entry, default_namespace, capsys
+    mock_dbus_service,
+    sample_history_entry,
+    default_namespace,
+    capsys,
+    disable_stream_flush,
 ):
     """Test filtering conversation history successfully."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -145,7 +177,7 @@ def test_history_command_filter_success(
 
     default_namespace.filter = "test"
     result = history._filter_history(
-        Renderer(True), DbusClient(), "test-user", "test", "test", True
+        Renderer(plain=True), DbusClient(), "test-user", "test", "test", True
     )
 
     captured = capsys.readouterr()
@@ -154,14 +186,18 @@ def test_history_command_filter_success(
     assert "test query" in captured.out
 
 
-def test_history_command_clear_success(mock_dbus_service, default_namespace, capsys):
+def test_history_command_clear_success(
+    mock_dbus_service, default_namespace, capsys, disable_stream_flush
+):
     """Test clearing history successfully."""
     mock_dbus_service.GetUserId.return_value = "test-user"
     mock_dbus_service.IsChatAvailable.return_value = True
     mock_dbus_service.ClearHistory.return_value = None
 
     default_namespace.clear = True
-    result = history._clear_history(Renderer(True), DbusClient(), "test-user", "test")
+    result = history._clear_history(
+        Renderer(plain=True), DbusClient(), "test-user", "test"
+    )
 
     captured = capsys.readouterr()
     assert result == 0
@@ -169,7 +205,7 @@ def test_history_command_clear_success(mock_dbus_service, default_namespace, cap
 
 
 def test_history_command_chat_not_available(
-    mock_dbus_service, default_namespace, command_context, capsys
+    mock_dbus_service, default_namespace, command_context, capsys, disable_stream_flush
 ):
     """Test clearing history when chat is not available."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -181,12 +217,16 @@ def test_history_command_chat_not_available(
     assert result == 82
     assert (
         "Nothing to clean as test chat is not available. Try asking something first."
-        in captured.err
+        in captured.out
     )
 
 
 def test_history_command_clear_all_success(
-    mock_dbus_service, default_namespace, capsys, mock_user_chat_list
+    mock_dbus_service,
+    default_namespace,
+    capsys,
+    mock_user_chat_list,
+    disable_stream_flush,
 ):
     """Test clearing all history successfully."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -194,7 +234,7 @@ def test_history_command_clear_all_success(
     mock_dbus_service.ClearAllHistory.return_value = None
 
     default_namespace.clear_all = True
-    result = history._clear_all_history(Renderer(True), DbusClient(), "test-user")
+    result = history._clear_all_history(Renderer(plain=True), DbusClient(), "test-user")
 
     captured = capsys.readouterr()
     assert result == 0
@@ -215,11 +255,11 @@ def test_history_command_clear_all_no_chats(mock_dbus_service, default_namespace
         history._clear_all_history(Renderer(True), DbusClient(), "test-user")
 
 
-def test_history_command_empty_history(capsys):
+def test_history_command_empty_history(capsys, disable_stream_flush):
     """Test handling empty history response."""
     entries = HistoryList([])
 
-    history._show_history(entries, True)
+    history._show_history(Renderer(plain=True), entries)
 
     captured = capsys.readouterr()
     assert "No history entries found" in captured.out
@@ -243,7 +283,12 @@ def test_history_command_custom_chat(mock_dbus_service, sample_history_entry):
 
 
 def test_history_command_plain_mode(
-    mock_dbus_service, default_namespace, sample_history_entry, command_context, capsys
+    mock_dbus_service,
+    default_namespace,
+    sample_history_entry,
+    command_context,
+    capsys,
+    disable_stream_flush,
 ):
     """Test history command in plain mode."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -256,7 +301,7 @@ def test_history_command_plain_mode(
     assert "test query" in captured.out
 
 
-def test_history_command_multiple_entries(capsys):
+def test_history_command_multiple_entries(capsys, disable_stream_flush):
     """Test history command with multiple entries."""
     entries = HistoryList(
         [
@@ -265,7 +310,7 @@ def test_history_command_multiple_entries(capsys):
         ]
     )
 
-    history._show_history(entries, True)
+    history._show_history(Renderer(plain=True), entries)
 
     captured = capsys.readouterr()
     assert "query 1" in captured.out
@@ -295,6 +340,7 @@ def test_history_operations_with_history_disabled(
     default_namespace,
     command_context,
     capsys,
+    disable_stream_flush,
 ):
     """Test all operations with history disabled."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -313,4 +359,4 @@ def test_history_operations_with_history_disabled(
 
     captured = capsys.readouterr()
     assert result == 82
-    assert exception_msg in captured.err
+    assert exception_msg in captured.out
