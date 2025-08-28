@@ -1,44 +1,55 @@
-FROM registry.access.redhat.com/ubi10/ubi:latest@sha256:b51579c045599bc2f2ba407f28fcc26e13b87409e062e227b185ae69d699bf95 AS base
+FROM registry.access.redhat.com/ubi10/ubi:latest@sha256:eaa1ccdf1533e02d59eeed435cfb19cab37d4a4ae2d7a0801fa9f1f575654f62 AS base
 
-ENV DNF_DEFAULT_OPTS -y --nodocs --setopt=keepcache=0 --setopt=tsflags=nodocs
+# Build the python wheel
+FROM base AS build
+
+WORKDIR /project
+
+COPY ./pyproject.toml ./uv.lock README.md LICENSE ./
+COPY command_line_assistant/ ./command_line_assistant/
+
+RUN subscription-manager --refresh
+
+# Install Python, pip, and development tools
+RUN dnf install -y --enablerepo=rhel-CRB-latest \
+        python3.12 \
+        python3.12-pip \
+        python3-setuptools \
+        python3-wheel \
+        python3-devel \
+        gcc \
+        cairo-devel \
+        cairo-gobject \
+        cairo-gobject-devel \
+        gobject-introspection \
+        gobject-introspection-devel \
+        cmake \
+    && dnf clean all
+
+RUN pip install uv \
+    && uv sync \
+    && uv build --wheel
+
+FROM base
 
 # Add in data about the build. (These come from Konflux.)
 ARG COMMIT_SHA=development
 ARG COMMIT_TIMESTAMP=development
 ARG VERSION=0.4.2
-ENV VERSION=${VERSION}
-ENV COMMIT_SHA=${COMMIT_SHA} \
-    COMMIT_TIMESTAMP=${COMMIT_TIMESTAMP}
 
-RUN dnf install ${DNF_DEFAULT_OPTS} \
-    python3.12 \
-    python3.12-pip
-
-FROM base as build
-
-WORKDIR /project
-
-COPY ./pyproject.toml ./uv.lock* README.md LICENSE ./
-COPY command_line_assistant/ ./command_line_assistant/
-
-RUN dnf install ${DNF_DEFAULT_OPTS} \
-    gcc \
-    python3-devel \
-    python3-setuptools \
-    python3-wheel
-
-RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/usr/local/bin" sh && uv sync
-
-RUN uv build --wheel
-
-FROM base as final
-
-COPY --from=build /project/dist/command_line_assistant-${VERSION}-py3-none-any.whl /tmp/
-
-RUN dnf install ${DNF_DEFAULT_OPTS} python3-PyMySQL python3-psycopg2 \
-    && pip install --prefix=/usr --no-cache-dir /tmp/command_line_assistant-${VERSION}-py3-none-any.whl \
-    && dnf remove -y python3-pip \
-    && dnf clean all && rm -rf /var/cache/dnf /var/tmp/* /tmp/command_line_assistant-*
+# Labels for enterprise contract
+LABEL com.redhat.component=rhel-lightspeed-command-line-assistant
+LABEL description="Red Hat Enterprise Linux Lightspeed"
+LABEL distribution-scope=private
+LABEL io.k8s.description="Red Hat Enterprise Linux Lightspeed"
+LABEL io.k8s.display-name="RHEL Lightspeed"
+LABEL io.openshift.tags="rhel,lightspeed,ai,assistant,rag"
+LABEL name=rhel-lightspeed-command-line-assistant
+LABEL release="${VERSION}"
+LABEL version=${VERSION}
+LABEL url="https://github.com/rhel-lightspeed/command-line-assistant"
+LABEL vendor="Red Hat, Inc."
+LABEL summary="Red Hat Enterprise Linux Lightspeed"
 
 # Config
 COPY data/release/xdg/config.toml /etc/xdg/command-line-assistant/config.toml
@@ -58,31 +69,26 @@ COPY data/release/man/c.1 /usr/share/man/man1/
 COPY data/release/man/c.1 /usr/share/man/man1/cla.1
 COPY data/release/man/clad.8 /usr/share/man/man/8
 
-# Konflux specifics
+# The wheel build
+COPY --from=build /project/dist/command_line_assistant-*.whl /tmp/
+
+# Setup required packages
+RUN dnf install -y --nodocs --setopt=keepcache=0 --setopt=tsflags=nodocs shadow-utils python3-pip python3-PyMySQL python3-psycopg2
+
+# Install command-line-assistant
+RUN pip install --prefix=/usr --no-cache-dir /tmp/command_line_assistant-*.whl \
+    && rm -rf /tmp/command_line_assistant-*
+
+# Cleanup
+RUN dnf remove -y python3-pip \
+    && dnf clean all && rm -rf /var/cache/{dnf,yum}*/var/tmp/*
+
 # This directory is checked by ecosystem-cert-preflight-checks task in Konflux
 RUN mkdir /licenses
 COPY LICENSE /licenses/
 
-# NOTE(r0x0d): As of July 2nd, we are only creating the user but not
-# "activating" it with the `USER` directive. The reason for that is that we
-# need to initiate systemd, and that requires root permissions. The user will
-# be available to be used through the `--user` cli flag exposed in the `exec`
-# command, so that is an initial start.
 RUN useradd --system --create-home lightspeed
-
-# Labels for enterprise contract
-LABEL com.redhat.component=rhel-lightspeed-command-line-assistant
-LABEL description="Red Hat Enterprise Linux Lightspeed"
-LABEL distribution-scope=private
-LABEL io.k8s.description="Red Hat Enterprise Linux Lightspeed"
-LABEL io.k8s.display-name="RHEL Lightspeed"
-LABEL io.openshift.tags="rhel,lightspeed,ai,assistant,rag"
-LABEL name=rhel-lightspeed-command-line-assistant
-LABEL release="${VERSION}"
-LABEL version=${VERSION}
-LABEL url="https://github.com/rhel-lightspeed/command-line-assistant"
-LABEL vendor="Red Hat, Inc."
-LABEL summary="Red Hat Enterprise Linux Lightspeed"
+USER lightspeed
 
 STOPSIGNAL SIGRTMIN+3
 CMD ["/sbin/init"]

@@ -180,4 +180,4 @@ build-container: ## Build a container image
 	podman build -t rhel-ligspeed/command-line-assistant:latest .
 
 launch-container: ## Launch CLA container
-	podman run --detach -it rhel-ligspeed/command-line-assistant:latest
+	podman run -u : --detach -it --name command-line-assistant rhel-ligspeed/command-line-assistant:latest
