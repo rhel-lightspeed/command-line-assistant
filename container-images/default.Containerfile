@@ -27,6 +27,12 @@ RUN python3 -m venv /opt/venvs/uv \
 
 FROM base AS final
 
+# Add in data about the build. (These come from Konflux.)
+ARG COMMIT_SHA=development
+ARG COMMIT_TIMESTAMP=development
+ARG VERSION=0.4.2
+ARG SOURCE_DATE_EPOCH
+
 # Labels for enterprise contract
 LABEL com.redhat.component=rhel-lightspeed-command-line-assistant
 LABEL description="Red Hat Enterprise Linux Lightspeed"
@@ -35,16 +41,12 @@ LABEL io.k8s.description="Red Hat Enterprise Linux Lightspeed"
 LABEL io.k8s.display-name="RHEL Lightspeed"
 LABEL io.openshift.tags="rhel,lightspeed,ai,assistant,rag"
 LABEL name=rhel-lightspeed-command-line-assistant
+LABEL org.opencontainers.image.created=${SOURCE_DATE_EPOCH}
 LABEL release="${VERSION}"
 LABEL version=${VERSION}
 LABEL url="https://github.com/rhel-lightspeed/command-line-assistant"
 LABEL vendor="Red Hat, Inc."
 LABEL summary="Red Hat Enterprise Linux Lightspeed"
-
-# Add in data about the build. (These come from Konflux.)
-ARG COMMIT_SHA=development
-ARG COMMIT_TIMESTAMP=development
-ARG VERSION=0.4.2
 
 ENV CLA_VENV /opt/venvs/cla
 
