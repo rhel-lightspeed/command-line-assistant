@@ -1,5 +1,7 @@
 FROM registry.access.redhat.com/ubi10/ubi:latest@sha256:eaa1ccdf1533e02d59eeed435cfb19cab37d4a4ae2d7a0801fa9f1f575654f62 AS base
 
+ENV DNF_DEFAULT_OPTIONS "-y --nodocs --setopt=keepcache=0 --setopt=tsflags=nodocs --setopt=install_weak_deps=False"
+
 # Build the python wheel
 FROM base AS build
 
@@ -8,34 +10,22 @@ WORKDIR /project
 COPY ./pyproject.toml ./uv.lock README.md LICENSE ./
 COPY command_line_assistant/ ./command_line_assistant/
 
-RUN subscription-manager --refresh
-
 # Install Python, pip, and development tools
-RUN dnf install -y --enablerepo=rhel-CRB-latest \
+RUN dnf install $DNF_DEFAULT_OPTIONS \
         python3.12 \
-        python3.12-pip \
         python3-setuptools \
         python3-wheel \
         python3-devel \
-        gcc \
         cairo-devel \
-        cairo-gobject \
-        cairo-gobject-devel \
-        gobject-introspection \
-        gobject-introspection-devel \
-        cmake \
+        gcc \
     && dnf clean all
 
-RUN pip install uv \
-    && uv sync \
-    && uv build --wheel
+RUN python3 -m venv /opt/venvs/uv \
+    && /opt/venvs/uv/bin/pip install uv \
+    && /opt/venvs/uv/bin/uv sync \
+    && /opt/venvs/uv/bin/uv build --wheel
 
-FROM base
-
-# Add in data about the build. (These come from Konflux.)
-ARG COMMIT_SHA=development
-ARG COMMIT_TIMESTAMP=development
-ARG VERSION=0.4.2
+FROM base AS final
 
 # Labels for enterprise contract
 LABEL com.redhat.component=rhel-lightspeed-command-line-assistant
@@ -51,14 +41,25 @@ LABEL url="https://github.com/rhel-lightspeed/command-line-assistant"
 LABEL vendor="Red Hat, Inc."
 LABEL summary="Red Hat Enterprise Linux Lightspeed"
 
+# Add in data about the build. (These come from Konflux.)
+ARG COMMIT_SHA=development
+ARG COMMIT_TIMESTAMP=development
+ARG VERSION=0.4.2
+
+ENV CLA_VENV /opt/venvs/cla
+
 # Config
 COPY data/release/xdg/config.toml /etc/xdg/command-line-assistant/config.toml
+
 RUN sed -i 's/^cert_file = .*/cert_file = "\/run\/secrets\/etc-pki-entitlement\/cert.pem"/' /etc/xdg/command-line-assistant/config.toml \
     && sed -i 's/^key_file = .*/key_file = "\/run\/secrets\/etc-pki-entitlement\/key.pem"/' /etc/xdg/command-line-assistant/config.toml
 
 # Systemd specifics
 COPY data/release/systemd/clad.service /usr/lib/systemd/system/clad.service
 COPY data/release/systemd/clad.tmpfiles.conf /usr/lib/tmpfiles.d/clad.tmpfiles.conf
+
+# Update ExecStart to match the future cla virtualenv
+RUN sed -i "s|^ExecStart=.*|ExecStart=${CLA_VENV}/bin/clad|" /usr/lib/systemd/system/clad.service
 
 # Dbus specifics
 COPY data/release/dbus/*.service /usr/share/dbus-1/system-services/
@@ -73,15 +74,17 @@ COPY data/release/man/clad.8 /usr/share/man/man/8
 COPY --from=build /project/dist/command_line_assistant-*.whl /tmp/
 
 # Setup required packages
-RUN dnf install -y --nodocs --setopt=keepcache=0 --setopt=tsflags=nodocs shadow-utils python3-pip python3-PyMySQL python3-psycopg2
+RUN dnf install $DNF_DEFAULT_OPTIONS python3-gobject-base python3-PyMySQL python3-psycopg2 \
+    && dnf clean all \
+    && rm -rf /var/cache/{dnf,yum}/*
 
 # Install command-line-assistant
-RUN pip install --prefix=/usr --no-cache-dir /tmp/command_line_assistant-*.whl \
+RUN python3 -m venv --system-site-packages $CLA_VENV \
+    && $CLA_VENV/bin/pip install --no-cache-dir /tmp/command_line_assistant-*.whl \
     && rm -rf /tmp/command_line_assistant-*
 
-# Cleanup
-RUN dnf remove -y python3-pip \
-    && dnf clean all && rm -rf /var/cache/{dnf,yum}*/var/tmp/*
+# Add cla virtualenv to the PATH env variable
+ENV PATH "$CLA_VENV/bin:$PATH"
 
 # This directory is checked by ecosystem-cert-preflight-checks task in Konflux
 RUN mkdir /licenses

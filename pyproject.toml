@@ -16,8 +16,6 @@ dependencies = [
     "dasbus~=1.4;python_version<='3.9'",
     "dasbus~=1.7;python_version>='3.12'",
     "sqlalchemy==1.4.45",
-    "pygobject~=3.40.1;python_version<='3.9'",
-    "pygobject~=3.46;python_version>='3.12'",
 ]
 requires-python = ">=3.9,<4.0" # RHEL 9 and 10
 readme = "README.md"
@@ -41,6 +39,8 @@ dev = [
     "pytest-clarity",
     "tox",
     "responses",
+    "pygobject~=3.40.1;python_version<='3.9'",
+    "pygobject~=3.46;python_version>='3.12'",
 ]
 docs = [
     "sphinx",
