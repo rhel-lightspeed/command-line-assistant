@@ -127,7 +127,7 @@ def _write_bash_functions(
         )
 
     write_file(contents, file)
-    render.success(
+    render.normal(
         f"Integration successfully added at {file}. "
         "In order to use it, please restart your terminal or source ~/.bashrc"
     )
@@ -153,7 +153,7 @@ def _remove_bash_functions(render: Renderer, file: Path) -> int:
 
     try:
         file.unlink()
-        render.success("Integration disabled successfully.")
+        render.normal("Integration disabled successfully.")
     except (FileExistsError, FileNotFoundError) as e:
         logger.warning(
             "Got an exception '%s'. Either file is missing or something removed just before this operation",
@@ -181,10 +181,8 @@ def _enable_capture(render: Renderer) -> int:
         )
 
     with file_lock:
-        render.success(
-            "Starting terminal reader. Press Ctrl + D to stop the capturing."
-        )
-        render.success(
+        render.normal("Starting terminal reader. Press Ctrl + D to stop the capturing.")
+        render.normal(
             f"Terminal capture log is being written to {TERMINAL_CAPTURE_FILE}"
         )
         create_folder(BASH_RC_D_PATH)
