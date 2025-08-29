@@ -7,7 +7,7 @@ FROM base AS build
 
 WORKDIR /project
 
-COPY ./pyproject.toml ./uv.lock README.md LICENSE ./
+COPY ./pyproject.toml setup.py requirements.txt README.md LICENSE ./
 COPY command_line_assistant/ ./command_line_assistant/
 
 # Install Python, pip, and development tools
@@ -18,12 +18,12 @@ RUN dnf install $DNF_DEFAULT_OPTIONS \
         python3-devel \
         cairo-devel \
         gcc \
+        g++ \
     && dnf clean all
 
-RUN python3 -m venv /opt/venvs/uv \
-    && /opt/venvs/uv/bin/pip install uv \
-    && /opt/venvs/uv/bin/uv sync \
-    && /opt/venvs/uv/bin/uv build --wheel
+RUN python3 -m venv --system-site-packages  /opt/venvs/build \
+    && /opt/venvs/build/bin/pip install -r requirements.txt \
+    && /opt/venvs/build/bin/python setup.py bdist_wheel
 
 FROM base AS final
 
@@ -76,7 +76,7 @@ COPY data/release/man/clad.8 /usr/share/man/man/8
 COPY --from=build /project/dist/command_line_assistant-*.whl /tmp/
 
 # Setup required packages
-RUN dnf install $DNF_DEFAULT_OPTIONS python3-gobject-base python3-PyMySQL python3-psycopg2 \
+RUN dnf install $DNF_DEFAULT_OPTIONS python3-gobject-base python3-PyMySQL python3-psycopg2 g++ python3-devel \
     && dnf clean all \
     && rm -rf /var/cache/{dnf,yum}/*
 

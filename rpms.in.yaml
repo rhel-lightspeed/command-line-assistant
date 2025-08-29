@@ -1,0 +1,4 @@
+packages: [python3.12, python3-setuptools, python3-wheel, python3-devel, cairo-devel, gcc, g++, python3-gobject-base, python3-PyMySQL, python3-psycopg2]
+contentOrigin:
+  repofiles: ["./ubi.repo"]
+arches: [x86_64, aarch64]
