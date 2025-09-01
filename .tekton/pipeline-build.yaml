@@ -337,7 +337,7 @@ spec:
         operator: in
         values:
         - 'true'
-        
+
     - name: deprecated-base-image-check
       params:
         - name: IMAGE_URL
