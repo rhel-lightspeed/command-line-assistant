@@ -39,10 +39,7 @@ def test_inline_code_rendering(markdown_renderer):
 def test_link_rendering(markdown_renderer):
     text = "Here's a [link](https://example.com)"
     markdown_renderer.render(text)
-    assert (
-        "Here's a link (\x1b[94mhttps://example.com\x1b[0m)"
-        in markdown_renderer._stream.output
-    )
+    assert "Here's a link (https://example.com)" in markdown_renderer._stream.output
     assert "[link](https://example.com)" not in markdown_renderer._stream.output
 
 
