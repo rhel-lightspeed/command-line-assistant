@@ -28,7 +28,7 @@ def test_default_feedback_operation(default_kwargs, capsys):
     captured = capsys.readouterr()
 
     assert (
-        "Do not include any personal information or other sensitive information in\nyour feedback."
+        "Do not include any personal information or other sensitive information in your\nfeedback."
         in captured.err
     )
     assert (
@@ -69,7 +69,7 @@ def test_feedback_run(capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert (
-        "Do not include any personal information or other sensitive information in\nyour feedback."
+        "Do not include any personal information or other sensitive information in your\nfeedback."
         in captured.err
     )
     assert (

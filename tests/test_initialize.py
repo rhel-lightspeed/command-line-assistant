@@ -125,7 +125,7 @@ def test_initialize_bad_stdin(capsys):
         initialize()
 
     captured = capsys.readouterr()
-    assert "\x1b[31m🙁 Binary input are not supported.\x1b[0m\n" in captured.err
+    assert "🙁 Binary input are not supported.\n" in captured.err
 
 
 def test_initialize_keyboard_interrupt(capsys):
@@ -134,7 +134,7 @@ def test_initialize_keyboard_interrupt(capsys):
         initialize()
 
     captured = capsys.readouterr()
-    assert "\x1b[31m🙁 Uh, oh! Keyboard interrupt detected.\x1b[0m\n" in captured.err
+    assert "🙁 Uh, oh! Keyboard interrupt detected.\n" in captured.err
 
 
 @pytest.mark.parametrize(
