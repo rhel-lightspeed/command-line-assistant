@@ -164,6 +164,8 @@ def should_disable_color_output() -> bool:
     Returns:
         bool: If color output should be disabled or not.
     """
+    # TODO: This is a temporary fix to disable color output entirely.
+    return True
     if "NO_COLOR" in os.environ:
         no_color = os.environ["NO_COLOR"]
         return no_color is not None and no_color != "0" and no_color.lower() != "false"
