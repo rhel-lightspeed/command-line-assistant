@@ -1,5 +1,0 @@
-[D-BUS Service]
-Name=com.redhat.lightspeed.user
-Exec=/bin/false
-User=root
-SystemdService=clad.service

@@ -15,22 +15,6 @@ repos:
       - id: rpmlint
         files: \.spec
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
-    rev: v0.12.11
-    hooks:
-      # Run the linter.
-      - id: ruff
-        args: [ --fix ]
-
-      # Show the diff of what would change.
-      - id: ruff-format
-        name: ruff-format-diff
-        args: [--diff]
-
-      # Run the formatter.
-      - id: ruff-format
-
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
     rev: "v6.0.0"
     hooks:
@@ -49,39 +33,8 @@ repos:
           - https://github.com/rhel-lightspeed/command-line-assistant.git
         stages: [manual, pre-push]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1  # Use the sha / tag you want to point at
-    hooks:
-    - id: mypy
-      additional_dependencies:
-        - pytest
-        - types-requests
-        - dasbus
-        - setuptools
-        - responses
-        - tomli
-        - setuptools
-        - sqlalchemy
-
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.28.0
     hooks:
       - id: gitleaks
         stages: [manual, pre-push]
-
-  - repo: https://github.com/econchick/interrogate
-    rev: 1.7.0
-    hooks:
-      - id: interrogate
-        exclude: ^(docs/conf.py|setup.py|tests/|scripts)
-        args: ["-vv", "-c", "pyproject.toml", "command_line_assistant", "--fail-under", "100"]
-        # Workaround mentioned at https://github.com/econchick/interrogate/issues/60#issuecomment-735436566
-        pass_filenames: false
-
-  - repo: local
-    hooks:
-      - id: check-for-missing-sphinx-docs
-        name: check for missing sphinx docs
-        entry: python scripts/check_sphinx_docs.py
-        language: python
-        pass_filenames: false

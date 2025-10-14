@@ -15,7 +15,7 @@
   "packageRules": [
     {
       "matchCategories": [
-        "python"
+        "rust"
       ],
       "enabled": false
     }
