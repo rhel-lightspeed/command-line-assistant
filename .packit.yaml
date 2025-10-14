@@ -3,7 +3,25 @@ upstream_package_name: command-line-assistant
 downstream_package_name: command-line-assistant
 upstream_project_url: https://github.com/rhel-lightspeed/command-line-assistant
 
-srpm_build_deps: []
+
+srpm_build_deps:
+  - cargo
+  - git
+  - libzstd-devel
+
+actions:
+  # The last step here is required by Packit to return the archive name
+  # https://packit.dev/docs/configuration/actions#create-archive
+  create-archive:
+    - bash -c "cargo install cargo-vendor-filterer"
+    - bash -c "cargo xtask spec"
+    - bash -c "cat target/command-line-assistant.spec"
+    - bash -c "cp target/command-line-assistant* packaging/"
+    - bash -c "ls -1 target/command-line-assistant*.tar.zstd | grep -v 'vendor'"
+  # Do nothing with spec file. Two steps here are for debugging
+  fix-spec-file:
+    - bash -c "cat packaging/command-line-assistant.spec"
+    - bash -c "ls -al packaging/"
 
 jobs:
   # Build RPMs for each pull request
@@ -12,14 +30,14 @@ jobs:
     owner: "@rhel-lightspeed"
     project: command-line-assistant
     targets:
-      - epel-9-x86_64
-      - epel-9-aarch64
-      - epel-9-ppc64le
-      - epel-9-s390x
-      - epel-10-x86_64
-      - epel-10-aarch64
-      - epel-10-ppc64le
-      - epel-10-s390x
+      - rhel-9-x86_64
+      - rhel-9-aarch64
+      - epel-9-ppc64le # there is no rhel9-ppc64le in copr
+      - rhel-9-s390x
+      - rhel-10-x86_64
+      - rhel-10-aarch64
+      - rhel-10-ppc64le
+      - rhel-10-s390x
       - fedora-41-x86_64
       - fedora-41-aarch64
       - fedora-41-ppc64le
@@ -32,11 +50,6 @@ jobs:
       - fedora-43-aarch64
       - fedora-43-ppc64le
       - fedora-43-s390x
-    actions:
-      # do not get the version from a tag (git describe) but from the spec file
-      get-current-version:
-        - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec
-
   # Build RPMs for main branch
   - job: copr_build
     trigger: commit
@@ -44,14 +57,14 @@ jobs:
     owner: "@rhel-lightspeed"
     project: command-line-assistant
     targets:
-      - epel-9-x86_64
-      - epel-9-aarch64
-      - epel-9-ppc64le
-      - epel-9-s390x
-      - epel-10-x86_64
-      - epel-10-aarch64
-      - epel-10-ppc64le
-      - epel-10-s390x
+      - rhel-9-x86_64
+      - rhel-9-aarch64
+      - epel-9-ppc64le # there is no rhel9-ppc64le in copr
+      - rhel-9-s390x
+      - rhel-10-x86_64
+      - rhel-10-aarch64
+      - rhel-10-ppc64le
+      - rhel-10-s390x
       - fedora-41-x86_64
       - fedora-41-aarch64
       - fedora-41-ppc64le
@@ -64,14 +77,6 @@ jobs:
       - fedora-43-aarch64
       - fedora-43-ppc64le
       - fedora-43-s390x
-    actions:
-      # bump spec so we get release starting with 2 and hence all the default branch builds will
-      # have higher NVR than all the PR builds
-      post-upstream-clone:
-        - rpmdev-bumpspec --comment='latest upstream build' ./packaging/command-line-assistant.spec
-      # do not get the version from a tag (git describe) but from the spec file
-      get-current-version:
-        - grep -oP '^Version:\s+\K\S+' packaging/command-line-assistant.spec
 
   # Test jobs
   - job: tests

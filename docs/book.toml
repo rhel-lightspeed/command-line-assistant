@@ -1,0 +1,6 @@
+[book]
+authors = ["Rodolfo Olivieri"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Command Line Assistant"

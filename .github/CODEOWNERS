@@ -19,4 +19,4 @@ data/                     @rhel-lightspeed/developers @rhel-lightspeed/quality-e
 .packit.yaml              @rhel-lightspeed/quality-engineering
 
 # Packaging
-packaging/                @r0x0d
+packaging/                @r0x0d @subpop

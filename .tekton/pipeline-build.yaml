@@ -46,7 +46,7 @@ spec:
     - name: prefetch-input
       description: Build dependencies to be prefetched by Cachi2
       type: string
-      default: '[{"type": "pip", "path": "."}, {"type": "rpm", "path": "."}]'
+      default: '[{"type": "cargo", "path": "."}, {"type": "rpm", "path": ".tekton"}]'
 
     - name: image-expires-after
       description: Image tag expiration time, time values could be something like 1h, 2d, 3w for hours, days, and weeks, respectively.

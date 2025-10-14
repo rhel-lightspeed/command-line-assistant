@@ -1,0 +1,4 @@
+packages: [gcc, g++, openssl-devel, cargo]
+contentOrigin:
+  repofiles: ["./ubi.repo"]
+arches: [x86_64, aarch64]

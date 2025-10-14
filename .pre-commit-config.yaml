@@ -4,6 +4,9 @@ ci:
   skip:
     # rpm library is not available in the CI
     - rpmlint
+    # rust not available in the CI
+    - fmt
+    - clippy
 
   # run autopdate monthly to reduce PR noise
   autoupdate_schedule: 'monthly'
@@ -38,3 +41,23 @@ repos:
     hooks:
       - id: gitleaks
         stages: [manual, pre-push]
+
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0
+    hooks:
+      - id: fmt
+        name: cargo fmt
+        description: Format Rust code with rustfmt
+        entry: cargo fmt --
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: clippy
+        name: cargo clippy
+        description: Lint Rust code with clippy
+        entry: cargo clippy
+        language: system
+        types: [rust]
+        pass_filenames: false
+        args: ['--', '-D', 'warnings']

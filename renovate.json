@@ -11,13 +11,5 @@
     "skip/changelog",
     "tests/skip"
   ],
-  "dependencyDashboard": true,
-  "packageRules": [
-    {
-      "matchCategories": [
-        "rust"
-      ],
-      "enabled": false
-    }
-  ]
+  "dependencyDashboard": true
 }

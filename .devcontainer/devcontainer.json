@@ -1,14 +1,14 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
     "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
-    "name": "clad-devcontainer",
+    "name": "cla-devcontainer",
     "build": {
         "dockerfile": "Containerfile",
         "context": "."
     },
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {
-            "username": "clad",
+            "username": "cla",
             "installZsh": false,
             "installOhMyZsh": false,
             "installOhMyZshConfig": false
@@ -19,14 +19,25 @@
             "extensions": [
                 "github.vscode-github-actions",
                 "github.vscode-pull-request-github",
-                "mads-hartmann.bash-ide-vscode"
-            ]
+                "mads-hartmann.bash-ide-vscode",
+                "rust-lang.rust-analyzer",
+                "vadimcn.vscode-lldb",
+                "tamasfe.even-better-toml"
+            ],
+            "settings": {
+                "rust-analyzer.checkOnSave.command": "clippy",
+                "editor.formatOnSave": true
+            }
         }
     },
     "runArgs": [
         "--name",
         "devcontainer-${containerWorkspaceFolderBasename}"
     ],
-    "remoteUser": "clad",
-    "containerUser": "clad"
+    "remoteUser": "cla",
+    "containerUser": "cla",
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.cargo/registry,target=/usr/local/cargo/registry,type=bind,consistency=cached"
+    ]
 }

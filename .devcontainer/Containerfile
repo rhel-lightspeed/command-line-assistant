@@ -14,5 +14,34 @@ RUN dnf install -y \
 # Upgrade pip
 RUN python -m pip install --upgrade pip
 
+# Install Rust development tools and dependencies
+RUN dnf install -y \
+    gcc \
+    make \
+    curl \
+    git \
+    pkg-config \
+    openssl-devel \
+    && dnf clean all
+
+# Install Rust using rustup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Add cargo to PATH
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install common Rust development tools
+RUN cargo install cargo-edit cargo-watch cargo-outdated
+
 # Set up a working directory
 WORKDIR /workspace
+
+# Optional: Set default toolchain to stable
+RUN rustup default stable
+
+# Optional: Add additional components
+RUN rustup component add \
+    rustfmt \
+    clippy \
+    rust-analysis \
+    rust-src

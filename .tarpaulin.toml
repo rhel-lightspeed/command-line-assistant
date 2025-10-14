@@ -1,0 +1,4 @@
+[default]
+# Exclude the xtask crate from coverage
+workspace = true
+exclude = ["xtask"]

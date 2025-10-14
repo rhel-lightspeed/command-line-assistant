@@ -1,3 +1,10 @@
+# https://github.com/bootc-dev/bootc/issues/1640
+%if 0%{?fedora} || 0%{?rhel} >= 10 || 0%{?rust_minor} >= 89
+    %global new_cargo_macros 1
+%else
+    %global new_cargo_macros 0
+%endif
+
 # RPM Specific
 %define python_package_src command_line_assistant
 %define binary_name c
@@ -17,33 +24,24 @@ Summary:        A simple wrapper to interact with RAG
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
 Source0:        %{url}/releases/download/v%{version}/%{name}-%{version}.tar.gz
-# noarch because there is no extension module for this package.
-BuildArch:      noarch
+Source1:        %{url}/releases/download/v%{version}/%{name}-%{version}-vendor.tar.zstd
 
-BuildRequires:  python3-devel
-BuildRequires:  python3-setuptools
-BuildRequires:  python3-wheel
-BuildRequires:  python3-pip
-BuildRequires:  systemd-units
+
+%if 0%{?rhel}
+BuildRequires: rust-toolset
+%else
+BuildRequires: cargo-rpm-macros >= 25
+%endif
+BuildRequires: systemd
+BuildRequires: systemd-units
+BuildRequires: openssl-devel
 
 # Build dependencies for SELinux policy
 BuildRequires:  selinux-policy-devel
 
-Requires:       python3-dasbus
-Requires:       python3-requests
-Requires:       python3-sqlalchemy
 Requires:       systemd
 # Add selinux subpackage as dependency
 Requires:       %{name}-selinux
-
-# Not needed after RHEL 10 as it is native in Python 3.11+
-%if 0%{?rhel} && 0%{?rhel} < 10
-BuildRequires:  python3-tomli
-Requires:       python3-tomli
-%endif
-
-# Ref: https://docs.fedoraproject.org/en-US/packaging-guidelines/Python_201x/#_automatically_generated_dependencies
-%{?python_disable_dependency_generator}
 
 %description
 A simple wrapper to interact with RAG
@@ -59,10 +57,24 @@ Requires(post): selinux-policy-%{selinuxtype}
 This package installs and sets up the  SELinux policy security module for clad.
 
 %prep
-%autosetup -n %{name}-%{version}
+%autosetup -a1 -n %{name}-%{version}
+
+# Default -v vendor config doesn't support non-crates.io deps (i.e. git)
+cp .cargo/vendor-config.toml .
+%cargo_prep -N
+cat vendor-config.toml >> .cargo/config.toml
+rm vendor-config.toml
 
 %build
-%py3_build_wheel
+# Build the main bootc binary
+%cargo_build
+
+%cargo_vendor_manifest
+
+# https://pagure.io/fedora-rust/rust-packaging/issue/33
+sed -i -e '/https:\/\//d' cargo-vendor.txt
+%cargo_license_summary
+%{cargo_license} > LICENSE.dependencies
 
 # Build selinux policy file
 pushd data/release/selinux
@@ -70,7 +82,9 @@ pushd data/release/selinux
 popd
 
 %install
-%py3_install_wheel %{python_package_src}-%{version}-py3-none-any.whl
+# Install binaries
+install -D -m 0755 target/release/clad %{buildroot}%{_bindir}/clad
+install -D -m 0755 target/release/c %{buildroot}%{_bindir}/c
 
 # Create needed directories in buildroot
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/xdg/%{name}
@@ -82,24 +96,18 @@ popd
 
 # Symlink `c` to `cla`
 ln -sr %{buildroot}/%{_bindir}/%{binary_name} %{buildroot}/%{_bindir}/%{symlink_binary_name}
-ln -sr %{buildroot}%{_mandir}/man1/%{binary_name}.1 %{buildroot}%{_mandir}/man1/%{symlink_binary_name}.1
+# ln -sr %{buildroot}%{_mandir}/man1/%{binary_name}.1 %{buildroot}%{_mandir}/man1/%{symlink_binary_name}.1
 
 # System units & tmpfiles.d config
 %{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
 %{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{daemon_binary_name}.conf
 
-# d-bus policy config
-%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_datadir}/dbus-1/system.d/com.redhat.lightspeed.conf
-%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.chat.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.chat.service
-%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.history.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
-%{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.user.service %{buildroot}/%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.user.service
-
 # Config file
 %{__install} -D -m 0600 data/release/xdg/config.toml %{buildroot}/%{_sysconfdir}/xdg/%{name}/config.toml
 
 # Manpages
-%{__install} -D -m 0644 data/release/man/%{binary_name}.1 %{buildroot}/%{_mandir}/man1/%{binary_name}.1
-%{__install} -D -m 0644 data/release/man/%{daemon_binary_name}.8 %{buildroot}/%{_mandir}/man8/%{daemon_binary_name}.8
+# %{__install} -D -m 0644 data/release/man/%{binary_name}.1 %{buildroot}/%{_mandir}/man1/%{binary_name}.1
+# %{__install} -D -m 0644 data/release/man/%{daemon_binary_name}.8 %{buildroot}/%{_mandir}/man8/%{daemon_binary_name}.8
 
 # selinux
 %{__install} -m 0644 data/release/selinux/%{modulename}.pp.bz2 %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
@@ -130,8 +138,8 @@ fi
 %files
 %doc README.md
 %license LICENSE
-%{python3_sitelib}/%{python_package_src}/
-%{python3_sitelib}/%{python_package_src}-%{version}.dist-info/
+%license LICENSE.dependencies
+%license cargo-vendor.txt
 
 # Binaries
 %{_bindir}/%{binary_name}
@@ -142,17 +150,10 @@ fi
 %{_unitdir}/%{daemon_binary_name}.service
 %{_tmpfilesdir}/%{daemon_binary_name}.conf
 
-# d-bus policy config
-%{_datadir}/dbus-1/system.d/com.redhat.lightspeed.conf
-%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.chat.service
-%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.history.service
-%{_datadir}/dbus-1/system-services/com.redhat.lightspeed.user.service
-
-# Manpages
-%{_mandir}/man1/%{binary_name}.1.gz
-%{_mandir}/man1/%{symlink_binary_name}.1.gz
-%{_mandir}/man8/%{daemon_binary_name}.8.gz
-
+# # Manpages
+# %{_mandir}/man1/%{binary_name}.1.gz
+# %{_mandir}/man1/%{symlink_binary_name}.1.gz
+# %{_mandir}/man8/%{daemon_binary_name}.8.gz
 
 # Needed directories
 %dir %attr(0700, root, root) %{_sharedstatedir}/%{name}
