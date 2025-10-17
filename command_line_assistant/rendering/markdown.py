@@ -351,6 +351,7 @@ class ANSITreeProcessor(Treeprocessor):
 
         return formatted + tail
 
+    # ruff: noqa: C901
     def _format_by_tag(self, tag: str, elem: etree.Element, content: str) -> str:
         """Format content based on HTML tag."""
         # Text formatting tags

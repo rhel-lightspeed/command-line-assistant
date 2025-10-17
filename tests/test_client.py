@@ -108,22 +108,22 @@ def test_initialize_with_help(capsys):
         assert "usage:" in captured.out
 
 
-def test_initialize_bad_stdin(capsys):
+def test_initialize_bad_stdin(capsys, disable_stream_flush):
     with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = ValueError("Binary input are not supported.")
         main()
 
     captured = capsys.readouterr()
-    assert "\x1b[31m🙁 Binary input are not supported.\x1b[0m\n" in captured.err
+    assert "🙁 \x1b[31mBinary input are not supported.\x1b[0m\n" in captured.out
 
 
-def test_initialize_keyboard_interrupt(capsys):
+def test_initialize_keyboard_interrupt(capsys, disable_stream_flush):
     with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = KeyboardInterrupt("Interrupted")
         main()
 
     captured = capsys.readouterr()
-    assert "\x1b[31m🙁 Keyboard interrupt detected. Exiting...\x1b[0m\n" in captured.err
+    assert "🙁 \x1b[31mKeyboard interrupt detected. Exiting...\x1b[0m\n" in captured.out
 
 
 @pytest.mark.parametrize(
@@ -151,17 +151,22 @@ def test_initialize_command_selection(argv, capsys):
 @pytest.mark.parametrize(
     ("exception", "expected"),
     (
-        (DBusError, "Name is not active"),
-        (RuntimeError, "Oops! Something went wrong while processing your request."),
+        (DBusError, "🙁 \x1b[31m🙁 \x1b[31mName is not active\x1b[0m\n\x1b[0m\n"),
+        (
+            RuntimeError,
+            "🙁 \x1b[31mOops! Something went wrong while processing your request.\x1b[0m\n",
+        ),
     ),
 )
-def test_exception_initialization_error(exception, expected, capsys):
+def test_exception_initialization_error(
+    exception, expected, capsys, disable_stream_flush
+):
     with patch("command_line_assistant.client.read_stdin") as mock_stdin:
         mock_stdin.side_effect = exception(expected)
         main()
 
     captured = capsys.readouterr()
-    assert expected in captured.err
+    assert expected in captured.out
 
 
 def test_command_registry_integration():

@@ -117,3 +117,21 @@ def mock_context(mock_config):
 @pytest.fixture
 def universal_user_id():
     return "ca427c50-ff49-11ef-9209-52b437312584"
+
+
+@pytest.fixture
+def disable_stream_flush(monkeypatch):
+    """Fixture to make StreamWriter use current sys.stdout and disable flushing."""
+    import sys
+
+    from command_line_assistant.rendering.stream import StreamWriter
+
+    # Patch StreamWriter to use current sys.stdout and disable flushing
+    original_init = StreamWriter.__init__
+
+    def patched_init(self, stream=None, flush_on_write=True, theme=None):
+        # Always use current sys.stdout and disable flushing
+        original_init(self, stream=sys.stdout, flush_on_write=False, theme=theme)
+
+    monkeypatch.setattr(StreamWriter, "__init__", patched_init)
+    yield
