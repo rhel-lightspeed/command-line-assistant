@@ -11,3 +11,4 @@ D-Bus
    interfaces/index
    server
    structures/index
+   sender_context

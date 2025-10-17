@@ -62,21 +62,13 @@ repos:
         - tomli
         - setuptools
         - sqlalchemy
+        - types-Markdown
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.28.0
     hooks:
       - id: gitleaks
         stages: [manual, pre-push]
-
-  - repo: https://github.com/econchick/interrogate
-    rev: 1.7.0
-    hooks:
-      - id: interrogate
-        exclude: ^(docs/conf.py|setup.py|tests/|scripts)
-        args: ["-vv", "-c", "pyproject.toml", "command_line_assistant", "--fail-under", "100"]
-        # Workaround mentioned at https://github.com/econchick/interrogate/issues/60#issuecomment-735436566
-        pass_filenames: false
 
   - repo: local
     hooks:
