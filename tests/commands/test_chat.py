@@ -22,7 +22,7 @@ from command_line_assistant.dbus.structures.chat import (
     Question,
     Response,
 )
-from command_line_assistant.exceptions import ChatCommandException, StopInteractiveMode
+from command_line_assistant.exceptions import ChatCommandException
 from command_line_assistant.rendering.renderers import Renderer
 from command_line_assistant.utils.files import NamedFileLock
 
@@ -119,7 +119,7 @@ def test_single_question_value_error(default_namespace, command_context, monkeyp
         )
 
 
-def test_list_chats(mock_dbus_service, capsys):
+def test_list_chats(mock_dbus_service, capsys, disable_stream_flush):
     """Test listing all chats."""
     mock_dbus_service.GetUserId.return_value = "test-user"
     mock_dbus_service.GetAllChatFromUser.return_value = ChatList(
@@ -140,25 +140,27 @@ def test_list_chats(mock_dbus_service, capsys):
     assert "test-chat" in captured.out
 
 
-def test_list_no_chats(mock_dbus_service, default_namespace, command_context, capsys):
+def test_list_no_chats(
+    mock_dbus_service, default_namespace, command_context, capsys, disable_stream_flush
+):
     """Test listing when no chats exist."""
     mock_dbus_service.GetUserId.return_value = "test-user"
     mock_dbus_service.GetAllChatFromUser.return_value = ChatList([]).structure()
 
     default_namespace.list = True
-    result = chat._list_chats(Renderer(True), DbusClient(), "test-user")
+    result = chat._list_chats(Renderer(plain=True), DbusClient(), "test-user")
 
     captured = capsys.readouterr()
     assert result == 0
     assert "No chats available." in captured.out
 
 
-def test_delete_chat(mock_dbus_service, capsys):
+def test_delete_chat(mock_dbus_service, capsys, disable_stream_flush):
     """Test deleting a specific chat."""
     mock_dbus_service.GetUserId.return_value = "test-user"
     mock_dbus_service.DeleteChatForUser.return_value = None
 
-    result = chat._delete_chat(Renderer(True), DbusClient(), "test", "test-chat")
+    result = chat._delete_chat(Renderer(plain=True), DbusClient(), "test", "test-chat")
 
     captured = capsys.readouterr()
     assert result == 0
@@ -172,15 +174,15 @@ def test_delete_chat_not_found(mock_dbus_service):
         "Chat not found"
     )
     with pytest.raises(ChatCommandException, match="Failed to delete requested chat"):
-        chat._delete_chat(Renderer(True), DbusClient(), "test", "test")
+        chat._delete_chat(Renderer(plain=True), DbusClient(), "test", "test")
 
 
-def test_delete_all_chats(mock_dbus_service, capsys):
+def test_delete_all_chats(mock_dbus_service, capsys, disable_stream_flush):
     """Test deleting all chats."""
     mock_dbus_service.GetUserId.return_value = "test-user"
     mock_dbus_service.DeleteAllChatForUser.return_value = None
 
-    result = chat._delete_all_chats(Renderer(True), DbusClient(), "test-user")
+    result = chat._delete_all_chats(Renderer(plain=True), DbusClient(), "test-user")
 
     captured = capsys.readouterr()
     assert result == 0
@@ -197,7 +199,7 @@ def test_delete_all_chats_exception(mock_dbus_service, capsys):
         ChatCommandException,
         match="Failed to delete all requested chats chat not found",
     ):
-        chat._delete_all_chats(Renderer(True), DbusClient(), "test-user")
+        chat._delete_all_chats(Renderer(plain=True), DbusClient(), "test-user")
 
 
 def test_interactive_mode(mock_dbus_service, default_namespace, command_context):
@@ -209,14 +211,11 @@ def test_interactive_mode(mock_dbus_service, default_namespace, command_context)
 
     default_namespace.interactive = True
 
-    with patch(
-        "command_line_assistant.commands.chat.create_interactive_renderer"
-    ) as mock_renderer:
-        mock_renderer.return_value.render.side_effect = [None, StopInteractiveMode()]
-        mock_renderer.return_value.output = "test question"
+    with patch("builtins.input") as mock_input:
+        mock_input.side_effect = ["test question", ".exit"]
 
         result = chat._interactive_chat(
-            Renderer(True),
+            Renderer(plain=True),
             DbusClient(),
             command_context,
             default_namespace,
@@ -227,16 +226,15 @@ def test_interactive_mode(mock_dbus_service, default_namespace, command_context)
         assert result == 0
 
 
-def test_interactive_mode_empty_question(default_namespace, command_context, capsys):
+def test_interactive_mode_empty_question(
+    default_namespace, command_context, capsys, disable_stream_flush
+):
     """Test interactive mode with empty question"""
-    with patch(
-        "command_line_assistant.commands.chat.create_interactive_renderer"
-    ) as mock_renderer:
-        mock_renderer.return_value.render.side_effect = [None, StopInteractiveMode()]
-        mock_renderer.return_value.output = ""
+    with patch("builtins.input") as mock_input:
+        mock_input.side_effect = ["", ".exit"]
 
         chat._interactive_chat(
-            Renderer(True),
+            Renderer(plain=True),
             DbusClient(),
             command_context,
             default_namespace,
@@ -246,22 +244,20 @@ def test_interactive_mode_empty_question(default_namespace, command_context, cap
         )
 
         captured = capsys.readouterr()
-        assert "Your question can't be empty" in captured.err
+        assert "Your question can't be empty" in captured.out
 
 
 def test_interactive_mode_keyboard_interrupt(default_namespace, command_context):
     """Test interactive mode with empty question"""
-    with patch(
-        "command_line_assistant.commands.chat.create_interactive_renderer"
-    ) as mock_renderer:
-        mock_renderer.return_value.render.side_effect = [KeyboardInterrupt]
+    with patch("builtins.input") as mock_input:
+        mock_input.side_effect = KeyboardInterrupt
 
         with pytest.raises(
             ChatCommandException,
             match="Detected keyboard interrupt. Stopping interactive mode.",
         ):
             chat._interactive_chat(
-                Renderer(True),
+                Renderer(plain=True),
                 DbusClient(),
                 command_context,
                 default_namespace,
@@ -281,7 +277,7 @@ def test_interactive_with_terminal_capture(default_namespace, command_context, c
             match="Detected a terminal capture session running with pid.*",
         ):
             chat._interactive_chat(
-                Renderer(True),
+                Renderer(plain=True),
                 DbusClient(),
                 command_context,
                 default_namespace,
@@ -368,7 +364,7 @@ def test_chat_command_with_terminal_output(
 
 
 def test_chat_command_name_without_description(
-    mock_dbus_service, default_namespace, command_context, capsys
+    mock_dbus_service, default_namespace, command_context, capsys, disable_stream_flush
 ):
     """Test providing name without description."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -382,11 +378,11 @@ def test_chat_command_name_without_description(
 
     captured = capsys.readouterr()
     assert result == 0
-    assert "Chat description not provided" in captured.err
+    assert "Chat description not provided" in captured.out
 
 
 def test_chat_command_description_without_name(
-    mock_dbus_service, default_namespace, command_context, capsys
+    mock_dbus_service, default_namespace, command_context, capsys, disable_stream_flush
 ):
     """Test providing description without name."""
     mock_dbus_service.GetUserId.return_value = "test-user"
@@ -400,11 +396,16 @@ def test_chat_command_description_without_name(
 
     captured = capsys.readouterr()
     assert result == 0
-    assert "Chat name not provided" in captured.err
+    assert "Chat name not provided" in captured.out
 
 
 def test_chat_command_exception(
-    mock_dbus_service, default_namespace, command_context, capsys, monkeypatch
+    mock_dbus_service,
+    default_namespace,
+    command_context,
+    capsys,
+    monkeypatch,
+    disable_stream_flush,
 ):
     mock_func = mock.MagicMock()
     mock_func.side_effect = ChatCommandException("failed")
@@ -414,7 +415,7 @@ def test_chat_command_exception(
 
     captured = capsys.readouterr()
     assert result == 80
-    assert "failed" in captured.err
+    assert "failed" in captured.out
 
 
 def test_parse_attachment_file_success(tmp_path):
@@ -480,11 +481,11 @@ def test_read_last_terminal_output_no_contents():
         (False),
     ),
 )
-def test_display_response(plain, capsys, tmp_path, monkeypatch):
+def test_display_response(plain, capsys, tmp_path, monkeypatch, disable_stream_flush):
     """Test display response function."""
     monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
 
-    chat._display_response("test response", plain=plain)
+    chat._display_response(Renderer(plain=plain), "test response")
 
     captured = capsys.readouterr()
     assert "This feature uses AI technology." in captured.out
@@ -577,12 +578,12 @@ def test_create_chat_session_new(mock_dbus_service):
     assert result == "new-chat-id"
 
 
-def test_trim_down_message_size(capsys, caplog):
+def test_trim_down_message_size(capsys, caplog, disable_stream_flush):
     render = Renderer(plain=True)
 
     chat._trim_message_size(render, "test " * 6500)
     captured = capsys.readouterr()
-    assert "The total size of your question and context" in captured.err
+    assert "The total size of your question and context" in captured.out
     assert "Final size of question after the limit" in caplog.records[-1].message
 
 

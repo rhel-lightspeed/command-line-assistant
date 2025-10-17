@@ -3,145 +3,9 @@
 from datetime import datetime
 from typing import Optional
 
-from command_line_assistant.rendering.base import BaseDecorator, BaseStream
-from command_line_assistant.rendering.decorators.colors import ColorDecorator
-from command_line_assistant.rendering.decorators.text import (
-    EmojiDecorator,
-    TextWrapDecorator,
-)
-from command_line_assistant.rendering.renders.interactive import InteractiveRenderer
-from command_line_assistant.rendering.renders.markdown import (
-    MarkdownRenderer,
-    PlainMarkdownRenderer,
-)
-from command_line_assistant.rendering.renders.spinner import (
-    SpinnerRenderer,
-    StaticSpinnerRenderer,
-)
-from command_line_assistant.rendering.renders.text import (
-    PlainTextRenderer,
-    TextRenderer,
-)
-from command_line_assistant.rendering.stream import StderrStream, StdoutStream
-
-
-def create_error_renderer(plain: bool = False) -> TextRenderer:
-    """Create a standardized instance of text rendering for error output
-
-    Arguments:
-        plain (bool): If True, it will create a plain text renderer without any
-        decorations. Defaults to False.
-
-    Returns:
-        TextRenderer: Instance of a TextRenderer with correct decorators for
-        error output.
-    """
-    renderer = create_text_renderer(
-        [
-            EmojiDecorator(emoji="U+1F641"),
-            ColorDecorator(foreground="red"),
-        ],
-        StderrStream(),
-        plain=plain,
-    )
-
-    return renderer
-
-
-def create_warning_renderer(plain: bool = False) -> TextRenderer:
-    """Create a standardized instance of text rendering for error output
-
-    Arguments:
-        plain (bool): If True, it will create a plain text renderer without any
-        decorations. Defaults to False.
-
-    Returns:
-        TextRenderer: Instance of a TextRenderer with correct decorators for
-        error output.
-    """
-    renderer = create_text_renderer(
-        [
-            EmojiDecorator(emoji="0x1f914"),
-            ColorDecorator(foreground="yellow"),
-        ],
-        StderrStream(),
-        plain=plain,
-    )
-
-    return renderer
-
-
-def create_spinner_renderer(
-    message: str, decorators: Optional[list[BaseDecorator]] = None, plain: bool = False
-) -> SpinnerRenderer:
-    """Create a new instance of a spinner renderer.
-
-    Note:
-        `py:TextWrapDecorator` is applied automatically to the renderer.
-
-    Arguments:
-        message (str): The message to show while spinning
-        decorators (list[BaseDecorator]): List of decorators that can be
-        applied to the spinner renderer.
-
-    Returns:
-        SpinnerRenderer: Instance of a SpinnerRenderer with decorators applied.
-    """
-    spinner = (
-        StaticSpinnerRenderer(message, stream=StdoutStream(end=""))
-        if plain
-        else SpinnerRenderer(message, stream=StdoutStream(end=""))
-    )
-    decorators = decorators or []
-    decorators.append(TextWrapDecorator())
-    spinner.update(decorators)
-    return spinner
-
-
-def create_interactive_renderer() -> InteractiveRenderer:
-    """Create a new instance of the interactive rendering.
-
-    Returns:
-        InteractiveRenderer: A new instance of the interactive renderer.
-    """
-    interactive = InteractiveRenderer(
-        banner="Welcome to the interactive mode for command line assistant! To exit, press Ctrl + C or type '.exit'."
-    )
-    return interactive
-
-
-def create_text_renderer(
-    decorators: Optional[list[BaseDecorator]] = None,
-    stream: Optional[BaseStream] = None,
-    plain: bool = False,
-) -> TextRenderer:
-    """Create a new instance of a text renderer.
-
-    Note:
-        `py:TextWrapDecorator` is applied automatically to the renderer.
-
-        If no `stream` is provided in the arguments, it will default to the
-        `py:StdoutStream()`.
-
-    Arguments:
-        decorators (Optional[list[BaseDecorator]], optional): List of
-        decorators that can be applied to the text renderer. Defaults to None.
-        stream (Optional[BaseStream], optional): Apply a different stream other
-        than the StdoutStream. Defaults to None.
-        plain (bool): If True, it will create a plain text renderer without any
-        decorations. Defaults to False.
-
-    Returns:
-        TextRenderer: Instance of a TextRenderer with decorators applied.
-    """
-    # In case it is None, default it to an empty list.
-    decorators = decorators or []
-
-    text = PlainTextRenderer(stream=stream) if plain else TextRenderer(stream=stream)
-    decorators.append(TextWrapDecorator())
-    text.update(decorators)
-
-    return text
+from command_line_assistant.rendering.colors import colorize
+from command_line_assistant.rendering.stream import StreamWriter
+from command_line_assistant.rendering.theme import Theme
 
 
 def human_readable_size(size: float) -> str:
@@ -163,35 +27,6 @@ def human_readable_size(size: float) -> str:
     return f"{size:.2f} {units[unit_index]}"
 
 
-def create_markdown_renderer(
-    decorators: Optional[list[BaseDecorator]] = None,
-    stream: Optional[BaseStream] = None,
-    plain: bool = False,
-) -> MarkdownRenderer:
-    """Create a new instance of a markdown renderer.
-
-    Arguments:
-        decorators (Optional[list[BaseDecorator]], optional): List of decorators
-            that can be applied to the markdown renderer. Defaults to None.
-        stream (Optional[BaseStream], optional): Apply a different stream other
-            than the StdoutStream. Defaults to None.
-        plain (bool): If True, it will create a plain markdown renderer without
-        any decorations. Defaults to False.
-
-    Returns:
-        MarkdownRenderer: Instance of a MarkdownRenderer with decorators applied.
-    """
-    decorators = decorators or []
-    markdown = (
-        PlainMarkdownRenderer(stream=stream)
-        if plain
-        else MarkdownRenderer(stream=stream)
-    )
-    decorators.append(TextWrapDecorator())
-    markdown.update(decorators)
-    return markdown
-
-
 def format_datetime(unformatted_date: str) -> str:
     """Format a datetime string to a more human readable format.
 
@@ -207,45 +42,83 @@ def format_datetime(unformatted_date: str) -> str:
 
 
 class Renderer:
-    """Utility class providing common rendering functionality for commands.
-
-    This class can be used to access different pre-defined text rendering
-    methods used across the application. All the rendering methods provided
-    here are used as-is with default settings, with the only customization
-    available being the `plain` rendering, which is set in the class
-    constructor.
+    """Renderer provides methods for rendering text using different, predefined
+    colors and styles.
     """
 
-    def __init__(self, plain: bool = False):
+    def __init__(self, plain: bool = False, theme: Optional[Theme] = None):
         """Initialize render utilities.
 
         Args:
             plain (bool): Whether to use plain text rendering
+            theme (Theme): Theme instance to use for colors. If None, uses
+            default theme.
         """
-        self._text_renderer: TextRenderer = create_text_renderer(plain=plain)
-        self._warning_renderer: TextRenderer = create_warning_renderer(plain=plain)
-        self._error_renderer: TextRenderer = create_error_renderer(plain=plain)
+        self._plain = plain
+        self._stream_writer: StreamWriter = StreamWriter(theme=theme)
+        self._theme = theme or Theme()
 
-    def success(self, message: str) -> None:
-        """Render a success message.
+    def normal(self, message: str) -> None:
+        """Render a message with a normal color.
 
         Args:
-            message (str): Success message to render
+            message (str): Text to render
         """
-        self._text_renderer.render(message)
+        self._stream_writer.write_line(message)
 
     def warning(self, message: str) -> None:
-        """Render a warning message.
+        """Render a message with a yellow color.
 
         Args:
-            message: Warning message to render
+            message: Text to render
         """
-        self._warning_renderer.render(message)
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line(
+                "🤔 " + colorize(message, self._theme.warning)
+            )
+
+    def notice(self, message: str) -> None:
+        """Render a message with a bright yellow color.
+
+        Args:
+            message: Text to render
+        """
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line(colorize(message, self._theme.notice))
+
+    def info(self, message: str) -> None:
+        """Render a message with a bright blue color.
+
+        Args:
+            message: Text to render
+        """
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line(colorize(message, self._theme.info))
 
     def error(self, message: str) -> None:
-        """Render an error message.
+        """Render a message with a red color.
 
         Args:
-            message: Error message to render
+            message: Text to render
         """
-        self._error_renderer.render(message)
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_line("🙁 " + colorize(message, self._theme.error))
+
+    def markdown(self, message: str) -> None:
+        """Render markdown formatted text.
+
+        Args:
+            message: Text to render
+        """
+        if self._plain:
+            self._stream_writer.write_line(message)
+        else:
+            self._stream_writer.write_markdown_chunk(message)

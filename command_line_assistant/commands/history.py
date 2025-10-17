@@ -16,68 +16,49 @@ from command_line_assistant.dbus.exceptions import (
 from command_line_assistant.dbus.structures.chat import ChatList
 from command_line_assistant.dbus.structures.history import HistoryList
 from command_line_assistant.exceptions import HistoryCommandException
-from command_line_assistant.rendering.decorators.colors import ColorDecorator
+from command_line_assistant.rendering.colors import colorize
 from command_line_assistant.rendering.renderers import (
     Renderer,
-    create_markdown_renderer,
-    create_text_renderer,
     format_datetime,
 )
+from command_line_assistant.rendering.theme import load_theme
 
 logger = logging.getLogger(__name__)
 
 
-def _show_history(entries: HistoryList, plain: bool = False) -> None:
+def _show_history(renderer: Renderer, entries: HistoryList) -> None:
     """Display history entries in a standardized way.
 
     Args:
+        renderer (Renderer): The renderer.
         entries (HistoryList): The list of history entries.
-        plain (bool, optional): Whether to use plain text rendering. Defaults to False.
     """
+
     if not entries.histories:
-        text_renderer = create_text_renderer(plain=plain)
-        text_renderer.render("No history entries found")
+        renderer.normal("No history entries found")
         return
-
-    # Create specialized renderers for different parts
-    question_renderer = create_markdown_renderer(
-        decorators=[ColorDecorator(foreground="cyan")],
-        plain=plain,
-    )
-
-    answer_renderer = create_markdown_renderer(
-        decorators=[ColorDecorator(foreground="green")],
-        plain=plain,
-    )
-
-    metadata_renderer = create_text_renderer(
-        decorators=[ColorDecorator(foreground="yellow")],
-        plain=plain,
-    )
-
-    text_renderer = create_text_renderer(plain=plain)
 
     for entry in entries.histories:
         # Render question block
-        question_text = f"## 🤔 Question\n{entry.question}"
-        question_renderer.render(question_text)
+        question_text = f"## 🤔 Question\n{entry.question}\n"
+        renderer.markdown(question_text)
 
         # Add a small spacing
-        text_renderer.render("")
+        renderer.normal("")
 
         # Render answer block
-        answer_text = f"## 🤖 Answer\n{entry.response}"
-        answer_renderer.render(answer_text)
+        answer_text = f"## 🤖 Answer\n{entry.response}\n"
+        renderer.markdown(answer_text)
 
-        from_chat_message = f"\n*From chat: {entry.chat_name}*"
-        metadata_renderer.render(from_chat_message)
+        from_chat_message = f"\n*From chat: {entry.chat_name}*\n"
+        renderer.markdown(colorize(from_chat_message, "yellow"))
 
-        created_at_message = f"*Created at: {format_datetime(entry.created_at)}*"
-        metadata_renderer.render(created_at_message)
+        created_at_message = f"*Created at: {format_datetime(entry.created_at)}*\n"
+        renderer.markdown(colorize(created_at_message, "yellow"))
 
         # Add separator between entries if needed
         if len(entries.histories) > 1:
-            text_renderer.render("\n" + "═" * (len(created_at_message) - 1) + "\n")
+            renderer.normal("\n" + "═" * (len(created_at_message) - 1) + "\n")
 
 
 @command("history", help="Manage Conversation History")
@@ -115,7 +96,7 @@ def history_command(args: Namespace, context: CommandContext) -> int:
         int: Exit code.
     """
     dbus = DbusClient()
-    render = Renderer(args.plain)
+    render = Renderer(args.plain, theme=load_theme())
 
     user_id = dbus.user_proxy.GetUserId(context.effective_user_id)
 
@@ -165,7 +146,7 @@ def _clear_history(
     """
     try:
         dbus.history_proxy.ClearHistory(user_id, from_chat)
-        render.success("History cleaned successfully.")
+        render.normal("History cleaned successfully.")
         return 0
     except (HistoryNotAvailableError, HistoryNotEnabledError) as e:
         logger.debug("Failed to clear the history: %s", str(e))
@@ -194,7 +175,7 @@ def _clear_all_history(render: Renderer, dbus: DbusClient, user_id: str) -> int:
             )
 
         dbus.history_proxy.ClearAllHistory(user_id)
-        render.success("All histories cleared successfully.")
+        render.normal("All histories cleared successfully.")
         return 0
     except (HistoryNotAvailableError, HistoryNotEnabledError) as e:
         logger.debug(
@@ -219,10 +200,10 @@ def _first_history(
         int: The exit code.
     """
     try:
-        render.success("Getting first conversation from history.")
+        render.normal("Getting first conversation from history.")
         response = dbus.history_proxy.GetFirstConversation(user_id, from_chat)
         history = HistoryList.from_structure(response)
-        _show_history(history, plain)
+        _show_history(render, history)
         return 0
     except (HistoryNotAvailableError, HistoryNotEnabledError) as e:
         logger.debug("Failed to retrieve the first history entry: %s", str(e))
@@ -245,10 +226,10 @@ def _last_history(
         int: The exit code.
     """
     try:
-        render.success("Getting last conversation from history.")
+        render.normal("Getting last conversation from history.")
         response = dbus.history_proxy.GetLastConversation(user_id, from_chat)
         history = HistoryList.from_structure(response)
-        _show_history(history, plain)
+        _show_history(render, history)
         return 0
     except (HistoryNotAvailableError, HistoryNotEnabledError) as e:
         logger.debug("Failed to retrieve the last history entry: %s", str(e))
@@ -277,12 +258,12 @@ def _filter_history(
         int: The exit code.
     """
     try:
-        render.success("Filtering conversation history.")
+        render.normal("Filtering conversation history.")
         response = dbus.history_proxy.GetFilteredConversation(
             user_id, filter_text, from_chat
         )
         history = HistoryList.from_structure(response)
-        _show_history(history, plain)
+        _show_history(render, history)
         return 0
     except (HistoryNotAvailableError, HistoryNotEnabledError) as e:
         logger.debug(
@@ -306,10 +287,10 @@ def _all_history(render: Renderer, dbus: DbusClient, user_id: str, plain: bool) 
         int: The exit code.
     """
     try:
-        render.success("Getting all conversations from history.")
+        render.normal("Getting all conversations from history.")
         response = dbus.history_proxy.GetHistory(user_id)
         history = HistoryList.from_structure(response)
-        _show_history(history, plain)
+        _show_history(render, history)
         return 0
     except (HistoryNotAvailableError, HistoryNotEnabledError) as e:
         logger.debug("Failed to retrieve the all history entries: %s", str(e))

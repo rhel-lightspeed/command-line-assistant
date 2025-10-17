@@ -15,13 +15,7 @@ from command_line_assistant.config.schemas.logging import LoggingSchema
 from command_line_assistant.dbus import constants as dbus_constants
 from command_line_assistant.dbus.context import DaemonContext
 from command_line_assistant.logger import LOGGING_CONFIG_DICTIONARY
-from command_line_assistant.rendering.renderers import (
-    create_error_renderer,
-    create_text_renderer,
-    create_warning_renderer,
-)
 from command_line_assistant.utils import files
-from tests.helpers import MockStream
 
 
 @pytest.fixture(autouse=True)
@@ -33,9 +27,6 @@ def mock_xdg_path(tmp_path, monkeypatch):
 @pytest.fixture
 def default_kwargs(mock_dbus_service, command_context):
     return {
-        "text_renderer": create_text_renderer(),
-        "warning_renderer": create_warning_renderer(),
-        "error_renderer": create_error_renderer(),
         "args": Namespace(),
         "context": command_context,
         "user_proxy": mock_dbus_service,
@@ -119,11 +110,6 @@ def mock_dbus_session():
 
 
 @pytest.fixture
-def mock_stream():
-    return MockStream()
-
-
-@pytest.fixture
 def mock_context(mock_config):
     return DaemonContext(mock_config)
 
@@ -131,3 +117,21 @@ def mock_context(mock_config):
 @pytest.fixture
 def universal_user_id():
     return "ca427c50-ff49-11ef-9209-52b437312584"
+
+
+@pytest.fixture
+def disable_stream_flush(monkeypatch):
+    """Fixture to make StreamWriter use current sys.stdout and disable flushing."""
+    import sys
+
+    from command_line_assistant.rendering.stream import StreamWriter
+
+    # Patch StreamWriter to use current sys.stdout and disable flushing
+    original_init = StreamWriter.__init__
+
+    def patched_init(self, stream=None, flush_on_write=True, theme=None):
+        # Always use current sys.stdout and disable flushing
+        original_init(self, stream=sys.stdout, flush_on_write=False, theme=theme)
+
+    monkeypatch.setattr(StreamWriter, "__init__", patched_init)
+    yield
