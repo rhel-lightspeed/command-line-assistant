@@ -18,10 +18,8 @@ from command_line_assistant.commands.feedback import feedback_command
 from command_line_assistant.commands.history import history_command
 from command_line_assistant.commands.shell import shell_command
 from command_line_assistant.logger import setup_client_logging
-from command_line_assistant.rendering.renderers import (
-    create_error_renderer,
-    create_warning_renderer,
-)
+from command_line_assistant.rendering.renderers import Renderer
+from command_line_assistant.rendering.theme import load_theme
 
 
 def register_subcommands() -> ArgumentParser:
@@ -56,8 +54,7 @@ def main() -> int:
     # specified the --plain flag. This allows the exceptions below that use
     # these renders to follow the user's preference.
     plain_in_argv = "-p" in sys.argv or "--plain" in sys.argv
-    error_renderer = create_error_renderer(plain=plain_in_argv)
-    warning_renderer = create_warning_renderer(plain=plain_in_argv)
+    renderer = Renderer(plain=plain_in_argv, theme=load_theme())
 
     try:
         stdin = read_stdin()
@@ -89,22 +86,20 @@ def main() -> int:
         return parsed_args.func(parsed_args)
 
     except ValueError as e:
-        error_renderer.render(str(e))
+        renderer.error(str(e))
         return os.EX_DATAERR
     except DBusError as e:
-        error_renderer.render(str(e))
+        renderer.error(str(e))
         return os.EX_UNAVAILABLE
     except RuntimeError as e:
         logger.debug(str(e))
-        error_renderer.render(
-            "Oops! Something went wrong while processing your request."
-        )
-        warning_renderer.render(
+        renderer.error("Oops! Something went wrong while processing your request.")
+        renderer.warning(
             "Try submitting your request one more time or contact an administrator."
         )
         return os.EX_SOFTWARE
     except KeyboardInterrupt:
-        error_renderer.render("Keyboard interrupt detected. Exiting...")
+        renderer.error("Keyboard interrupt detected. Exiting...")
         return os.EX_OK
 
 
