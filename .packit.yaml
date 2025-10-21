@@ -83,13 +83,13 @@ jobs:
     use_internal_tf: True
     targets:
       epel-9-x86_64:
-        distros: [RHEL-9.7.0-Nightly]
+        distros: [RHEL-9.8.0-Nightly]
       epel-10-x86_64:
-        distros: [RHEL-10.1-Nightly]
+        distros: [RHEL-10.2-Nightly]
       epel-9-aarch64:
-        distros: [RHEL-9.7.0-Nightly]
+        distros: [RHEL-9.8.0-Nightly]
       epel-10-aarch64:
-        distros: [RHEL-10.1-Nightly]
+        distros: [RHEL-10.2-Nightly]
     tf_extra_params:
       environments:
         - settings:
