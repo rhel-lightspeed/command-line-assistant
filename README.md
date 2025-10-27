@@ -1,6 +1,6 @@
 # Command Line Assistant
 
-Leverage AI-driven expertise of the command-line assistant powered by RHEL Lightspeed to help you configure, manage, and troubleshoot RHEL
+Take advantage of the AI-driven expertise of the command-line assistant powered by RHEL Lightspeed to help you configure, manage, and troubleshoot RHEL
 
 ## Contributing
 
