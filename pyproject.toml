@@ -1,7 +1,7 @@
 [project]
 name = "command-line-assistant"
 version = "0.4.2"
-description = "A simple wrapper to interact with RAG"
+description = " With the command-line assistant powered by RHEL Lightspeed, you can get expert advice and assistance with managing RHEL right from your command line, all by using natural language. The generative AI that powers the assistant incorporates information from the RHEL product documentation and Red Hat Knowledgebase, and can help you understand, configure, and troubleshoot your RHEL systems. "
 authors = [
     { name = "RHEL Lightspeed Team", email = "rhel-sst-lightspeed@redhat.com" },
 ]

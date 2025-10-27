@@ -12,7 +12,7 @@
 Name:           command-line-assistant
 Version:        0.4.2
 Release:        1%{?dist}
-Summary:        A simple wrapper to interact with RAG
+Summary:        Leverage AI-driven expertise of the command-line assistant powered by RHEL Lightspeed to help you configure, manage, and troubleshoot RHEL
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
@@ -46,7 +46,12 @@ Requires:       python3-tomli
 %{?python_disable_dependency_generator}
 
 %description
-A simple wrapper to interact with RAG
+With the command-line assistant powered by RHEL Lightspeed, you can get expert
+advice and assistance with managing RHEL right from your command line, all by
+using natural language. The generative AI that powers the assistant
+incorporates information from the RHEL product documentation and Red Hat
+Knowledgebase, and can help you understand, configure, and troubleshoot your
+RHEL systems.
 
 %package selinux
 Summary:    CLAD SELinux policy

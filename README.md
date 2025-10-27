@@ -1,6 +1,6 @@
 # Command Line Assistant
 
-A simple wrapper to interact with RAG
+Leverage AI-driven expertise of the command-line assistant powered by RHEL Lightspeed to help you configure, manage, and troubleshoot RHEL
 
 ## Contributing
 
