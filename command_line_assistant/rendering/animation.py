@@ -67,8 +67,5 @@ class Spinner:
                 self._animation_thread.join()
             self._spinning = False
 
-            # Clear the animation line and add a newline
-            if self._current_line_length > 0:
-                clear_line = "\r" + " " * self._current_line_length + "\r"
-                sys.stderr.write(clear_line)
-                sys.stderr.flush()
+            sys.stderr.write("\n")
+            sys.stderr.flush()

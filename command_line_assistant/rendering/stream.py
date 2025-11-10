@@ -34,12 +34,6 @@ class StreamWriter:
         self._flush_on_write = flush_on_write
         self._theme = theme or Theme()
 
-    def write_chunk(self, chunk: str) -> None:
-        """Write a chunk of unformatted text to the stream."""
-        self._stream.write(chunk)
-        if self._flush_on_write:
-            self._stream.flush()
-
     def write_line(self, line: str) -> None:
         """Write a line of unformatted text to the stream."""
         self._stream.write(line + "\n")
@@ -67,7 +61,7 @@ class StreamWriter:
             formatted_content = markdown_to_ansi(content_to_render, theme=self._theme)
 
             # If successful, write to stream and clear buffer
-            self._stream.write(formatted_content)
+            self.write_line(formatted_content)
             self._buffer = ""
 
             if self._flush_on_write:

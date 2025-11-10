@@ -26,11 +26,6 @@ def disable_stream_flush(monkeypatch):
 
 
 class TestStreamWriter:
-    def test_write_chunk(self, capsys, disable_stream_flush):
-        stream = StreamWriter()
-        stream.write_chunk("Hello, world!")
-        assert capsys.readouterr().out == "Hello, world!"
-
     def test_init_default_parameters(self):
         """Test StreamWriter initialization with default parameters."""
         stream = StreamWriter()
@@ -92,35 +87,6 @@ class TestStreamWriter:
 
         mock_stream.write.assert_called_once_with("Test line\n")
         mock_stream.flush.assert_called_once()
-
-    def test_write_chunk_with_flush_disabled(self):
-        """Test write_chunk method with flush disabled."""
-        mock_stream = Mock()
-        stream = StreamWriter(stream=mock_stream, flush_on_write=False)
-
-        stream.write_chunk("Test chunk")
-
-        mock_stream.write.assert_called_once_with("Test chunk")
-        mock_stream.flush.assert_not_called()
-
-    def test_write_chunk_with_flush_enabled(self):
-        """Test write_chunk method with flush enabled."""
-        mock_stream = Mock()
-        stream = StreamWriter(stream=mock_stream, flush_on_write=True)
-
-        stream.write_chunk("Test chunk")
-
-        mock_stream.write.assert_called_once_with("Test chunk")
-        mock_stream.flush.assert_called_once()
-
-    def test_write_chunk_empty_string(self):
-        """Test write_chunk method with empty string."""
-        custom_stream = io.StringIO()
-        stream = StreamWriter(stream=custom_stream)
-
-        stream.write_chunk("")
-
-        assert custom_stream.getvalue() == ""
 
     def test_write_markdown_chunk_empty_string(self):
         """Test write_markdown_chunk method with empty string."""
@@ -210,7 +176,7 @@ class TestStreamWriter:
         stream.write_markdown_chunk(" Second chunk")
 
         # Should write formatted content and clear buffer
-        assert custom_stream.getvalue() == "Formatted content"
+        assert custom_stream.getvalue() == "Formatted content\n"
         assert stream._buffer == ""
 
         # Should have called with combined content on second attempt
@@ -242,7 +208,7 @@ class TestStreamWriter:
 
         # Should write and flush
         mock_stream.write.assert_called_once()
-        mock_stream.flush.assert_called_once()
+        assert mock_stream.flush.call_count == 2
 
     def test_flush_empty_buffer(self):
         """Test flush method with empty buffer."""
@@ -373,15 +339,11 @@ class TestStreamWriter:
         stream = StreamWriter(stream=custom_stream)
 
         # Mix of different write methods
-        stream.write_chunk("Chunk 1 ")
         stream.write_line("Line 1")
         stream.write_markdown_chunk("**Bold text** ")
-        stream.write_chunk("Final chunk")
 
         output = custom_stream.getvalue()
-        assert "Chunk 1 " in output
         assert "Line 1\n" in output
-        assert "Final chunk" in output
         # Bold text should be rendered with ANSI codes
         assert output != "Chunk 1 Line 1\n**Bold text** Final chunk"
 
@@ -396,16 +358,6 @@ class TestStreamWriter:
         assert "Line 1" in output
         assert "Line 3" in output
         assert stream._buffer == ""
-
-    def test_write_chunk_with_special_characters(self):
-        """Test write_chunk with special characters and unicode."""
-        custom_stream = io.StringIO()
-        stream = StreamWriter(stream=custom_stream)
-
-        special_text = "Special chars: !@#$%^&*() Unicode: 🚀 ñoño"
-        stream.write_chunk(special_text)
-
-        assert custom_stream.getvalue() == special_text
 
     def test_buffer_state_isolation(self):
         """Test that buffer state is isolated between instances."""
@@ -434,18 +386,6 @@ class TestStreamWriter:
         # Ensure no calls were made to markdown processing if None was passed
         mock_markdown_to_ansi.assert_not_called()
 
-    def test_large_content_handling(self):
-        """Test handling of large content chunks."""
-        custom_stream = io.StringIO()
-        stream = StreamWriter(stream=custom_stream)
-
-        # Create a large chunk of content
-        large_content = "A" * 10000
-        stream.write_chunk(large_content)
-
-        assert custom_stream.getvalue() == large_content
-        assert len(custom_stream.getvalue()) == 10000
-
     @patch("command_line_assistant.rendering.stream.markdown_to_ansi")
     def test_consecutive_markdown_failures_and_success(self, mock_markdown_to_ansi):
         """Test multiple consecutive markdown failures followed by success."""
@@ -464,6 +404,6 @@ class TestStreamWriter:
         stream.write_markdown_chunk("chunk3")
 
         # Should have accumulated all chunks and then rendered successfully
-        assert custom_stream.getvalue() == "Success!"
+        assert custom_stream.getvalue() == "Success!\n"
         assert stream._buffer == ""
         assert mock_markdown_to_ansi.call_count == 3

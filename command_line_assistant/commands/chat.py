@@ -369,9 +369,9 @@ def _display_response(renderer: Renderer, response: str) -> None:
         renderer.notice(LEGAL_NOTICE)
 
     renderer.notice("─" * 72)
-    print("")
+    renderer.normal("")
     renderer.markdown(response)
-    print("")
+    renderer.normal("")
     renderer.notice("─" * 72)
     renderer.notice(ALWAYS_LEGAL_MESSAGE)
 
