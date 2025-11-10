@@ -1,7 +1,7 @@
 # Only used to run sonarqube analysis currently.
 default:
   tags:
-    - shared-podman
+    - itup-alm-x86
 
 image:
   name: images.paas.redhat.com/alm/sonar-scanner-alpine
