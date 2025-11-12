@@ -10,7 +10,7 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.4.2
+Version:        0.5.0
 Release:        1%{?dist}
 Summary:        Take advantage of the AI-driven expertise of the command-line assistant powered by RHEL Lightspeed to help you configure, manage, and troubleshoot RHEL
 

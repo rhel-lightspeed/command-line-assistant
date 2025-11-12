@@ -30,7 +30,7 @@ FROM base AS final
 # Add in data about the build. (These come from Konflux.)
 ARG COMMIT_SHA=development
 ARG COMMIT_TIMESTAMP=development
-ARG VERSION=0.4.2
+ARG VERSION=0.5.0
 ARG SOURCE_DATE_EPOCH
 
 # Labels for enterprise contract

@@ -1,4 +1,4 @@
-policy_module(clad, 0.4.2)
+policy_module(clad, 0.5.0)
 
 ########################################
 #
