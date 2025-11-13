@@ -12,7 +12,7 @@
 Name:           command-line-assistant
 Version:        0.5.0
 Release:        1%{?dist}
-Summary:        Take advantage of the AI-driven expertise of the command-line assistant powered by RHEL Lightspeed to help you configure, manage, and troubleshoot RHEL
+Summary:        command-line assistant powered by RHEL Lightspeed
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
@@ -173,6 +173,13 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Thu Nov 13 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.0
+- Refactor commands module API
+- ANSI color rendering
+- Fix CVE-2025-5962
+- Update package description to include RHEL Lightspeed
+- Fix bug with line ending for spinner
+
 * Mon Aug 18 2025 Link Dupont <link@redhat.com> - 0.4.2
 - Migrate from poetry to uv
 - Fix typo in warning message for total input size
