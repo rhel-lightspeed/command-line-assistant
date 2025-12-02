@@ -21,7 +21,7 @@ from command_line_assistant.rendering.renderers import (
     Renderer,
     format_datetime,
 )
-from command_line_assistant.rendering.theme import load_theme
+from command_line_assistant.rendering.theme import Theme
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def history_command(args: Namespace, context: CommandContext) -> int:
         int: Exit code.
     """
     dbus = DbusClient()
-    render = Renderer(args.plain, theme=load_theme())
+    render = Renderer(args.plain, theme=Theme())
 
     user_id = dbus.user_proxy.GetUserId(context.effective_user_id)
 

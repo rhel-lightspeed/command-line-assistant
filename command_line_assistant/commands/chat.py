@@ -31,7 +31,7 @@ from command_line_assistant.rendering.renderers import (
     format_datetime,
     human_readable_size,
 )
-from command_line_assistant.rendering.theme import load_theme
+from command_line_assistant.rendering.theme import Theme
 from command_line_assistant.terminal.parser import (
     find_output_by_index,
     parse_terminal_output,
@@ -209,7 +209,7 @@ def chat_command(args: Namespace, context: CommandContext) -> int:
     Returns:
         int: The exit code.
     """
-    render = Renderer(args.plain, theme=load_theme())
+    render = Renderer(args.plain, theme=Theme())
     dbus = DbusClient()
 
     user_id = dbus.user_proxy.GetUserId(context.effective_user_id)

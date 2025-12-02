@@ -1,22 +1,14 @@
 import logging
 import sys
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Optional
 
 from command_line_assistant.rendering.colors import Color
-from command_line_assistant.utils.environment import get_xdg_config_path
 
 if sys.version_info >= (3, 11):
-    import tomllib
+    pass
 else:
-    import tomli as tomllib
-
-#: Define the theme file path.
-THEME_FILE_DEFINITION: tuple[str, str] = (
-    "command-line-assistant",
-    "theme.toml",
-)
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -86,19 +78,3 @@ class Theme:
             self.link = Color.from_string(self.link)
             self.image = Color.from_string(self.image)
             self.horizontal_rule = Color.from_string(self.horizontal_rule)
-
-
-def load_theme() -> Theme:
-    """Load a theme from a file.
-
-    If the theme file is not found, a default theme is returned.
-    """
-    theme_file = Path(get_xdg_config_path(), *THEME_FILE_DEFINITION)
-    try:
-        if theme_file.exists():
-            with open(theme_file, "rb") as f:
-                config = tomllib.load(f)
-            return Theme(config)
-    except PermissionError as ex:
-        logger.warning("Unable to read theme file %s: %s", theme_file, str(ex))
-    return Theme()

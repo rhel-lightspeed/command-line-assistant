@@ -5,7 +5,7 @@ from argparse import Namespace
 
 from command_line_assistant.commands.cli import CommandContext, argument, command
 from command_line_assistant.rendering.renderers import Renderer
-from command_line_assistant.rendering.theme import load_theme
+from command_line_assistant.rendering.theme import Theme
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 )
 def feedback_command(args: Namespace, context: CommandContext) -> int:
     """Feedback command implementation."""
-    render = Renderer(args.plain, theme=load_theme())
+    render = Renderer(args.plain, theme=Theme())
 
     render.notice(
         "Do not include any personal information or other"

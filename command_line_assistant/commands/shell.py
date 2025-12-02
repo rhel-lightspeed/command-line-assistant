@@ -13,7 +13,7 @@ from command_line_assistant.commands.cli import (
 from command_line_assistant.exceptions import ShellCommandException
 from command_line_assistant.integrations import BASH_INTERACTIVE
 from command_line_assistant.rendering.renderers import Renderer
-from command_line_assistant.rendering.theme import load_theme
+from command_line_assistant.rendering.theme import Theme
 from command_line_assistant.terminal.reader import (
     TERMINAL_CAPTURE_FILE,
     start_capturing,
@@ -61,7 +61,7 @@ def shell_command(args: Namespace, context: CommandContext) -> int:
     Returns:
         int: Exit code
     """
-    render = Renderer(args.plain, theme=load_theme())
+    render = Renderer(args.plain, theme=Theme())
 
     try:
         # Handle different operations

@@ -19,7 +19,7 @@ from command_line_assistant.commands.history import history_command
 from command_line_assistant.commands.shell import shell_command
 from command_line_assistant.logger import setup_client_logging
 from command_line_assistant.rendering.renderers import Renderer
-from command_line_assistant.rendering.theme import load_theme
+from command_line_assistant.rendering.theme import Theme
 
 
 def register_subcommands() -> ArgumentParser:
@@ -54,7 +54,7 @@ def main() -> int:
     # specified the --plain flag. This allows the exceptions below that use
     # these renders to follow the user's preference.
     plain_in_argv = "-p" in sys.argv or "--plain" in sys.argv
-    renderer = Renderer(plain=plain_in_argv, theme=load_theme())
+    renderer = Renderer(plain=plain_in_argv, theme=Theme())
 
     try:
         stdin = read_stdin()
