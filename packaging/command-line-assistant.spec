@@ -12,7 +12,7 @@
 Name:           command-line-assistant
 Version:        0.5.0
 Release:        1%{?dist}
-Summary:        command-line assistant powered by RHEL Lightspeed
+Summary:        RHEL command line assistant powered by Red Hat Lightspeed
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
