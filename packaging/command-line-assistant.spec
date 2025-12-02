@@ -4,8 +4,6 @@
 %define symlink_binary_name cla
 %define daemon_binary_name clad
 
-%define selinux_policyver 41.27-1
-
 %define selinuxtype targeted
 %define modulename %{daemon_binary_name}
 
@@ -58,8 +56,18 @@ RHEL systems.
 Summary:    CLAD SELinux policy
 BuildArch:  noarch
 
+# Set selinux_ver depending on RHEL version
+%if 0%{?rhel} && 0%{?rhel} < 10
+%define selinux_ver 38.1.68
+%else
+# RHEL >= 10.2
+%define selinux_ver 42.1.12
+%endif
+
+Requires:       selinux-policy >= %{selinux_ver}
 Requires:       selinux-policy-%{selinuxtype}
 Requires(post): selinux-policy-%{selinuxtype}
+Requires(post): selinux-policy-base >= %{selinux_ver}
 
 %description selinux
 This package installs and sets up the  SELinux policy security module for clad.
