@@ -58,10 +58,10 @@ BuildArch:  noarch
 
 # Set selinux_ver depending on RHEL version
 %if 0%{?rhel} && 0%{?rhel} < 10
-%define selinux_ver 38.1.68
+# RHEL 9.7 and 10.1 GA versions
+%define selinux_ver 38.1.65
 %else
-# RHEL >= 10.2
-%define selinux_ver 42.1.12
+%define selinux_ver 42.1.7
 %endif
 
 Requires:       selinux-policy >= %{selinux_ver}
