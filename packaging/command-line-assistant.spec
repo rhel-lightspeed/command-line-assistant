@@ -8,7 +8,7 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.5.0
+Version:        0.5.1
 Release:        1%{?dist}
 Summary:        RHEL command line assistant powered by Red Hat Lightspeed
 
@@ -180,6 +180,9 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Wed Dec 10 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.1
+- Pin version for selinux-policy for rhel9 and rhel10
+
 * Thu Nov 13 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.0
 - Refactor commands module API
 - ANSI color rendering
@@ -277,7 +280,6 @@ fi
 - Update markdown text from "Suggestion" to "Snippet"
 - Fixed created_at dates for chat and history
 - Introduce a simple feedback mechanis,
-
 
 * Mon Jan 27 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.2.2
 - Add noreplace to config file in specfile

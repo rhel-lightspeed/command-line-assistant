@@ -38,7 +38,7 @@ XDG_CONFIG_DIRS := $(subst /,\/,$(DATA_DEVELOPMENT_PATH)/xdg)
 UV = $(shell command -v uv || echo "$$HOME/.local/bin/uv")
 
 PKGNAME := command-line-assistant
-VERSION := 0.5.0
+VERSION := 0.5.1
 
 default: help
 
