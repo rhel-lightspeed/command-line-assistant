@@ -1,5 +1,5 @@
 # Use CentOS Stream 10 as the base image
-FROM quay.io/fedora/fedora:42@sha256:c7af46d3945c14ca4ed5c8303b9969d39409494e0ed120e145e7ae2d05ea3e5e
+FROM quay.io/fedora/fedora:42@sha256:4a91156d13492d388084ad1c193b3a29446f6cd4a4e81f7c58b4f9864dfc4ff1
 
 # Install Python, pip, and development tools
 RUN dnf install -y \
