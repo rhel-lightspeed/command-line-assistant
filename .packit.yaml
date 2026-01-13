@@ -81,6 +81,8 @@ jobs:
     fmf_ref: "develop"
     tmt_plan: "level1"
     use_internal_tf: True
+    env:
+      CLA_TESTS_EVAL_MIN_PASS_RATE: 80
     targets:
       epel-9-x86_64:
         distros: [RHEL-9.8.0-Nightly]
