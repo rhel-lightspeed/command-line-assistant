@@ -1,1 +1,0 @@
-container-images/default.Containerfile
