@@ -10,6 +10,11 @@
 # are either a member or well-known contributor. Just
 # submit a PR to add yourself
 
+# For GitLab mirror. This must be first since CODEOWNERS is
+# last-match-wins and the specific rules below need to take
+# precedence.
+*                         @rhel-lightspeed
+
 # CLA codebase itself
 command_line_assistant/   @rhel-lightspeed/developers
 .github/                  @rhel-lightspeed/developers
