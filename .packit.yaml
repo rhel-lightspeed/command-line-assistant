@@ -20,18 +20,18 @@ jobs:
       - epel-10-aarch64
       - epel-10-ppc64le
       - epel-10-s390x
-      - fedora-41-x86_64
-      - fedora-41-aarch64
-      - fedora-41-ppc64le
-      - fedora-41-s390x
-      - fedora-42-x86_64
-      - fedora-42-aarch64
-      - fedora-42-ppc64le
-      - fedora-42-s390x
       - fedora-43-x86_64
       - fedora-43-aarch64
       - fedora-43-ppc64le
       - fedora-43-s390x
+      - fedora-44-x86_64
+      - fedora-44-aarch64
+      - fedora-44-ppc64le
+      - fedora-44-s390x
+      - fedora-rawhide-x86_64
+      - fedora-rawhide-aarch64
+      - fedora-rawhide-ppc64le
+      - fedora-rawhide-s390x
     actions:
       # do not get the version from a tag (git describe) but from the spec file
       get-current-version:
@@ -52,18 +52,18 @@ jobs:
       - epel-10-aarch64
       - epel-10-ppc64le
       - epel-10-s390x
-      - fedora-41-x86_64
-      - fedora-41-aarch64
-      - fedora-41-ppc64le
-      - fedora-41-s390x
-      - fedora-42-x86_64
-      - fedora-42-aarch64
-      - fedora-42-ppc64le
-      - fedora-42-s390x
       - fedora-43-x86_64
       - fedora-43-aarch64
       - fedora-43-ppc64le
       - fedora-43-s390x
+      - fedora-44-x86_64
+      - fedora-44-aarch64
+      - fedora-44-ppc64le
+      - fedora-44-s390x
+      - fedora-rawhide-x86_64
+      - fedora-rawhide-aarch64
+      - fedora-rawhide-ppc64le
+      - fedora-rawhide-s390x
     actions:
       # bump spec so we get release starting with 2 and hence all the default branch builds will
       # have higher NVR than all the PR builds
