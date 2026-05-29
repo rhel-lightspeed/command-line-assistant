@@ -81,17 +81,15 @@ jobs:
     fmf_ref: "develop"
     tmt_plan: "level1"
     use_internal_tf: True
-    env:
-      CLA_TESTS_EVAL_MIN_PASS_RATE: 80
     targets:
       epel-9-x86_64:
-        distros: [RHEL-9.8.0-Nightly]
+        distros: [RHEL-9.9.0-Nightly]
       epel-10-x86_64:
-        distros: [RHEL-10.2-Nightly]
+        distros: [RHEL-10.3-Nightly]
       epel-9-aarch64:
-        distros: [RHEL-9.8.0-Nightly]
+        distros: [RHEL-9.9.0-Nightly]
       epel-10-aarch64:
-        distros: [RHEL-10.2-Nightly]
+        distros: [RHEL-10.3-Nightly]
     tf_extra_params:
       environments:
         - settings:
