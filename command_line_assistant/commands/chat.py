@@ -407,7 +407,7 @@ def _submit_question(
     Returns:
         str: The response.
     """
-    spinner = Spinner(message="Asking RHEL Lightspeed", plain=plain)
+    spinner = Spinner(message="Asking the command line assistant", plain=plain)
     with spinner:
         response = _get_response(dbus, message_input, user_id)
 

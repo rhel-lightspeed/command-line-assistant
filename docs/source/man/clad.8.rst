@@ -20,9 +20,9 @@ To check status and logs, run the following::
 Description
 -----------
 
-Command line assistant daemon (clad) is the core of the command line assistant
-tooling. It manages the communication with Red Hat RHEL Lightspeed service,
-user history management and much more.
+The command line assistant daemon (clad) is the core of the command line assistant
+tooling. It handles the communication with Red Hat managed services,
+provides user history management and much more.
 
 Examples
 --------

@@ -228,7 +228,7 @@ def test_submit_with_rhsm_cert_oserror(mock_config, default_payload):
 
         with pytest.raises(
             RequestFailedError,
-            match="The system must be registered to use RHEL Lightspeed. For cloud-based systems, see: https://access.redhat.com/articles/7127962",
+            match="The system must be registered to use Red Hat managed services. For cloud-based systems, see: https://access.redhat.com/articles/7127962",
         ):
             query.submit(default_payload, config=mock_config)
 

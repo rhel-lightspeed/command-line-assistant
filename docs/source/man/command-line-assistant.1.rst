@@ -13,7 +13,7 @@ Command Line Assistant
 Description
 -----------
 
-The command line assistant powered by RHEL Lightspeed is an optional generative
+The command line assistant is an optional generative
 AI assistant available within the RHEL command line interface. The Command Line
 Assistant can help with several tasks such as::
 
