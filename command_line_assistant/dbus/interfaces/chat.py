@@ -3,11 +3,13 @@
 import logging
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 from dasbus.server.interface import dbus_interface
 from dasbus.server.template import InterfaceTemplate
 from dasbus.typing import Str, Structure
 
+from command_line_assistant.config.schemas.backend import RHSM_MANAGED_HOSTNAMES
 from command_line_assistant.constants import VERSION
 from command_line_assistant.daemon.database.manager import DatabaseManager
 from command_line_assistant.daemon.database.repository.chat import ChatRepository
@@ -254,6 +256,23 @@ class ChatInterface(InterfaceTemplate, DBusAuthorizationMixin):
             user_id,
         )
         return str(result[0].id)
+
+    def IsRedHatManagedEndpoint(self) -> bool:
+        """Return whether the configured backend endpoint is a Red Hat managed endpoint.
+
+        The daemon reads the configuration and checks if the configured endpoint
+        is in the list of known Red Hat managed endpoints. This allows unprivileged
+        client processes (which cannot read the config file directly) to determine
+        whether the Red Hat legal notice should be displayed.
+
+        Returns:
+            bool: True if the endpoint is a known Red Hat managed endpoint,
+                  False otherwise.
+        """
+        return (
+            urlparse(self.implementation.config.backend.endpoint).hostname
+            in RHSM_MANAGED_HOSTNAMES
+        )
 
     def CreateChat(self, user_id: Str, name: Str, description: Str) -> Str:
         """Create a new chat session for a given conversation.

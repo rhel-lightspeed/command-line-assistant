@@ -77,20 +77,56 @@ def test_feedback_command_submit_false(command_context, capsys, disable_stream_f
 
 
 def test_feedback_command_warning_message_content(
-    default_namespace, command_context, capsys, disable_stream_flush
+    mock_dbus_service, default_namespace, command_context, capsys, disable_stream_flush
 ):
-    """Test that the warning message contains expected content."""
+    """Test that the warning message contains expected content.
+
+    The conditional "may be used to improve..." sentence must NOT appear when
+    the daemon reports a non-managed endpoint.
+    """
+    mock_dbus_service.IsRedHatManagedEndpoint.return_value = False
 
     feedback.feedback_command.func(default_namespace, command_context)
 
     captured = capsys.readouterr()
     warning_output = captured.out
 
-    # Check key parts of the warning message
+    # Check key parts of the unconditional warning message
     assert "Do not include any personal information" in warning_output
     assert "other sensitive information" in warning_output
     assert "in your feedback" in warning_output
-    assert "may be used to improve Red Hat's products or services" in warning_output
+    # The RHSM sentence is conditional on the daemon reporting a managed endpoint
+    assert "may be used to improve Red Hat's products or services" not in warning_output
+
+
+def test_feedback_command_warning_managed_endpoint(
+    mock_dbus_service, command_context, capsys, disable_stream_flush
+):
+    """Test that the RHSM sentence IS shown when the daemon reports an RH managed endpoint."""
+    mock_dbus_service.IsRedHatManagedEndpoint.return_value = True
+
+    args = Namespace(submit=True, plain=True)
+    result = feedback.feedback_command.func(args, command_context)
+
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "Do not include any personal information" in captured.out
+    assert "may be used to improve Red Hat's products or services" in captured.out
+
+
+def test_feedback_command_warning_non_managed_endpoint(
+    mock_dbus_service, command_context, capsys, disable_stream_flush
+):
+    """Test that the RHSM sentence is NOT shown when the daemon reports a non-managed endpoint."""
+    mock_dbus_service.IsRedHatManagedEndpoint.return_value = False
+
+    args = Namespace(submit=True, plain=True)
+    result = feedback.feedback_command.func(args, command_context)
+
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "Do not include any personal information" in captured.out
+    assert "may be used to improve Red Hat's products or services" not in captured.out
 
 
 def test_feedback_command_success_message_content(

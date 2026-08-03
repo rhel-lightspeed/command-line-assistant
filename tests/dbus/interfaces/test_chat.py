@@ -72,6 +72,23 @@ def test_chat_interface_ask_question(chat_interface, mock_config, mock_authoriza
         assert reconstructed.message == expected_response
 
 
+def test_get_is_rhsm_managed_endpoint_false(chat_interface):
+    """Test that IsRedHatManagedEndpoint returns False for non-managed endpoints.
+
+    The mock_config fixture uses endpoint="http://localhost" which is not in
+    RHSM_MANAGED_ENDPOINTS.
+    """
+    result = chat_interface.IsRedHatManagedEndpoint()
+    assert result is False
+
+
+def test_get_is_rhsm_managed_endpoint_true(chat_interface, mock_config):
+    """Test that IsRedHatManagedEndpoint returns True for RH managed endpoints."""
+    mock_config.backend.endpoint = "https://cert.console.redhat.com/api/lightspeed/v1"
+    result = chat_interface.IsRedHatManagedEndpoint()
+    assert result is True
+
+
 def test_get_all_chat_from_user(chat_interface, mock_repository, mock_authorization):
     uid = "2345f9e6-dfea-11ef-9ae9-52b437312584"
     mock_repository.insert({"name": "test", "description": "test", "user_id": uid})

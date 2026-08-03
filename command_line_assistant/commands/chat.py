@@ -64,8 +64,11 @@ MAX_QUESTION_SIZE: int = 32_000
 #: Legal notice that we need to output once per user
 LEGAL_NOTICE = (
     "This feature uses AI technology. Do not include any personal information or "
-    "other sensitive information in your input. Interactions may be used to "
-    "improve Red Hat's products or services."
+    "other sensitive information in your input."
+)
+#: Additional legal notice shown only when connected to Red Hat managed endpoints
+LEGAL_NOTICE_RHSM = (
+    "Interactions may be used to improve Red Hat's products or services."
 )
 #: Always good to have legal message.
 ALWAYS_LEGAL_MESSAGE = "Always review AI-generated content prior to use."
@@ -357,16 +360,24 @@ def _create_chat_session(
     return dbus.chat_proxy.CreateChat(user_id, name, description)
 
 
-def _display_response(renderer: Renderer, response: str) -> None:
+def _display_response(
+    renderer: Renderer, response: str, show_rhsm_notice: bool = False
+) -> None:
     """Display message to the terminal.
 
     Args:
         renderer (Renderer): The renderer to use.
         response (str): The response to display.
+        show_rhsm_notice (bool): When True, also display the Red Hat managed
+            service legal notice about interactions being used to improve
+            products or services. Should only be True for Red Hat managed
+            endpoints. Defaults to False.
     """
 
     if _handle_legal_message():
         renderer.notice(LEGAL_NOTICE)
+        if show_rhsm_notice:
+            renderer.notice(LEGAL_NOTICE_RHSM)
 
     renderer.notice("─" * 72)
     renderer.normal("")
@@ -620,13 +631,13 @@ def _interactive_chat(
 
     input_source = _gather_input_sources(args)
     chat_id = _create_chat_session(dbus, user_id, name, description)
-
-    # Display banner message
-    render.normal(
-        "Welcome to the interactive mode for command line assistant! To exit, press Ctrl + C or type '.exit'.\nThe current session does not include running context."
-    )
+    is_rhsm_managed_endpoint = dbus.chat_proxy.IsRedHatManagedEndpoint()
 
     try:
+        # Display banner message
+        render.normal(
+            "Welcome to the interactive mode for command line assistant! To exit, press Ctrl + C or type '.exit'.\nThe current session does not include running context."
+        )
         while True:
             try:
                 question = input(">>> ").strip()
@@ -651,7 +662,11 @@ def _interactive_chat(
                 message_input=message_input,
                 plain=args.plain,
             )
-            _display_response(render, response)
+            _display_response(
+                render,
+                response,
+                show_rhsm_notice=is_rhsm_managed_endpoint,
+            )
     except KeyboardInterrupt:
         raise ChatCommandException(
             "Detected keyboard interrupt. Stopping interactive mode."
@@ -693,6 +708,7 @@ def _single_question(
 
     input_source = _gather_input_sources(args)
     message_input = _compose_message_input(render, context, input_source)
+    is_rhsm_managed_endpoint = dbus.chat_proxy.IsRedHatManagedEndpoint()
 
     try:
         chat_id = _create_chat_session(dbus, user_id, name, description)
@@ -703,8 +719,11 @@ def _single_question(
             message_input=message_input,
             plain=args.plain,
         )
-
-        _display_response(render, response)
+        _display_response(
+            render,
+            response,
+            show_rhsm_notice=is_rhsm_managed_endpoint,
+        )
         return 0
     except ValueError as e:
         message = f"Failed to get a response from LLM. {str(e)}"

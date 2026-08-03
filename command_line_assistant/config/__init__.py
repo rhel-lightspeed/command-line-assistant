@@ -67,7 +67,7 @@ def load_config_file() -> Config:
     config_file_path = Path(get_xdg_config_path(), *CONFIG_FILE_DEFINITION)
 
     try:
-        print(f"Loading configuration file from {config_file_path}")
+        logger.debug("Loading configuration file from %s", config_file_path)
         data = config_file_path.read_text()
         config_dict = tomllib.loads(data)
     except (FileNotFoundError, tomllib.TOMLDecodeError) as ex:
