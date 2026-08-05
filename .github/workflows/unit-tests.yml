@@ -59,12 +59,8 @@ jobs:
           env_vars: OS,PYTHON
           fail_ci_if_error: true
           verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       # https://docs.codecov.com/docs/test-analytics
       - name: Upload test results to Codecov
         if: ${{ !cancelled() && !env.ACT }}
         uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
