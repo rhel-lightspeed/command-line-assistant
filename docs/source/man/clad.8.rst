@@ -1,7 +1,7 @@
 .. _clad.8:
 
 =============================
-Command Line Assistant Daemon
+command line assistant daemon
 =============================
 
 Synopsis
@@ -147,7 +147,7 @@ Files
 Reference
 ---------
 
-1. Command Line Assistant Daemon source code: <https://github.com/rhel-lightspeed/command-line-assistant>
+1. command line assistant daemon source code: <https://github.com/rhel-lightspeed/command-line-assistant>
 
 Bugs
 ----

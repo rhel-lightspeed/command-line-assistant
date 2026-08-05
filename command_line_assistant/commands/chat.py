@@ -73,7 +73,7 @@ LEGAL_NOTICE_RHSM = (
 #: Always good to have legal message.
 ALWAYS_LEGAL_MESSAGE = "Always review AI-generated content prior to use."
 #: Default chat description when none is given
-DEFAULT_CHAT_DESCRIPTION = "Default Command Line Assistant Chat."
+DEFAULT_CHAT_DESCRIPTION = "Default command line assistant chat."
 #: Default chat name when none is given
 DEFAULT_CHAT_NAME = "default"
 

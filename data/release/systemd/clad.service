@@ -1,6 +1,6 @@
 [Unit]
 # Defines the service name and purpose
-Description=Command Line Assistant Daemon Service
+Description=command line assistant daemon service
 
 # Points to documentation
 Documentation=man:clad(8)
@@ -21,7 +21,7 @@ PrivateTmp=yes
 # Service will exit when the process exits (won't stay around)
 RemainAfterExit=no
 
-# The actual command to run the Command Line Assistant Daemon
+# The actual command to run the command line assistant daemon
 ExecStart=/usr/bin/clad
 
 # Filesystem access restrictions

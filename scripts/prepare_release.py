@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Script to manage release process for Command Line Assistant."""
+"""Script to manage release process for command line assistant."""
 
 import argparse
 import datetime

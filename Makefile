@@ -46,7 +46,7 @@ install-tools: ## Install required utilities/tools
 	@command -v uv > /dev/null || { echo >&2 "uv is not installed. Installing..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }
 	@$(UV) --version
 
-install: install-tools ## Sync all required dependencies for Command Line Assistant to work
+install: install-tools ## Sync all required dependencies for command line assistant to work
 	@$(UV) sync --extra dev --extra docs
 
 unit-test: ## Unit test cla

@@ -1,1 +1,1 @@
-"""This is the Command Line Assistant root module."""
+"""This is the command line assistant root module."""

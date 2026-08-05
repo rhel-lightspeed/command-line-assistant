@@ -1,7 +1,7 @@
 .. _command-line-assistant.1:
 
 ======================
-Command Line Assistant
+command line assistant
 ======================
 
 .. sphinx_argparse_cli::

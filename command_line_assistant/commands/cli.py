@@ -179,7 +179,7 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     parser = ArgumentParser(
         prog="c",
         description=(
-            "The Command Line Assistant is an "
+            "The command line assistant is an "
             "optional generative AI assistant available within the RHEL "
             "command line interface."
         ),
