@@ -1,0 +1,2 @@
+codecov:
+  token: e12dcb7e-19e1-4916-a9bb-bf25c4d88370 # notsecret  # repo-scoped, upload-only, stability in fork PRs
