@@ -9,7 +9,7 @@
 import os
 import sys
 
-project = "command line assistant"
+project = "command-line assistant"
 copyright = "2025, RHEL Lightspeed Team"
 author = "RHEL Lightspeed Team"
 release = version = "0.5.1"
@@ -67,6 +67,6 @@ html_static_path = ["_static"]
 # Man page configuration
 man_pages = [
     # (source_start_file, name, description, authors, manual_section)
-    ("man/command-line-assistant.1", "c", "command line assistant client", [author], 1),
-    ("man/clad.8", "clad", "command line assistant daemon", [author], 8),
+    ("man/command-line-assistant.1", "c", "command-line assistant client", [author], 1),
+    ("man/clad.8", "clad", "command-line assistant daemon", [author], 8),
 ]

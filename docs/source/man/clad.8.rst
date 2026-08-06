@@ -1,13 +1,13 @@
 .. _clad.8:
 
 =============================
-command line assistant daemon
+command-line assistant daemon
 =============================
 
 Synopsis
 --------
 
-The command line assistant daemon (clad), is a dbus activated daemon, meaning
+The command-line assistant daemon (clad), is a dbus activated daemon, meaning
 that, any interaction with it will activate the service when it receive a
 message in the expected channels, like this::
 
@@ -20,7 +20,7 @@ To check status and logs, run the following::
 Description
 -----------
 
-The command line assistant daemon (clad) is the core of the command line assistant
+The command-line assistant daemon (clad) is the core of the command-line assistant
 tooling. It handles the communication with Red Hat managed services,
 provides user history management and much more.
 
@@ -147,7 +147,7 @@ Files
 Reference
 ---------
 
-1. command line assistant daemon source code: <https://github.com/rhel-lightspeed/command-line-assistant>
+1. command-line assistant daemon source code: <https://github.com/rhel-lightspeed/command-line-assistant>
 
 Bugs
 ----

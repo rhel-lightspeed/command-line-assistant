@@ -14,7 +14,6 @@ Example:
     >>>         print(f"Hello, {args.name}")
     >>>     else:
     >>>         print("Hello, friend")
-```
 
 """
 
@@ -170,7 +169,7 @@ def _subcommand_used(args: list[str]) -> Optional[str]:
 
 
 def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
-    """Create the argument parser for command line assistant.
+    """Create the argument parser for command-line assistant.
 
     Returns:
         tuple[ArgumentParser, SubParsersAction]: The parent and subparser
@@ -179,9 +178,9 @@ def create_argument_parser() -> tuple[ArgumentParser, SubParsersAction]:
     parser = ArgumentParser(
         prog="c",
         description=(
-            "The command line assistant is an "
+            "The command-line assistant is an "
             "optional generative AI assistant available within the RHEL "
-            "command line interface."
+            "command-line interface."
         ),
         add_help=False,
     )

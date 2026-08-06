@@ -1,6 +1,6 @@
-# Contributing to command line assistant
+# Contributing to command-line assistant
 
-The following is a set of guidelines for contributing to command line assistant
+The following is a set of guidelines for contributing to command-line assistant
 codebase, which are hosted in the [RHEL Lightspeed
 Organization](https://github.com/rhel-lightspeed) on GitHub. These are mostly
 guidelines, not rules.
@@ -31,7 +31,7 @@ Git](https://docs.github.com/en/get-started/quickstart/set-up-git)
 
 ### Forking a repository
 
-Forking is necessary if you want to contribute with command line assistant, but
+Forking is necessary if you want to contribute with command-line assistant, but
 if you are unsure on how this work (Or what a fork is), head out to this
 quickstart guide from GitHub. [GitHub Quickstart - Fork a
 repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
@@ -71,7 +71,7 @@ installed, the command below will take care of it for you.
 make install
 ```
 
-### Asking questions through command line assistant
+### Asking questions through command-line assistant
 
 ```sh
 c "How to uninstall RHEL?"

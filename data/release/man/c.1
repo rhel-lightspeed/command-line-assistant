@@ -1,4 +1,5 @@
-.\" Man page generated from reStructuredText.
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
 .
 .
 .nr rst2man-indent-level 0
@@ -27,12 +28,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Dec 10, 2025" "0.5.1" "command line assistant"
+.TH "C" "1" "Aug 06, 2026" "0.5.1" "command-line assistant"
 .SH NAME
-c \- command line assistant client
+c \- command-line assistant client
 .SH SYNOPSIS
 .sp
-The command line assistant is an optional generative AI assistant available within the RHEL command line interface.
+The command\-line assistant is an optional generative AI assistant available within the RHEL command\-line interface.
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -41,16 +42,16 @@ c [\-\-debug] [\-h] [\-v] [\-p] {chat,feedback,history,shell} ...
 .EE
 .UNINDENT
 .UNINDENT
-.SS c optional arguments
+.SS c options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-\-debug\fP \- Enable debug logging information
+\fB\-\-debug\fP \- Enable debug logging information
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- Show help message and exit.
+\fB\-h\fP, \fB\-\-help\fP \- Show help message and exit.
 .IP \(bu 2
-\fI\%\-v\fP, \fI\%\-\-version\fP \- Show program version
+\fB\-v\fP, \fB\-\-version\fP \- Show program version
 .IP \(bu 2
-\fI\%\-p\fP, \fI\%\-\-plain\fP \- Enable plain output. This will disable colors, animations, and other rich content.
+\fB\-p\fP, \fB\-\-plain\fP \- Enable plain output. This will disable colors, animations, and other rich content.
 .UNINDENT
 .SS c chat
 .sp
@@ -68,32 +69,32 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-l] [\-d [DELETE]] [
 .SS c chat positional arguments
 .INDENT 0.0
 .IP \(bu 2
-\fI\%query_string\fP \- The question that will be sent to the LLM (default: \fB\fP)
+\fBquery_string\fP \- The question that will be sent to the LLM (default: \fB\fP)
 .UNINDENT
-.SS c chat optional arguments
+.SS c chat options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fB\-h\fP, \fB\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fI\%\-a\fP \fBATTACHMENT\fP, \fI\%\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query (default: \fBNone\fP)
+\fB\-a\fP \fBATTACHMENT\fP, \fB\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query
 .IP \(bu 2
-\fI\%\-i\fP, \fI\%\-\-interactive\fP \- Start an interactive chat session
+\fB\-i\fP, \fB\-\-interactive\fP \- Start an interactive chat session
 .IP \(bu 2
-\fI\%\-w\fP \fBWITH_OUTPUT\fP, \fI\%\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 1 to retrieve the latest output, 2 to and so on. First, enable the terminal capture with \fB\(aqc shell \-\-enable\-capture\(aq\fP for this option to work. (default: \fBNone\fP)
+\fB\-w\fP \fBWITH_OUTPUT\fP, \fB\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 1 to retrieve the latest output, 2 to and so on. First, enable the terminal capture with \fB\(aqc shell \-\-enable\-capture\(aq\fP for this option to work.
 .IP \(bu 2
-\fI\%\-l\fP, \fI\%\-\-list\fP \- List all chats
+\fB\-l\fP, \fB\-\-list\fP \- List all chats
 .IP \(bu 2
-\fI\%\-d\fP \fBDELETE\fP, \fI\%\-\-delete\fP \fBDELETE\fP \- Delete a chat session. Specify the chat session by its name. (default: \fB\fP)
+\fB\-d\fP \fBDELETE\fP, \fB\-\-delete\fP \fBDELETE\fP \- Delete a chat session. Specify the chat session by its name. (default: \fB\fP)
 .IP \(bu 2
-\fI\%\-\-delete\-all\fP \- Delete all chats
+\fB\-\-delete\-all\fP \- Delete all chats
 .IP \(bu 2
-\fI\%\-n\fP \fBNAME\fP, \fI\%\-\-name\fP \fBNAME\fP \- Give a name to the chat session. (default: \fBNone\fP)
+\fB\-n\fP \fBNAME\fP, \fB\-\-name\fP \fBNAME\fP \- Give a name to the chat session.
 .IP \(bu 2
-\fI\%\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session. (default: \fBNone\fP)
+\fB\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session.
 .UNINDENT
 .SS c feedback
 .sp
-Submit feedback about the command line assistant responses and interactions.
+Submit feedback about the command\-line assistant responses and interactions.
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -102,12 +103,12 @@ c feedback [\-h] [\-\-submit]
 .EE
 .UNINDENT
 .UNINDENT
-.SS c feedback optional arguments
+.SS c feedback options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fB\-h\fP, \fB\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fI\%\-\-submit\fP \- Submit feedback (default action)
+\fB\-\-submit\fP \- Submit feedback (default action)
 .UNINDENT
 .SS c history
 .sp
@@ -120,24 +121,24 @@ c history [\-h] [\-\-from\-chat FROM_CHAT] [\-f] [\-l] [\-\-filter FILTER] [\-a]
 .EE
 .UNINDENT
 .UNINDENT
-.SS c history optional arguments
+.SS c history options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fB\-h\fP, \fB\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fI\%\-\-from\-chat\fP \fBFROM_CHAT\fP \- Specify from which chat we should retrieve the history. Default chat is \fB\(aqdefault\(aq\fP (default: \fBdefault\fP)
+\fB\-\-from\-chat\fP \fBFROM_CHAT\fP \- Specify from which chat we should retrieve the history. Default chat is \fB\(aqdefault\(aq\fP (default: \fBdefault\fP)
 .IP \(bu 2
-\fI\%\-f\fP, \fI\%\-\-first\fP \- Get the first conversation from history.
+\fB\-f\fP, \fB\-\-first\fP \- Get the first conversation from history.
 .IP \(bu 2
-\fI\%\-l\fP, \fI\%\-\-last\fP \- Get the last conversation from history.
+\fB\-l\fP, \fB\-\-last\fP \- Get the last conversation from history.
 .IP \(bu 2
-\fI\%\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history. (default: \fBNone\fP)
+\fB\-\-filter\fP \fBFILTER\fP \- Search for a specific keyword of text in the history.
 .IP \(bu 2
-\fI\%\-a\fP, \fI\%\-\-all\fP \- Get all the conversation history.
+\fB\-a\fP, \fB\-\-all\fP \- Get all the conversation history.
 .IP \(bu 2
-\fI\%\-c\fP, \fI\%\-\-clear\fP \- Clear the entire history for a given chat. Use \-\-from\-chat with its given name to clear that particular history.
+\fB\-c\fP, \fB\-\-clear\fP \- Clear the entire history for a given chat. Use \-\-from\-chat with its given name to clear that particular history.
 .IP \(bu 2
-\fI\%\-\-clear\-all\fP \- Clear the entire history.
+\fB\-\-clear\-all\fP \- Clear the entire history.
 .UNINDENT
 .SS c shell
 .sp
@@ -150,22 +151,22 @@ c shell [\-h] [\-\-enable\-capture] [\-\-enable\-interactive] [\-\-disable\-inte
 .EE
 .UNINDENT
 .UNINDENT
-.SS c shell optional arguments
+.SS c shell options
 .INDENT 0.0
 .IP \(bu 2
-\fI\%\-h\fP, \fI\%\-\-help\fP \- show this help message and exit
+\fB\-h\fP, \fB\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fI\%\-\-enable\-capture\fP \- Enable terminal capture for the current terminal session.
+\fB\-\-enable\-capture\fP \- Enable terminal capture for the current terminal session.
 .IP \(bu 2
-\fI\%\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, hit Ctrl + G in your terminal to enable interactive mode.
+\fB\-\-enable\-interactive\fP \- Enable the shell integration for interactive mode on the system. Currently, only BASH is supported. After the interactive was sourced, hit Ctrl + G in your terminal to enable interactive mode.
 .IP \(bu 2
-\fI\%\-\-disable\-interactive\fP \- Disable the shell integration for interactive mode on the system.
+\fB\-\-disable\-interactive\fP \- Disable the shell integration for interactive mode on the system.
 .UNINDENT
 .SH DESCRIPTION
 .sp
-The command line assistant is an optional generative
-AI assistant available within the RHEL command line interface. The Command Line
-Assistant can help with several tasks such as:
+The command\-line assistant is an optional generative
+AI assistant available within the RHEL command\-line interface. The command\-line
+assistant can help with several tasks such as:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -178,7 +179,7 @@ Assistant can help with several tasks such as:
 .UNINDENT
 .UNINDENT
 .sp
-The command line assistant provides a natural language interface, and can
+The command\-line assistant provides a natural language interface, and can
 incorporate information from resources such as the RHEL documentation.
 .SH EXAMPLES
 .INDENT 0.0
@@ -332,7 +333,7 @@ echo \(dqhow do I solve this?\(dq | c \-a log_with_error.log \(dqplease?\(dq
 \fBHistory management\fP
 .INDENT 2.0
 .INDENT 3.5
-With command line assistant, you can also check your conversation history. For that, use the following command to retrieve all user
+With command\-line assistant, you can also check your conversation history. For that, use the following command to retrieve all user
 history:
 .INDENT 0.0
 .INDENT 3.5
@@ -382,7 +383,7 @@ $ c history \-\-clear
 \fBShell integrations\fP
 .INDENT 2.0
 .INDENT 3.5
-With command line assistant, you can also enable shell integrations to help
+With command\-line assistant, you can also enable shell integrations to help
 in your experience:
 .INDENT 0.0
 .INDENT 3.5
@@ -504,21 +505,20 @@ State file that captures the terminal screen and store it as json.
 .SH REFERENCE
 .INDENT 0.0
 .IP 1. 3
-Command line assistant source code: <\X'tty: link https://github.com/rhel-lightspeed/command-line-assistant'\fI\%https://github.com/rhel\-lightspeed/command\-line\-assistant\fP\X'tty: link'>
+Command\-line assistant source code: <\%<https://\:github\:.com/\:rhel-lightspeed/\:command-line-assistant>>
 .UNINDENT
 .SH BUGS
 .sp
 To submit bug reports, please use the following link:
-<\X'tty: link https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=1&components=12410340'\fI\%https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=1&components=12410340\fP\X'tty: link'>
+<\%<https://\:issues\:.redhat\:.com/\:secure/\:CreateIssueDetails!init\:.jspa?\:pid=12332745&\:priority=10200&\:issuetype=1&\:components=12410340>>
 .sp
 In case it is a feature request, please use the following link:
-<\X'tty: link https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=3&components=12410340'\fI\%https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332745&priority=10200&issuetype=3&components=12410340\fP\X'tty: link'>
+<\%<https://\:issues\:.redhat\:.com/\:secure/\:CreateIssueDetails!init\:.jspa?\:pid=12332745&\:priority=10200&\:issuetype=3&\:components=12410340>>
 .SH SEE ALSO
 .sp
 \fBclad(8)\fP
-.SH AUTHOR
+.SH Author
 RHEL Lightspeed Team
-.SH COPYRIGHT
+.SH Copyright
 2025, RHEL Lightspeed Team
-.\" Generated by docutils manpage writer.
-.
+.\" End of generated man page.

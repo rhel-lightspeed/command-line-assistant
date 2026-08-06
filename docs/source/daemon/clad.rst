@@ -1,4 +1,4 @@
-command line assistant daemon
+command-line assistant daemon
 =============================
 
 .. automodule:: command_line_assistant.daemon.clad

@@ -73,7 +73,7 @@ LEGAL_NOTICE_RHSM = (
 #: Always good to have legal message.
 ALWAYS_LEGAL_MESSAGE = "Always review AI-generated content prior to use."
 #: Default chat description when none is given
-DEFAULT_CHAT_DESCRIPTION = "Default command line assistant chat."
+DEFAULT_CHAT_DESCRIPTION = "Default command-line assistant chat."
 #: Default chat name when none is given
 DEFAULT_CHAT_NAME = "default"
 
@@ -407,7 +407,7 @@ def _submit_question(
     Returns:
         str: The response.
     """
-    spinner = Spinner(message="Asking the command line assistant", plain=plain)
+    spinner = Spinner(message="Asking the command-line assistant", plain=plain)
     with spinner:
         response = _get_response(dbus, message_input, user_id)
 
@@ -636,7 +636,7 @@ def _interactive_chat(
     try:
         # Display banner message
         render.normal(
-            "Welcome to the interactive mode for command line assistant! To exit, press Ctrl + C or type '.exit'.\nThe current session does not include running context."
+            "Welcome to the interactive mode for command-line assistant! To exit, press Ctrl + C or type '.exit'.\nThe current session does not include running context."
         )
         while True:
             try:
