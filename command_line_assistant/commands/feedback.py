@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @command(
     "feedback",
-    help="Submit feedback about the Command Line Assistant responses and interactions.",
+    help="Submit feedback about the command-line assistant responses and interactions.",
 )
 @argument(
     "--submit",

@@ -2,7 +2,7 @@
 
 #: Bash interactive session for c.
 BASH_INTERACTIVE: str = r"""
-# Command Line Assistant Interactive Mode Integration
+# command-line assistant interactive mode integration
 __c_interactive() {
     # Save current terminal state
     local old_tty=$(stty -g)
@@ -25,7 +25,7 @@ __c_interactive() {
     if command -v $c_binary >/dev/null 2>&1; then
         $c_binary --interactive
     else
-        echo "Error: Command Line Assistant is not installed"
+        echo "Error: command-line assistant is not installed"
         return 1
     fi
 

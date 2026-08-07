@@ -1,7 +1,7 @@
 .. _command-line-assistant.1:
 
 ======================
-Command Line Assistant
+command-line assistant
 ======================
 
 .. sphinx_argparse_cli::
@@ -13,16 +13,16 @@ Command Line Assistant
 Description
 -----------
 
-The command line assistant powered by RHEL Lightspeed is an optional generative
-AI assistant available within the RHEL command line interface. The Command Line
-Assistant can help with several tasks such as::
+The command-line assistant is an optional generative
+AI assistant available within the RHEL command-line interface. The command-line
+assistant can help with several tasks such as::
 
     *. Answering RHEL related questions
     *. Assisting with troubleshooting
     *. Assisting with understanding log entries
     *. And many other tasks.
 
-The command line assistant provides a natural language interface, and can
+The command-line assistant provides a natural language interface, and can
 incorporate information from resources such as the RHEL documentation.
 
 Examples
@@ -95,7 +95,7 @@ Examples
 
 * **History management**
 
-    With command line assistant, you can also check your conversation history. For that, use the following command to retrieve all user
+    With command-line assistant, you can also check your conversation history. For that, use the following command to retrieve all user
     history::
 
         $ c history --all
@@ -118,7 +118,7 @@ Examples
 
 * **Shell integrations**
 
-    With command line assistant, you can also enable shell integrations to help
+    With command-line assistant, you can also enable shell integrations to help
     in your experience::
 
         $ c shell --enable-interactive
@@ -210,7 +210,7 @@ Files
 Reference
 ---------
 
-1. Command line assistant source code: <https://github.com/rhel-lightspeed/command-line-assistant>
+1. Command-line assistant source code: <https://github.com/rhel-lightspeed/command-line-assistant>
 
 Bugs
 ----

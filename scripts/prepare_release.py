@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Script to manage release process for Command Line Assistant."""
+"""Script to manage release process for command-line assistant."""
 
 import argparse
 import datetime
@@ -292,7 +292,7 @@ def main() -> int:
         return 1
 
     parser = argparse.ArgumentParser(
-        description="Manage Command Line Assistant releases"
+        description="Manage command-line assistant releases"
     )
     parser.add_argument("version", help="New version number (format: X.Y.Z)")
     parser.add_argument(

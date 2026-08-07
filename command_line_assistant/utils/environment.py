@@ -20,7 +20,7 @@ def get_xdg_state_path() -> Path:
 
     In case it is not present, this function will return the default path that
     is `~/.local/state`, which is where we want to place temporary state files for
-    Command Line Assistant.
+    command-line assistant.
 
     See: https://specifications.freedesktop.org/basedir-spec/latest/
     """
@@ -39,7 +39,7 @@ def get_xdg_data_path() -> Path:
 
     In case it is not present, this function will return the default path that
     is `~/.local/share`, which is where we want to place data files for
-    Command Line Assistant.
+    command-line assistant.
 
     See: https://specifications.freedesktop.org/basedir-spec/latest/
     """
@@ -54,7 +54,7 @@ def get_xdg_config_path() -> Path:
 
     In case it is not present, this function will return the default path that
     is `/etc/xdg`, which is where we want to locate our configuration file for
-    Command Line Assistant.
+    command-line assistant.
 
     $XDG_CONFIG_DIRS defines the preference-ordered set of base directories to
     search for configuration files in addition to the $XDG_CONFIG_HOME base
