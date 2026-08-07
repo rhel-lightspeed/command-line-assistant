@@ -7,6 +7,15 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+#: Hostnames of Red Hat managed endpoints that require displaying the legal
+#: notice about interactions being used to improve products or services.
+#: Only the hostname is stored here so that any API version or path on a
+#: managed host is correctly identified without requiring updates to this list.
+RHSM_MANAGED_HOSTNAMES: tuple[str, ...] = (
+    "cert.console.redhat.com",
+    "cert.console.stage.redhat.com",
+)
+
 
 @dataclasses.dataclass
 class AuthSchema:

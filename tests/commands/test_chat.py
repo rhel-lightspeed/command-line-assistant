@@ -493,6 +493,35 @@ def test_display_response(plain, capsys, tmp_path, monkeypatch, disable_stream_f
     assert "" in captured.out
 
 
+def test_display_response_without_rhsm_notice(
+    capsys, tmp_path, monkeypatch, disable_stream_flush
+):
+    """Test that the RHSM legal notice is not shown when show_rhsm_notice=False."""
+    monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+
+    chat._display_response(
+        Renderer(plain=True), "test response", show_rhsm_notice=False
+    )
+
+    captured = capsys.readouterr()
+    assert "Interactions may be used to improve" not in captured.out
+
+
+def test_display_response_with_rhsm_notice(
+    capsys, tmp_path, monkeypatch, disable_stream_flush
+):
+    """Test that the RHSM legal notice is shown when show_rhsm_notice=True."""
+    monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+
+    chat._display_response(Renderer(plain=True), "test response", show_rhsm_notice=True)
+
+    captured = capsys.readouterr()
+    assert (
+        "Interactions may be used to improve Red Hat's products or services."
+        in captured.out
+    )
+
+
 def test_submit_question_success(mock_dbus_service):
     """Test submitting question successfully."""
 
