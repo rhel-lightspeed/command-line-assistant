@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   generate:
-    name: Generate  builds
+    name: Generate builds
     runs-on: ubuntu-latest
     steps:
       - uses: olegtarasov/get-tag@9a8716825750e73195b02db42777b92ffe960605 # v2.1.4
@@ -26,7 +26,7 @@ jobs:
         run: |
           # TODO(r0x0d): Refactor this https://issues.redhat.com/browse/RSPEED-339
           sudo apt update -y
-          sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
+          sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 -y
           make install
 
       - name: Generate distribution tarball
