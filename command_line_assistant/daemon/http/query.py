@@ -88,7 +88,7 @@ def submit(payload: dict, config: Config) -> str:
         # the system is not registered and raise a very specific error message.
         if "/etc/pki/consumer/cert.pem" in str(exc):
             raise RequestFailedError(
-                "The system must be registered to use RHEL Lightspeed. For cloud-based systems, see: https://access.redhat.com/articles/7127962"
+                "The system must be registered to use Red Hat managed services. For cloud-based systems, see: https://access.redhat.com/articles/7127962"
             ) from exc
         raise exc
 

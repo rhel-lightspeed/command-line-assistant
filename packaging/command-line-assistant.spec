@@ -10,7 +10,7 @@
 Name:           command-line-assistant
 Version:        0.5.1
 Release:        1%{?dist}
-Summary:        RHEL command line assistant powered by Red Hat Lightspeed
+Summary:        RHEL command-line assistant
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
@@ -45,7 +45,7 @@ Requires:       python3-tomli
 %{?python_disable_dependency_generator}
 
 %description
-With the command-line assistant powered by RHEL Lightspeed, you can get expert
+With the command-line assistant, you can get expert
 guidance and assistance with managing RHEL right from your command line, all by
 using natural language. The generative AI that powers the command-line assistant
 incorporates information from the RHEL product documentation and Red Hat

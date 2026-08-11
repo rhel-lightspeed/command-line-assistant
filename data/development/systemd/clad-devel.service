@@ -1,5 +1,5 @@
 [Unit]
-Description=Command Line Assistant Daemon Development Service
+Description=command-line assistant daemon development service
 Documentation=https://github.com/rhel-lightspeed/command-line-assistant
 After=network.service
 
