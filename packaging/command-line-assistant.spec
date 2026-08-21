@@ -9,7 +9,7 @@
 
 Name:           command-line-assistant
 Version:        0.5.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        RHEL command-line assistant
 
 License:        Apache-2.0
@@ -125,6 +125,11 @@ ln -sr %{buildroot}%{_mandir}/man1/%{binary_name}.1 %{buildroot}%{_mandir}/man1/
 
 %post
 %systemd_post %{daemon_binary_name}.service
+# Reload D-Bus so newly installed system-services are activatable (RSPEED-1759).
+# Harmless if the broker already watches that directory via inotify.
+if [ -S /run/dbus/system_bus_socket ]; then
+    /usr/bin/busctl --system call org.freedesktop.DBus / org.freedesktop.DBus ReloadConfig >/dev/null 2>&1 || :
+fi
 
 %post selinux
 %selinux_modules_install -s %{selinuxtype} %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
@@ -180,6 +185,9 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Fri Aug 21 2026 Pranav Dwivedi <dwivedipranav2021@gmail.com> - 0.5.2-2
+- Reload D-Bus after install so clad.service is immediately bus-activatable (RSPEED-1759)
+
 * Wed Dec 10 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.1
 - Pin version for selinux-policy for rhel9 and rhel10
 
