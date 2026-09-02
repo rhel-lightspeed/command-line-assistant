@@ -91,8 +91,10 @@ SystemCallFilter=@system-service
 SystemCallErrorNumber=EPERM
 
 # Additional security hardening
-# Prevents memory from being both writable and executable
-MemoryDenyWriteExecute=true
+# dasbus/PyGObject needs libffi closures. MemoryDenyWriteExecute
+# blocks ffi_closure_alloc() and logs "could not allocate closure"
+# on ppc64le (RHEL 10). See RSPEED-1912.
+MemoryDenyWriteExecute=false
 
 # Resource limitations
 # Sets maximum number of open files
