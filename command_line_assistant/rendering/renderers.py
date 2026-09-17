@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 from typing import Optional
 
-from command_line_assistant.rendering.colors import colorize
+from command_line_assistant.rendering.colors import Color, Style, colorize, stylize
 from command_line_assistant.rendering.stream import StreamWriter
 from command_line_assistant.rendering.theme import Theme
 
@@ -124,3 +124,17 @@ class Renderer:
             self._stream_writer.write_line(message)
         else:
             self._stream_writer.write_markdown_chunk(message)
+
+    def deprecation(self, message: str, prefix: str = "Deprecated: ") -> None:
+        """Render a deprecation message with a bold red prefix and red body.
+
+        Args:
+            message: Text to render
+            prefix: Bold prefix text (default: "Deprecated: ")
+        """
+        if self._plain:
+            self._stream_writer.write_line(prefix + message)
+        else:
+            bold_prefix = stylize(colorize(prefix, Color.RED), Style.BOLD)
+            body = colorize(message, Color.RED)
+            self._stream_writer.write_line(bold_prefix + body)
