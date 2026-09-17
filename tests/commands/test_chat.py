@@ -8,6 +8,7 @@ import pytest
 
 from command_line_assistant.commands import chat
 from command_line_assistant.commands.chat import (
+    DEPRECATION_NOTICE,
     _handle_legal_message,
 )
 from command_line_assistant.commands.cli import CommandContext
@@ -755,3 +756,37 @@ def test_gather_input_sources(default_namespace, monkeypatch):
     assert result.attachment == "test"
     assert result.attachment_mimetype == "test"
     assert result.terminal_output == "test"
+
+
+class TestDeprecationNotice:
+    """Test cases for the deprecation notice in the chat command."""
+
+    def test_display_response_shows_deprecation_on_first_call(
+        self, capsys, tmp_path, monkeypatch, disable_stream_flush
+    ):
+        """Test that the deprecation notice is displayed on the first invocation."""
+        monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+
+        chat._display_response(Renderer(plain=True), "test response")
+
+        captured = capsys.readouterr()
+        assert "goose-redhat" in captured.out
+        assert "https://access.redhat.com/articles/7142302" in captured.out
+
+    def test_display_response_hides_deprecation_on_second_call(
+        self, capsys, tmp_path, monkeypatch, disable_stream_flush
+    ):
+        """Test that the deprecation notice is NOT displayed on subsequent invocations
+        in the same session (same parent PID)."""
+        monkeypatch.setattr(chat, "get_xdg_state_path", lambda: tmp_path)
+
+        # First call - triggers the legal/deprecation state file write
+        chat._display_response(Renderer(plain=True), "first response")
+        _ = capsys.readouterr()  # discard first output
+
+        # Second call - should NOT show deprecation
+        chat._display_response(Renderer(plain=True), "second response")
+        captured = capsys.readouterr()
+
+        assert "goose-redhat" not in captured.out
+        assert "second response" in captured.out
