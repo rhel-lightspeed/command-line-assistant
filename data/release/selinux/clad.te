@@ -80,3 +80,4 @@ domain_use_interactive_fds(clad_t)
 manage_files_pattern(clad_t, clad_tmpfs_t, clad_tmpfs_t)
 fs_tmpfs_filetrans(clad_t, clad_tmpfs_t, file)
 can_exec(clad_t, clad_tmpfs_t)
+allow clad_t self:process execmem;
