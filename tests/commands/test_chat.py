@@ -8,7 +8,6 @@ import pytest
 
 from command_line_assistant.commands import chat
 from command_line_assistant.commands.chat import (
-    DEPRECATION_NOTICE,
     _handle_legal_message,
 )
 from command_line_assistant.commands.cli import CommandContext
