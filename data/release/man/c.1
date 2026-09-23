@@ -28,7 +28,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "C" "1" "Aug 11, 2026" "0.5.2" "command-line assistant"
+.TH "C" "1" "Sep 23, 2026" "0.5.3" "command-line assistant"
 .SH NAME
 c \- command-line assistant client
 .SH SYNOPSIS
@@ -76,21 +76,21 @@ c chat [\-h] [\-a [ATTACHMENT]] [\-i] [\-w [WITH_OUTPUT]] [\-l] [\-d [DELETE]] [
 .IP \(bu 2
 \fB\-h\fP, \fB\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fB\-a\fP \fBATTACHMENT\fP, \fB\-\-attachment\fP \fBATTACHMENT\fP \- File attachment to be read and sent alongside the query
+\fB\-a\fP \fB[ATTACHMENT]\fP, \fB\-\-attachment\fP \fB[ATTACHMENT]\fP \- File attachment to be read and sent alongside the query
 .IP \(bu 2
 \fB\-i\fP, \fB\-\-interactive\fP \- Start an interactive chat session
 .IP \(bu 2
-\fB\-w\fP \fBWITH_OUTPUT\fP, \fB\-\-with\-output\fP \fBWITH_OUTPUT\fP \- Add output from terminal as context for the query. Use 1 to retrieve the latest output, 2 to and so on. First, enable the terminal capture with \fB\(aqc shell \-\-enable\-capture\(aq\fP for this option to work.
+\fB\-w\fP \fB[WITH_OUTPUT]\fP, \fB\-\-with\-output\fP \fB[WITH_OUTPUT]\fP \- Add output from terminal as context for the query. Use 1 to retrieve the latest output, 2 to and so on. First, enable the terminal capture with \fB\(aqc shell \-\-enable\-capture\(aq\fP for this option to work.
 .IP \(bu 2
 \fB\-l\fP, \fB\-\-list\fP \- List all chats
 .IP \(bu 2
-\fB\-d\fP \fBDELETE\fP, \fB\-\-delete\fP \fBDELETE\fP \- Delete a chat session. Specify the chat session by its name. (default: \fB\fP)
+\fB\-d\fP \fB[DELETE]\fP, \fB\-\-delete\fP \fB[DELETE]\fP \- Delete a chat session. Specify the chat session by its name. (default: \fB\fP)
 .IP \(bu 2
 \fB\-\-delete\-all\fP \- Delete all chats
 .IP \(bu 2
-\fB\-n\fP \fBNAME\fP, \fB\-\-name\fP \fBNAME\fP \- Give a name to the chat session.
+\fB\-n\fP \fB[NAME]\fP, \fB\-\-name\fP \fB[NAME]\fP \- Give a name to the chat session.
 .IP \(bu 2
-\fB\-\-description\fP \fBDESCRIPTION\fP \- Give a description to the chat session.
+\fB\-\-description\fP \fB[DESCRIPTION]\fP \- Give a description to the chat session.
 .UNINDENT
 .SS c feedback
 .sp
@@ -126,7 +126,7 @@ c history [\-h] [\-\-from\-chat FROM_CHAT] [\-f] [\-l] [\-\-filter FILTER] [\-a]
 .IP \(bu 2
 \fB\-h\fP, \fB\-\-help\fP \- show this help message and exit
 .IP \(bu 2
-\fB\-\-from\-chat\fP \fBFROM_CHAT\fP \- Specify from which chat we should retrieve the history. Default chat is \fB\(aqdefault\(aq\fP (default: \fBdefault\fP)
+\fB\-\-from\-chat\fP \fBFROM_CHAT\fP \- Specify from which chat we should retrieve the history. Default chat is \fB\(aqdefault\(aq\fP
 .IP \(bu 2
 \fB\-f\fP, \fB\-\-first\fP \- Get the first conversation from history.
 .IP \(bu 2
