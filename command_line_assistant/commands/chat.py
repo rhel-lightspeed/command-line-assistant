@@ -66,6 +66,11 @@ LEGAL_NOTICE = (
     "This feature uses AI technology. Do not include any personal information or "
     "other sensitive information in your input."
 )
+DEPRECATION_NOTICE = (
+    "This client is deprecated, with goose-redhat being the recommended "
+    "replacement client to use when accessing the RHEL command-line assistant. "
+    "For more details, see: https://access.redhat.com/articles/7142302"
+)
 #: Additional legal notice shown only when connected to Red Hat managed endpoints
 LEGAL_NOTICE_RHSM = (
     "Interactions may be used to improve Red Hat's products or services."
@@ -375,6 +380,7 @@ def _display_response(
     """
 
     if _handle_legal_message():
+        renderer.deprecation(DEPRECATION_NOTICE)
         renderer.notice(LEGAL_NOTICE)
         if show_rhsm_notice:
             renderer.notice(LEGAL_NOTICE_RHSM)

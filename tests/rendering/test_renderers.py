@@ -1,6 +1,46 @@
 import pytest
 
 from command_line_assistant.rendering import renderers
+from command_line_assistant.rendering.colors import Color, Style
+from command_line_assistant.rendering.renderers import Renderer
+from command_line_assistant.rendering.theme import Theme
+
+
+class TestDeprecationRenderer:
+    """Test cases for the Renderer.deprecation() method."""
+
+    def test_deprecation_plain_mode(self, capsys, disable_stream_flush):
+        """Test deprecation message in plain mode outputs prefix + message without ANSI codes."""
+        renderer = Renderer(plain=True)
+        renderer.deprecation("test message")
+
+        captured = capsys.readouterr()
+        assert "Deprecated: test message" in captured.out
+        # Plain mode should not contain ANSI escape codes
+        assert "\033[" not in captured.out
+
+    def test_deprecation_custom_prefix(self, capsys, disable_stream_flush):
+        """Test deprecation message with a custom prefix."""
+        renderer = Renderer(plain=True)
+        renderer.deprecation("test message", prefix="Warning: ")
+
+        captured = capsys.readouterr()
+        assert "Warning: test message" in captured.out
+        assert "Deprecated: " not in captured.out
+
+    def test_deprecation_colored_mode(self, capsys, disable_stream_flush):
+        """Test deprecation message in colored mode outputs bold red prefix and red body."""
+        renderer = Renderer(plain=False, theme=Theme())
+        renderer.deprecation("test message")
+
+        captured = capsys.readouterr()
+        # Should contain the text
+        assert "Deprecated: " in captured.out
+        assert "test message" in captured.out
+        # Should contain RED ANSI code (error color)
+        assert Color.RED.value in captured.out
+        # Should contain BOLD ANSI code for the prefix
+        assert Style.BOLD.value in captured.out
 
 
 @pytest.mark.parametrize(
